@@ -4,23 +4,23 @@ import AnotherError from './errors/anotherError'
 import express from 'express'
 import { createError } from './errors/createError'
 
-export const sendEmail = async (reciever: string, subject: string, body: string,next:express.NextFunction) => {
+export const sendEmail = async (reciever: string, subject: string, body: string, next?: express.NextFunction): Promise<boolean> => {
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
-    secure: false, // true for 465, false for other ports
+    secure: false,
     auth: {
-      user: variables.WORKSPACE_EMAIL, // Your full Google Workspace email address
-      pass: variables.WORKSPACE_PASSWORD, // Google Workspace password
+      user: variables.WORKSPACE_EMAIL,
+      pass: variables.WORKSPACE_PASSWORD,
     },
     tls: {
-      rejectUnauthorized: true, // Enforce SSL certificate validation
+      rejectUnauthorized: true,
     },
   })
   const hasHTMLTags = /<[a-z][\s\S]*>/i.test(body)
   const mailOptions = {
-    from: variables.WORKSPACE_EMAIL, // Use your Google Workspace email
-    to: reciever, // The email address to send to
+    from: variables.WORKSPACE_EMAIL,
+    to: reciever,
     subject: subject,
     text: body,
     ...(hasHTMLTags ? { html: body } : {}),
@@ -31,6 +31,6 @@ export const sendEmail = async (reciever: string, subject: string, body: string,
     return true
   } catch (error) {
     console.error('Error sending email:', error)
-    throw error
+    return false
   }
 }

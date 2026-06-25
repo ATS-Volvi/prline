@@ -151,9 +151,32 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="login-root flex bg-[#0b1329] select-none font-sans" style={{ minHeight: '100dvh' }}>
+    <div
+      className="login-root select-none font-sans"
+      style={{
+        display: 'flex',
+        width: '100vw',
+        minHeight: '100dvh',
+        backgroundColor: '#0b1329',
+        overflowY: 'auto',
+      }}
+    >
       {/* LEFT PANEL: Branding & Plant Live Telemetry (Desktop Only) */}
-      <div className="hidden lg:flex lg:w-7/12 xl:w-8/12 bg-gradient-to-br from-[#050b18] via-[#0b1329] to-[#182547] relative flex-col justify-between p-12 overflow-hidden border-r border-[#1e293b]/40" style={{ minHeight: '100dvh' }}>
+      <div
+        className="login-left-panel"
+        style={{
+          width: '58%',
+          flexShrink: 0,
+          background: 'linear-gradient(135deg, #050b18 0%, #0b1329 50%, #182547 100%)',
+          position: 'relative',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: '3rem',
+          overflow: 'hidden',
+          borderRight: '1px solid rgba(30,41,59,0.4)',
+          minHeight: '100dvh',
+        }}
+      >
         
         {/* Animated Grid Overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(20,184,166,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(20,184,166,0.025)_1px,transparent_1px)] bg-[size:3rem_3rem] animate-grid-move" />
@@ -174,7 +197,7 @@ export const Login: React.FC = () => {
         </div>
 
         {/* Center Content: Interactive Hero */}
-        <div className="relative my-auto space-y-6 max-w-xl">
+        <div style={{ position: 'relative', marginTop: 'auto', marginBottom: 'auto', maxWidth: '520px', width: '100%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#14b8a6]/10 border border-[#14b8a6]/20 text-[9px] font-bold font-mono text-[#14b8a6] uppercase tracking-wider">
             <span className="h-1.5 w-1.5 rounded-full bg-[#14b8a6] animate-ping" />
             Zone 4 Smart Gateway
@@ -185,12 +208,12 @@ export const Login: React.FC = () => {
             <span className="bg-gradient-to-r from-[#14b8a6] to-[#38bdf8] bg-clip-text text-transparent">Optimized Output.</span>
           </h1>
           
-          <p className="text-xs text-[#94a3b8] leading-relaxed max-w-md">
+          <p style={{ fontSize: '12px', color: '#94a3b8', lineHeight: '1.75', maxWidth: '440px' }}>
             Welcome to the PepsiCo Kolkata Roster Board. This system automatically cross-references associate skills and availability against production lines to guarantee compliant shift staffing in real-time.
           </p>
 
           {/* Plant Telemetry Status Card */}
-          <div className="bg-[#10192e]/60 border border-[#1e293b]/70 rounded-2xl p-5 shadow-2xl backdrop-blur-md space-y-4 max-w-md">
+          <div style={{ backgroundColor: 'rgba(16,25,46,0.6)', border: '1px solid rgba(30,41,59,0.7)', borderRadius: '1rem', padding: '1.25rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', backdropFilter: 'blur(12px)', maxWidth: '440px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div className="flex items-center justify-between border-b border-[#1e293b]/60 pb-3">
               <span className="text-[9px] font-bold font-mono text-[#94a3b8] tracking-widest uppercase">PLANT TELEMETRY</span>
               <span className="px-2 py-0.5 text-[8px] font-bold font-mono bg-[#14b8a6]/10 text-[#14b8a6] border border-[#14b8a6]/20 rounded-md">NOMINAL</span>
@@ -228,93 +251,111 @@ export const Login: React.FC = () => {
       </div>
 
       {/* RIGHT PANEL: The Authentication Form */}
-      <div className="w-full lg:w-5/12 xl:w-4/12 flex items-center justify-center bg-[#070d19] border-l border-[#1e293b]/20 relative" style={{ minHeight: '100dvh', padding: '2.5rem 1.5rem' }}>
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#070d19',
+          borderLeft: '1px solid rgba(30,41,59,0.2)',
+          position: 'relative',
+          minHeight: '100dvh',
+          padding: '2.5rem 1.5rem',
+        }}
+      >
         {/* Mobile Background Grid */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:3rem_3rem] lg:hidden opacity-30 pointer-events-none" />
         
         {/* Login Card */}
-        <div className="relative border border-[#1e293b] rounded-2xl overflow-hidden shadow-2xl z-10 flex flex-col transition-all duration-300 w-full max-w-[420px]" style={{ backgroundColor: '#10192e' }}>
-          
+        <div style={{
+          position: 'relative',
+          backgroundColor: '#10192e',
+          border: '1px solid #1e293b',
+          borderRadius: '1rem',
+          overflow: 'hidden',
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
+          maxWidth: '420px',
+        }}>
+
           {/* Top Accent Strip */}
-          <div className="h-1 w-full bg-gradient-to-r from-[#14b8a6] to-[#0f766e]" />
-          
+          <div style={{ height: '4px', width: '100%', background: 'linear-gradient(to right, #14b8a6, #0f766e)' }} />
+
           {/* Header Block */}
-          <div className="p-6 bg-[#10192e] text-white flex flex-col items-center border-b border-[#1e293b]/50">
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="material-symbols-outlined text-[#14b8a6] text-xl animate-pulse">factory</span>
-              <span className="font-label-caps text-[9px] tracking-widest text-[#94a3b8]">PEPSICO OPERATIONAL GATEWAY</span>
+          <div style={{ padding: '1.5rem', backgroundColor: '#10192e', display: 'flex', flexDirection: 'column', alignItems: 'center', borderBottom: '1px solid rgba(30,41,59,0.5)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
+              <span className="material-symbols-outlined" style={{ color: '#14b8a6', fontSize: '20px' }}>factory</span>
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', letterSpacing: '0.1em', color: '#94a3b8', textTransform: 'uppercase' }}>PEPSICO OPERATIONAL GATEWAY</span>
             </div>
-            <h2 className="font-headline-md text-base font-bold tracking-tight text-white uppercase text-center">
+            <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '15px', fontWeight: 700, letterSpacing: '-0.01em', color: 'white', textTransform: 'uppercase', textAlign: 'center', margin: 0 }}>
               {getHeaderTitle()}
             </h2>
-            <p className="font-body-md text-[10px] text-slate-400 text-center mt-1">
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: '#94a3b8', textAlign: 'center', marginTop: '0.25rem', marginBottom: 0 }}>
               {getHeaderDesc()}
             </p>
           </div>
 
-          {/* Content Body */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-4 flex-1">
+          {/* Form Body */}
+          <form onSubmit={handleSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
+
             {error && (
-              <div className="p-3 bg-red-500/10 border-l-4 border-red-500 rounded text-[11px] font-semibold text-red-400 flex items-center gap-2 animate-shake">
-                <span className="material-symbols-outlined text-sm">error</span>
+              <div style={{ padding: '0.75rem', backgroundColor: 'rgba(239,68,68,0.08)', borderLeft: '4px solid #ef4444', borderRadius: '0.375rem', fontSize: '11px', fontWeight: 600, color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>error</span>
                 <span>{error}</span>
               </div>
             )}
 
             {successMsg && (
-              <div className="p-3 bg-emerald-500/10 border-l-4 border-emerald-500 rounded text-[11px] font-semibold text-emerald-400 flex items-center gap-2 animate-fade-in">
-                <span className="material-symbols-outlined text-sm">check_circle</span>
+              <div style={{ padding: '0.75rem', backgroundColor: 'rgba(16,185,129,0.08)', borderLeft: '4px solid #10b981', borderRadius: '0.375rem', fontSize: '11px', fontWeight: 600, color: '#34d399', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check_circle</span>
                 <span>{successMsg}</span>
               </div>
             )}
 
             {viewMode === 'signup' && (
-              <div className="flex flex-col gap-1.5">
-                <label className="font-mono text-[9px] font-bold text-[#94a3b8] uppercase tracking-wider">FullName</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Full Name</label>
                 <input
-                  type="text"
-                  required
-                  value={name}
+                  type="text" required value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Rajesh Sen"
-                  className="w-full h-11 border border-[#1e293b] rounded-xl px-3 text-xs font-sans focus:outline-none focus:border-[#14b8a6] focus:ring-1 focus:ring-[#14b8a6] transition-all bg-[#1a2b4c]/30 text-white placeholder-slate-500"
+                  className="login-input"
+                  style={{ width: '100%', height: '44px', border: '1px solid #1e293b', borderRadius: '0.75rem', padding: '0 0.75rem', fontSize: '12px', backgroundColor: 'rgba(26,43,76,0.3)', color: 'white', outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
             )}
 
             {viewMode !== 'reset' && (
-              <div className="flex flex-col gap-1.5">
-                <label className="font-mono text-[9px] font-bold text-[#94a3b8] uppercase tracking-wider">Email Address</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Email Address</label>
                 <input
-                  type="email"
-                  required
-                  value={email}
+                  type="email" required value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="operator@pepsico.com"
-                  className="w-full h-11 border border-[#1e293b] rounded-xl px-3 text-xs font-sans focus:outline-none focus:border-[#14b8a6] focus:ring-1 focus:ring-[#14b8a6] transition-all bg-[#1a2b4c]/30 text-white placeholder-slate-500"
+                  className="login-input"
+                  style={{ width: '100%', height: '44px', border: '1px solid #1e293b', borderRadius: '0.75rem', padding: '0 0.75rem', fontSize: '12px', backgroundColor: 'rgba(26,43,76,0.3)', color: 'white', outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
             )}
 
             {viewMode !== 'forgot' && (
-              <div className="flex flex-col gap-1.5">
-                <label className="font-mono text-[9px] font-bold text-[#94a3b8] uppercase tracking-wider">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   {viewMode === 'reset' ? 'New Password' : 'Password'}
                 </label>
-                <div className="relative w-full">
+                <div style={{ position: 'relative', width: '100%' }}>
                   <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
+                    type={showPassword ? 'text' : 'password'} required value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full h-11 border border-[#1e293b] rounded-xl pl-3 pr-12 text-xs font-mono focus:outline-none focus:border-[#14b8a6] focus:ring-1 focus:ring-[#14b8a6] transition-all bg-[#1a2b4c]/30 text-white placeholder-slate-500"
+                    className="login-input"
+                    style={{ width: '100%', height: '44px', border: '1px solid #1e293b', borderRadius: '0.75rem', padding: '0 3rem 0 0.75rem', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace', backgroundColor: 'rgba(26,43,76,0.3)', color: 'white', outline: 'none', boxSizing: 'border-box' }}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94a3b8] hover:text-[#14b8a6] cursor-pointer text-[9px] font-mono font-bold"
-                  >
+                  <button type="button" onClick={() => setShowPassword(!showPassword)}
+                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', fontSize: '9px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, cursor: 'pointer', padding: 0 }}>
                     {showPassword ? 'HIDE' : 'SHOW'}
                   </button>
                 </div>
@@ -322,22 +363,18 @@ export const Login: React.FC = () => {
             )}
 
             {viewMode === 'reset' && (
-              <div className="flex flex-col gap-1.5">
-                <label className="font-mono text-[9px] font-bold text-[#94a3b8] uppercase tracking-wider">Confirm Password</label>
-                <div className="relative w-full">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Confirm Password</label>
+                <div style={{ position: 'relative', width: '100%' }}>
                   <input
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    required
-                    value={confirmPassword}
+                    type={showConfirmPassword ? 'text' : 'password'} required value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full h-11 border border-[#1e293b] rounded-xl pl-3 pr-12 text-xs font-mono focus:outline-none focus:border-[#14b8a6] focus:ring-1 focus:ring-[#14b8a6] transition-all bg-[#1a2b4c]/30 text-white placeholder-slate-500"
+                    className="login-input"
+                    style={{ width: '100%', height: '44px', border: '1px solid #1e293b', borderRadius: '0.75rem', padding: '0 3rem 0 0.75rem', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace', backgroundColor: 'rgba(26,43,76,0.3)', color: 'white', outline: 'none', boxSizing: 'border-box' }}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94a3b8] hover:text-[#14b8a6] cursor-pointer text-[9px] font-mono font-bold"
-                  >
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', fontSize: '9px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, cursor: 'pointer', padding: 0 }}>
                     {showConfirmPassword ? 'HIDE' : 'SHOW'}
                   </button>
                 </div>
@@ -345,15 +382,14 @@ export const Login: React.FC = () => {
             )}
 
             {viewMode === 'signup' && (
-              <div className="flex flex-col gap-1.5">
-                <label className="font-mono text-[9px] font-bold text-[#94a3b8] uppercase tracking-wider">Access Authorization Level</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Access Level</label>
                 <select
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value as UserRole)}
-                  style={{ backgroundColor: '#0d1727', color: 'white' }}
-                  className="w-full h-11 border border-[#1e293b] rounded-xl px-3 text-xs font-sans focus:outline-none focus:border-[#14b8a6] focus:ring-1 focus:ring-[#14b8a6] cursor-pointer transition-all"
+                  style={{ width: '100%', height: '44px', border: '1px solid #1e293b', borderRadius: '0.75rem', padding: '0 0.75rem', fontSize: '12px', backgroundColor: '#0d1727', color: 'white', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
                 >
-                  <option value="Production Supervisor">Production Supervisor (Floor Manager)</option>
+                  <option value="Production Supervisor">Production Supervisor</option>
                   <option value="HR / Training Coordinator">HR / Training Coordinator</option>
                   <option value="Plant Admin">Plant Admin</option>
                   <option value="Plant Manager">Plant Manager</option>
@@ -362,78 +398,62 @@ export const Login: React.FC = () => {
             )}
 
             {viewMode === 'login' && (
-              <div className="text-right">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setViewMode('forgot');
-                    setError(null);
-                    setSuccessMsg(null);
-                  }}
-                  className="text-[10px] font-sans text-[#94a3b8] hover:text-[#14b8a6] hover:underline"
-                >
+              <div style={{ textAlign: 'right' }}>
+                <button type="button"
+                  onClick={() => { setViewMode('forgot'); setError(null); setSuccessMsg(null); }}
+                  style={{ background: 'none', border: 'none', fontSize: '10px', color: '#94a3b8', cursor: 'pointer', padding: 0 }}>
                   Forgot Password?
                 </button>
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full h-11 bg-gradient-to-r from-[#14b8a6] to-[#0f766e] hover:from-[#119f8f] hover:to-[#0d645e] text-white font-mono font-bold text-xs rounded-xl transition-all cursor-pointer shadow-lg shadow-[#14b8a6]/10 flex items-center justify-center gap-1.5 uppercase tracking-wider disabled:opacity-50 mt-6"
+            <button type="submit" disabled={loading}
+              style={{
+                width: '100%', height: '44px', marginTop: '0.5rem',
+                background: loading ? '#0f5f56' : 'linear-gradient(to right, #14b8a6, #0f766e)',
+                border: 'none', borderRadius: '0.75rem', color: 'white',
+                fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, fontSize: '11px',
+                letterSpacing: '0.08em', textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
+                opacity: loading ? 0.7 : 1, transition: 'opacity 0.2s',
+              }}
             >
               {loading ? (
-                <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                <span style={{ width: '16px', height: '16px', border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-sm">
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
                     {viewMode === 'forgot' ? 'mail_outline' : viewMode === 'reset' ? 'sync' : 'lock_open'}
                   </span>
-                  {viewMode === 'signup' 
-                    ? 'Create Account' 
-                    : viewMode === 'forgot' 
-                    ? 'Send Reset Link' 
-                    : viewMode === 'reset' 
-                    ? 'Reset Password' 
-                    : 'Authenticate Credentials'}
+                  {viewMode === 'signup' ? 'Create Account'
+                    : viewMode === 'forgot' ? 'Send Reset Link'
+                    : viewMode === 'reset' ? 'Reset Password'
+                    : 'Authenticate'}
                 </>
               )}
             </button>
           </form>
 
-          {/* Footer Toggle Block */}
-          <div className="px-6 py-4 bg-[#0d1727]/90 border-t border-[#1e293b]/60 flex flex-col items-center gap-2 text-[10.5px] font-sans">
+          {/* Footer Toggle */}
+          <div style={{ padding: '1rem 1.5rem', backgroundColor: 'rgba(13,23,39,0.9)', borderTop: '1px solid rgba(30,41,59,0.6)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
             {viewMode === 'login' && (
-              <div className="flex justify-center w-full">
-                <span className="text-[#94a3b8] mr-1">Need operational system access?</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setViewMode('signup');
-                    setError(null);
-                    setSuccessMsg(null);
-                  }}
-                  className="font-bold text-[#14b8a6] hover:underline cursor-pointer"
-                >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '10.5px', fontFamily: 'Inter, sans-serif' }}>
+                <span style={{ color: '#94a3b8' }}>Need system access?</span>
+                <button type="button"
+                  onClick={() => { setViewMode('signup'); setError(null); setSuccessMsg(null); }}
+                  style={{ background: 'none', border: 'none', color: '#14b8a6', fontWeight: 700, fontSize: '10.5px', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
                   Register Here
                 </button>
               </div>
             )}
-
             {viewMode !== 'login' && (
-              <button
-                type="button"
+              <button type="button"
                 onClick={() => {
-                  setViewMode('login');
-                  setError(null);
-                  setSuccessMsg(null);
-                  if (viewMode === 'reset') {
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                  }
+                  setViewMode('login'); setError(null); setSuccessMsg(null);
+                  if (viewMode === 'reset') window.history.replaceState({}, document.title, window.location.pathname);
                 }}
-                className="font-bold text-[#14b8a6] hover:underline cursor-pointer flex items-center gap-1"
-              >
-                <span className="material-symbols-outlined text-sm">arrow_back</span>
+                style={{ background: 'none', border: 'none', color: '#14b8a6', fontWeight: 700, fontSize: '10.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: 0 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>arrow_back</span>
                 Back to Sign In
               </button>
             )}

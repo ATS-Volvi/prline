@@ -143,11 +143,23 @@ html, body {
   width: 100%;
 }
 
-/* Login page needs to scroll on small viewports */
+/* Login page layout */
 .login-root {
+  width: 100vw;
   min-height: 100dvh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Left panel: hidden on mobile, flex column on desktop */
+.login-left-panel {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .login-left-panel {
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 /* Main app enforces its own no-scroll */
@@ -246,4 +258,18 @@ body {
 
 .animate-shake {
   animation: shake 0.4s ease-in-out;
+}
+
+/* Login form input focus highlight */
+.login-input:focus {
+  border-color: #14b8a6 !important;
+  box-shadow: 0 0 0 2px rgba(20,184,166,0.2);
+}
+.login-input::placeholder {
+  color: #475569;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
