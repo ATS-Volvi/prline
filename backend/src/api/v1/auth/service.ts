@@ -28,7 +28,16 @@ class MainAuthService{
         // },"7d")
         const encryptedEmail=generateToken(email,"30d")
         const emailBody=verifyEmail(`${variables.BASE_URL}/api/v1/auth/verifyEmail?token=${encodeURIComponent(encryptedEmail)}`)
-        await sendEmail(result.email,"Email Verification",emailBody,next)
+        try {
+            await sendEmail(result.email,"Email Verification",emailBody,next)
+        } catch (emailErr) {
+            console.error("Failed to send verification email:", emailErr);
+            try {
+                await MainAuthDatabase.verifyEmail(email);
+            } catch (dbErr) {
+                console.error("Failed to auto-verify user:", dbErr);
+            }
+        }
         return {
             data:{userId:result.userId,name:result.name,email:result.email},
             // accessToken: accessToken
@@ -87,7 +96,11 @@ class MainAuthService{
         const emailBody=forgetPasswordMail(token)
         console.log("Encrypted token : ",token);
         
-        await sendEmail(email,"Reset Password Link",emailBody,next)
+        try {
+            await sendEmail(email,"Reset Password Link",emailBody,next)
+        } catch (emailErr) {
+            return next(createError({status:400,message:"Error sending mail"}))
+        }
         return true
     }
 

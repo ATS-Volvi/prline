@@ -180,7 +180,7 @@ export const SkillMatrix: React.FC = () => {
             {/* Toolbar */}
             <div className="flex flex-wrap items-center gap-3">
               {/* Search */}
-              <div className="relative flex-1 min-w-[200px] max-w-xs">
+              <div className="relative flex-1 min-w-[200px] max-w-[320px]">
                 <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary text-sm pointer-events-none">search</span>
                 <input
                   type="text"
@@ -386,146 +386,141 @@ export const SkillMatrix: React.FC = () => {
 
         {/* ── Log Training ──────────────────────────────────────────────── */}
         {activeSubTab === 'training' && (
-          <div className="animate-slide-up flex justify-center">
-            <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 w-full max-w-lg">
-              <div>
-                <h2 className="text-sm font-bold text-on-surface">Log Training & Recertifications</h2>
-                <p className="text-[10px] text-secondary">Record a new operator qualification. Saving updates the shift allocator instantly.</p>
-              </div>
-
-              {hasWriteAccess ? (
-                <form onSubmit={handleSaveTraining} className="flex flex-col gap-4 text-xs">
-                  {/* Searchable associate picker */}
-                  <div className="flex flex-col gap-1.5 relative">
-                    <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">SELECT OPERATOR</label>
-                    <div className="relative">
-                      <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary text-sm pointer-events-none">search</span>
-                      <input
-                        type="text"
-                        placeholder="Search by name or ID…"
-                        value={trAssocId ? `${trAssocName} (${trAssocId})` : trSearch}
-                        onFocus={() => { if (trAssocId) { setTrSearch(''); setTrAssocId(''); setTrAssocName(''); } setShowTrDropdown(true); }}
-                        onChange={e => { setTrSearch(e.target.value); setTrAssocId(''); setTrAssocName(''); setShowTrDropdown(true); }}
-                        onBlur={() => setTimeout(() => setShowTrDropdown(false), 150)}
-                        className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm text-xs"
-                      />
-                    </div>
-                    {showTrDropdown && trFilteredAssociates.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-premium-lg z-50 overflow-hidden">
-                        {trFilteredAssociates.map(a => (
-                          <button
-                            key={a.id}
-                            type="button"
-                            onMouseDown={() => { setTrAssocId(a.id); setTrAssocName(a.name); setTrSearch(''); setShowTrDropdown(false); }}
-                            className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-50 transition-colors text-left cursor-pointer"
-                          >
-                            <span className="font-bold text-on-surface text-xs">{a.name}</span>
-                            <span className="font-mono text-[9px] text-secondary">{a.id} • {a.category}</span>
-                          </button>
-                        ))}
-                        {trSearch && trFilteredAssociates.length === 8 && (
-                          <div className="px-3 py-1.5 text-[9px] text-secondary text-center border-t border-slate-100 font-mono">Showing top 8 — type more to narrow</div>
-                        )}
-                      </div>
-                    )}
+          <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 w-full max-w-[512px] mx-auto animate-slide-up">
+            <div>
+              <h2 className="text-sm font-bold text-on-surface">Log Training & Recertifications</h2>
+              <p className="text-[10px] text-secondary">Record a new operator qualification. Saving updates the shift allocator instantly.</p>
+            </div>
+            {hasWriteAccess ? (
+              <form onSubmit={handleSaveTraining} className="flex flex-col gap-4 text-xs">
+                {/* Searchable associate picker */}
+                <div className="flex flex-col gap-1.5 relative">
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">SELECT OPERATOR</label>
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary text-sm pointer-events-none">search</span>
+                    <input
+                      type="text"
+                      placeholder="Search by name or ID…"
+                      value={trAssocId ? `${trAssocName} (${trAssocId})` : trSearch}
+                      onFocus={() => { if (trAssocId) { setTrSearch(''); setTrAssocId(''); setTrAssocName(''); } setShowTrDropdown(true); }}
+                      onChange={e => { setTrSearch(e.target.value); setTrAssocId(''); setTrAssocName(''); setShowTrDropdown(true); }}
+                      onBlur={() => setTimeout(() => setShowTrDropdown(false), 150)}
+                      className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm text-xs"
+                    />
                   </div>
+                  {showTrDropdown && trFilteredAssociates.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-premium-lg z-50 overflow-hidden">
+                      {trFilteredAssociates.map(a => (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onMouseDown={() => { setTrAssocId(a.id); setTrAssocName(a.name); setTrSearch(''); setShowTrDropdown(false); }}
+                          className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+                        >
+                          <span className="font-bold text-on-surface text-xs">{a.name}</span>
+                          <span className="font-mono text-[9px] text-secondary">{a.id} • {a.category}</span>
+                        </button>
+                      ))}
+                      {trSearch && trFilteredAssociates.length === 8 && (
+                        <div className="px-3 py-1.5 text-[9px] text-secondary text-center border-t border-slate-100 font-mono">Showing top 8 — type more to narrow</div>
+                      )}
+                    </div>
+                  )}
+                </div>
 
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">SELECT COMPLIANT SKILL</label>
+                  <select required value={trSkillId} onChange={e => setTrSkillId(e.target.value)}
+                    className="py-2 px-3 border border-slate-200 bg-white font-bold rounded-lg focus:ring-1 focus:ring-primary focus:outline-none shadow-premium-sm text-xs cursor-pointer">
+                    <option value="">-- Choose Skill --</option>
+                    {skills.map(sk => <option key={sk.id} value={sk.id}>{sk.name} ({sk.id})</option>)}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">SELECT COMPLIANT SKILL</label>
-                    <select required value={trSkillId} onChange={e => setTrSkillId(e.target.value)}
+                    <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">COMPETENCY LEVEL</label>
+                    <select value={trLevel} onChange={e => setTrLevel(e.target.value as SkillLevel)}
                       className="py-2 px-3 border border-slate-200 bg-white font-bold rounded-lg focus:ring-1 focus:ring-primary focus:outline-none shadow-premium-sm text-xs cursor-pointer">
-                      <option value="">-- Choose Skill --</option>
-                      {skills.map(sk => <option key={sk.id} value={sk.id}>{sk.name} ({sk.id})</option>)}
+                      <option value="Trainee">Trainee</option>
+                      <option value="Operator">Operator</option>
+                      <option value="Certified">Certified</option>
+                      <option value="Expert">Expert</option>
                     </select>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">COMPETENCY LEVEL</label>
-                      <select value={trLevel} onChange={e => setTrLevel(e.target.value as SkillLevel)}
-                        className="py-2 px-3 border border-slate-200 bg-white font-bold rounded-lg focus:ring-1 focus:ring-primary focus:outline-none shadow-premium-sm text-xs cursor-pointer">
-                        <option value="Trainee">Trainee</option>
-                        <option value="Operator">Operator</option>
-                        <option value="Certified">Certified</option>
-                        <option value="Expert">Expert</option>
-                      </select>
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">EXPIRY DATE</label>
-                      <input type="date" required value={trExpiry} onChange={e => setTrExpiry(e.target.value)}
-                        className="py-1.5 px-3 border border-slate-200 bg-white font-mono rounded-lg focus:ring-1 focus:ring-primary focus:outline-none shadow-premium-sm text-xs cursor-pointer" />
-                    </div>
-                  </div>
-
                   <div className="flex flex-col gap-1.5">
-                    <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">CERTIFIED BY / ASSESSOR</label>
-                    <input type="text" required value={trCertifier} onChange={e => setTrCertifier(e.target.value)}
-                      className="py-2 px-3 border border-slate-200 bg-slate-50 rounded-lg focus:ring-1 focus:ring-primary focus:outline-none shadow-premium-sm text-xs"
-                      placeholder="e.g. B. Sengupta (Quality Lead)" />
+                    <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">EXPIRY DATE</label>
+                    <input type="date" required value={trExpiry} onChange={e => setTrExpiry(e.target.value)}
+                      className="py-1.5 px-3 border border-slate-200 bg-white font-mono rounded-lg focus:ring-1 focus:ring-primary focus:outline-none shadow-premium-sm text-xs cursor-pointer" />
                   </div>
-
-                  <button type="submit"
-                    className="w-full mt-2 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-slate-800 text-[10px] font-label-caps tracking-wider uppercase shadow-premium-md hover:shadow-premium-lg cursor-pointer transition-all">
-                    Confirm Certification Log
-                  </button>
-                </form>
-              ) : (
-                <div className="bg-rose-50 text-rose-800 text-xs p-4 rounded-lg border border-rose-100 font-semibold text-center">
-                  Access Denied: Only HR coordinators and Plant Admins can log training records.
                 </div>
-              )}
-            </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">CERTIFIED BY / ASSESSOR</label>
+                  <input type="text" required value={trCertifier} onChange={e => setTrCertifier(e.target.value)}
+                    className="py-2 px-3 border border-slate-200 bg-slate-50 rounded-lg focus:ring-1 focus:ring-primary focus:outline-none shadow-premium-sm text-xs"
+                    placeholder="e.g. B. Sengupta (Quality Lead)" />
+                </div>
+
+                <button type="submit"
+                  className="w-full mt-2 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-slate-800 text-[10px] font-label-caps tracking-wider uppercase shadow-premium-md hover:shadow-premium-lg cursor-pointer transition-all">
+                  Confirm Certification Log
+                </button>
+              </form>
+            ) : (
+              <div className="bg-rose-50 text-rose-800 text-xs p-4 rounded-lg border border-rose-100 font-semibold text-center">
+                Access Denied: Only HR coordinators and Plant Admins can log training records.
+              </div>
+            )}
           </div>
         )}
 
         {/* ── Bulk Import ───────────────────────────────────────────────── */}
         {activeSubTab === 'bulk' && (
-          <div className="animate-slide-up flex justify-center">
-            <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 w-full max-w-xl">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-sm font-bold text-on-surface">CSV Workforce Importer</h2>
-                  <p className="text-[10px] text-secondary">Pre-configure operators and skills in bulk.</p>
-                </div>
-                <button onClick={downloadTemplate}
-                  className="text-[9px] font-bold text-primary hover:underline flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer shadow-premium-sm font-label-caps tracking-wider">
-                  <span className="material-symbols-outlined text-xs">download</span> Sample Template
-                </button>
+          <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 w-full max-w-[576px] mx-auto animate-slide-up">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-sm font-bold text-on-surface">CSV Workforce Importer</h2>
+                <p className="text-[10px] text-secondary">Pre-configure operators and skills in bulk.</p>
               </div>
-
-              {hasWriteAccess ? (
-                <div className="flex flex-col gap-4 text-xs">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">PASTE CSV CONTENT</label>
-                    <textarea rows={6} value={bulkCsvText} onChange={e => setBulkCsvText(e.target.value)}
-                      className="w-full p-3 border border-slate-200 rounded-lg font-mono text-[10px] focus:ring-1 focus:ring-primary focus:outline-none bg-slate-50 shadow-premium-sm"
-                      placeholder={"employee_id,name,category,skills\nEMP125,A. Banerjee,Company,BLADE_OPT:Expert:2027-12-31;HYGIENE_L2:Certified:2026-10-15"} />
-                  </div>
-
-                  {importStatus.type && (
-                    <div className={`p-3 rounded-lg text-xs font-semibold border ${importStatus.type === 'success' ? 'bg-green-50 border-green-200 text-green-950' : 'bg-rose-50 border-rose-100 text-rose-950'}`}>
-                      {importStatus.message}
-                    </div>
-                  )}
-
-                  <button onClick={handleCsvImport}
-                    className="w-full py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-slate-800 text-[10px] font-label-caps tracking-wider uppercase shadow-premium-md hover:shadow-premium-lg cursor-pointer transition-all">
-                    Process CSV Import
-                  </button>
-
-                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-[9px] text-secondary leading-relaxed">
-                    <span className="font-bold text-primary block mb-1">CSV Guidelines:</span>
-                    1. Headers: <strong>employee_id,name,category,skills</strong><br />
-                    2. Category: <strong>Company</strong>, <strong>Contract</strong>, or <strong>NTCI</strong><br />
-                    3. Skills: <strong>SKILL_CODE:Level:YYYY-MM-DD</strong> separated by semicolons
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-rose-50 text-rose-800 text-xs p-4 rounded-lg border border-rose-100 font-semibold text-center">
-                  Access Denied: Only HR coordinators and Plant Admins can perform bulk import actions.
-                </div>
-              )}
+              <button onClick={downloadTemplate}
+                className="text-[9px] font-bold text-primary hover:underline flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer shadow-premium-sm font-label-caps tracking-wider">
+                <span className="material-symbols-outlined text-xs">download</span> Sample Template
+              </button>
             </div>
+
+            {hasWriteAccess ? (
+              <div className="flex flex-col gap-4 text-xs">
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">PASTE CSV CONTENT</label>
+                  <textarea rows={6} value={bulkCsvText} onChange={e => setBulkCsvText(e.target.value)}
+                    className="w-full p-3 border border-slate-200 rounded-lg font-mono text-[10px] focus:ring-1 focus:ring-primary focus:outline-none bg-slate-50 shadow-premium-sm"
+                    placeholder={"employee_id,name,category,skills\nEMP125,A. Banerjee,Company,BLADE_OPT:Expert:2027-12-31;HYGIENE_L2:Certified:2026-10-15"} />
+                </div>
+
+                {importStatus.type && (
+                  <div className={`p-3 rounded-lg text-xs font-semibold border ${importStatus.type === 'success' ? 'bg-green-50 border-green-200 text-green-950' : 'bg-rose-50 border-rose-100 text-rose-950'}`}>
+                    {importStatus.message}
+                  </div>
+                )}
+
+                <button onClick={handleCsvImport}
+                  className="w-full py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-slate-800 text-[10px] font-label-caps tracking-wider uppercase shadow-premium-md hover:shadow-premium-lg cursor-pointer transition-all">
+                  Process CSV Import
+                </button>
+
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-[9px] text-secondary leading-relaxed">
+                  <span className="font-bold text-primary block mb-1">CSV Guidelines:</span>
+                  1. Headers: <strong>employee_id,name,category,skills</strong><br />
+                  2. Category: <strong>Company</strong>, <strong>Contract</strong>, or <strong>NTCI</strong><br />
+                  3. Skills: <strong>SKILL_CODE:Level:YYYY-MM-DD</strong> separated by semicolons
+                </div>
+              </div>
+            ) : (
+              <div className="bg-rose-50 text-rose-800 text-xs p-4 rounded-lg border border-rose-100 font-semibold text-center">
+                Access Denied: Only HR coordinators and Plant Admins can perform bulk import actions.
+              </div>
+            )}
           </div>
         )}
 

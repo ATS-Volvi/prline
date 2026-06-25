@@ -50,6 +50,18 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
   const [customReasonText, setCustomReasonText] = useState('');
 
   const currentLine = productionLines.find(l => l.id === selectedLineId) || productionLines[0];
+
+  if (!currentLine) {
+    return (
+      <div className="flex-1 h-full flex items-center justify-center bg-background">
+        <div className="text-center p-8 bg-white border border-slate-200 rounded-xl shadow-premium-sm">
+          <span className="material-symbols-outlined text-4xl text-primary animate-spin">sync</span>
+          <p className="mt-4 text-xs font-bold text-secondary uppercase tracking-wider">Loading Shift Planner...</p>
+        </div>
+      </div>
+    );
+  }
+
   const activeWS = workstations.filter(w => w.lineId === currentLine.id);
 
   // Stats calculation for active line

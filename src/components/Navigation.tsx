@@ -8,7 +8,7 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
-  const { role, setRole, associateSkills, associates, workstations, skills, productionLines, logout } = useApp();
+  const { role, user, associateSkills, associates, workstations, skills, productionLines, logout } = useApp();
   const [masterDataOpen, setMasterDataOpen] = useState(true);
 
   const expiringCount = React.useMemo(() => {
@@ -47,7 +47,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
           </div>
         </div>
 
-        {/* Profile Card / ID Badge with interactive Role Switcher */}
+        {/* Profile Card / ID Badge */}
         <div className="mt-4 flex flex-col gap-2.5 p-3 bg-[#293e5d]/30 border border-[#293e5d]/50 rounded-xl">
           <div className="flex items-center gap-3">
             <img 
@@ -57,25 +57,12 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
             />
             <div className="overflow-hidden">
               <p className="font-body-md text-xs font-bold text-white truncate">
-                {role === 'Plant Admin' ? 'A. Mukhopadhyay' : role === 'HR / Training Coordinator' ? 'P. Banerjee' : role === 'Plant Manager' ? 'S. Chatterjee' : 'R. Sharma'}
+                {user?.name || 'Unknown User'}
               </p>
-              <p className="font-label-caps text-[8px] text-[#94a3b8]/75 truncate">
-                ID: {role === 'Plant Admin' ? '#101' : role === 'HR / Training Coordinator' ? '#103' : role === 'Plant Manager' ? '#104' : '#102'}
+              <p className="font-label-caps text-[8px] text-[#94a3b8]/75 truncate mt-0.5">
+                {role}
               </p>
             </div>
-          </div>
-          <div className="relative mt-1">
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as any)}
-              className="w-full h-7 border border-[#293e5d]/85 bg-[#182c47] px-2 text-[9px] font-bold text-[#e2eafc] focus:outline-none appearance-none rounded-lg cursor-pointer shadow-premium-sm"
-            >
-              <option value="Production Supervisor">Production Supervisor</option>
-              <option value="HR / Training Coordinator">HR / Training Coordinator</option>
-              <option value="Plant Manager">Plant Manager</option>
-              <option value="Plant Admin">Plant Admin</option>
-            </select>
-            <span className="material-symbols-outlined absolute right-2 top-1.5 pointer-events-none text-[#94a3b8] text-xs">expand_more</span>
           </div>
         </div>
       </div>

@@ -31,6 +31,6 @@ export const sendEmail = async (reciever: string, subject: string, body: string,
     return true
   } catch (error) {
     console.error('Error sending email:', error)
-    return next(createError({status:400,message:"Error sending mail"}))
+    throw error
   }
 }
