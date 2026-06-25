@@ -216,8 +216,8 @@ export const SkillMatrix: React.FC = () => {
 
         {/* Sub-tab: Record Training */}
         {activeSubTab === 'training' && (
-          <div className="w-full flex justify-center animate-slide-up">
-            <div className="max-w-lg bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 w-full">
+          <div className="animate-slide-up" style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5" style={{ width: '100%', maxWidth: '512px' }}>
               <div>
                 <h2 className="text-sm font-bold text-on-surface">Log Training & Recertifications</h2>
               <p className="text-[10px] text-secondary">Record a new operator qualification. Saving updates the shift allocator instantly.</p>
@@ -312,8 +312,8 @@ export const SkillMatrix: React.FC = () => {
 
         {/* Sub-tab: Bulk Import */}
         {activeSubTab === 'bulk' && (
-          <div className="w-full flex justify-center animate-slide-up">
-            <div className="max-w-xl bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 w-full">
+          <div className="animate-slide-up" style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5" style={{ width: '100%', maxWidth: '576px' }}>
               <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-sm font-bold text-on-surface">CSV Workforce Importer</h2>
