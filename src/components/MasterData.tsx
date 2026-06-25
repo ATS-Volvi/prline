@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import type { Associate, Workstation, AssociateCategory, SkillLevel, ProductionLine, LineStatus } from '../types';
+import type { Associate, Workstation, AssociateCategory, SkillLevel, ProductionLine, LineStatus, Skill } from '../types';
 
 export const MasterData: React.FC = () => {
   const {
