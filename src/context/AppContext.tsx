@@ -9,6 +9,7 @@ import {
   type Allocation,
   type AuditLog,
   type LeaveRecord,
+  type AttendanceRecord,
   type UserRole,
   type SkillLevel,
   type AssociateCategory,
@@ -26,6 +27,7 @@ interface AppContextType {
   allocations: Allocation[];
   auditLogs: AuditLog[];
   leaveRecords: LeaveRecord[];
+  attendanceRecords: AttendanceRecord[];
   
   // Actions
   addAssociate: (associate: Associate, skills: { skillId: string; level: SkillLevel; expiryDate: string }[]) => void;
@@ -43,6 +45,8 @@ interface AppContextType {
   
   addLeaveRecord: (record: Omit<LeaveRecord, 'id'>) => void;
   removeLeaveRecord: (id: string) => void;
+
+  markAttendance: (date: string, shiftId: string, associateId: string, status: 'present' | 'absent') => Promise<void>;
 
   allocateAssociate: (
     date: string,
@@ -73,6 +77,9 @@ interface AppContextType {
     eligible: { associate: Associate; skillLevel: SkillLevel; score: number }[];
     ineligible: { associate: Associate; reason: string }[];
   };
+
+  // OT helper
+  getConsecutiveWorkDays: (associateId: string, asOfDate: string) => number;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -221,6 +228,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [allocations, setAllocations] = useState<Allocation[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [leaveRecords, setLeaveRecords] = useState<LeaveRecord[]>([]);
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
 
   const fetchState = async () => {
     try {
@@ -236,6 +244,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setAllocations(data.allocations || []);
       setLeaveRecords(data.leaveRecords || []);
       setAuditLogs(data.auditLogs || []);
+      setAttendanceRecords(data.attendanceRecords || []);
     } catch (err) {
       console.error("Failed to fetch state from backend, falling back to local storage:", err);
       const loadData = <T,>(key: string, initial: T): T => {
@@ -251,6 +260,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setAllocations(loadData('allocations', initialAllocations));
       setAuditLogs(loadData('auditLogs', initialAuditLogs));
       setLeaveRecords(loadData('leaveRecords', initialLeaveRecords));
+      setAttendanceRecords([]); // no local fallback needed for attendance
     }
   };
 
@@ -743,7 +753,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // 2. On leave check
       const onLeave = leaveRecords.some(l => l.associateId === assoc.id && l.date === date && (l.shiftId === 'ALL' || l.shiftId === shiftId));
       if (onLeave) {
-        ineligibleList.push({ associate: assoc, reason: 'On leave / Absent' });
+        ineligibleList.push({ associate: assoc, reason: 'On leave' });
+        return;
+      }
+
+      // Check attendance
+      const attendance = attendanceRecords.find(r => r.associateId === assoc.id && r.date === date && r.shiftId === shiftId);
+      if (attendance && attendance.status === 'absent') {
+        ineligibleList.push({ associate: assoc, reason: 'Marked absent today' });
         return;
       }
 
@@ -998,6 +1015,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const onLeave = leaveRecords.some(l => l.associateId === assoc.id && l.date === date && (l.shiftId === 'ALL' || l.shiftId === shiftId));
             if (onLeave) return;
 
+            // Check attendance
+            const attendance = attendanceRecords.find(r => r.associateId === assoc.id && r.date === date && r.shiftId === shiftId);
+            if (attendance && attendance.status === 'absent') return;
+
             const aSkill = associateSkills.find(s => s.associateId === assoc.id && s.skillId === reqSkill);
             if (!aSkill) return;
 
@@ -1047,6 +1068,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const markAttendance = async (date: string, shiftId: string, associateId: string, status: 'present' | 'absent'): Promise<void> => {
+    setAttendanceRecords(prev => {
+      const filtered = prev.filter(r => !(r.date === date && r.shiftId === shiftId && r.associateId === associateId));
+      const newRecord: AttendanceRecord = {
+        id: `ATT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        date,
+        shiftId,
+        associateId,
+        status,
+        markedBy: 'R. Sharma',
+        timestamp: new Date().toISOString()
+      };
+      return [...filtered, newRecord];
+    });
+
+    try {
+      const res = await fetch("http://localhost:5505/api/v1/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date, shiftId, associateId, status, markedBy: 'R. Sharma' })
+      });
+      if (res.ok) fetchState();
+    } catch (err) {
+      console.error("Failed to post attendance to backend:", err);
+    }
+  };
+
+  const getConsecutiveWorkDays = (associateId: string, asOfDate: string): number => {
+    const d = new Date(asOfDate);
+    let consecutiveCount = 0;
+    for (let i = 0; i < 10; i++) {
+      const checkDate = new Date(d);
+      checkDate.setDate(d.getDate() - i);
+      const dateStr = checkDate.toISOString().split('T')[0];
+      const isAllocated = allocations.some(a => a.associateId === associateId && a.date === dateStr);
+      if (isAllocated) {
+        consecutiveCount++;
+      } else {
+        break;
+      }
+    }
+    return consecutiveCount;
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -1061,6 +1126,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         allocations,
         auditLogs,
         leaveRecords,
+        attendanceRecords,
         
         addAssociate,
         updateAssociate,
@@ -1075,11 +1141,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         bulkImportAssociates,
         addLeaveRecord,
         removeLeaveRecord,
+        markAttendance,
         allocateAssociate,
         deallocateWorkstation,
         autoAllocateLine,
         clearLineAllocations,
         getEligibilityList,
+        getConsecutiveWorkDays,
       }}
     >
       {children}

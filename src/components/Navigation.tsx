@@ -7,7 +7,17 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
-  const { role } = useApp();
+  const { role, associateSkills } = useApp();
+
+  const expiringCount = React.useMemo(() => {
+    const today = new Date();
+    const next7Days = new Date();
+    next7Days.setDate(today.getDate() + 7);
+    return (associateSkills || []).filter(s => {
+      const expDate = new Date(s.expiryDate);
+      return expDate >= today && expDate <= next7Days;
+    }).length;
+  }, [associateSkills]);
 
   const tabs = [
     { id: 'dashboard', name: 'Dashboard', icon: 'dashboard', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
@@ -61,7 +71,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-3 px-4 py-2.5 transition-all duration-150 rounded-xl text-left font-body-md cursor-pointer ${
+              className={`flex items-center gap-3 px-4 py-2.5 transition-all duration-150 rounded-xl text-left font-body-md cursor-pointer w-full ${
                 isActive
                   ? 'text-white font-bold bg-[#293e5d] shadow-premium-sm border-l-4 border-[#14b8a6]'
                   : 'text-[#e2eafc]/80 hover:text-white hover:bg-[#293e5d]/40 border-l-4 border-transparent'
@@ -69,6 +79,11 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
             >
               <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>{tab.icon}</span>
               <span className="font-label-caps text-[10px] tracking-wider">{tab.name}</span>
+              {tab.id === 'skill_matrix' && expiringCount > 0 && (
+                <span className="ml-auto bg-amber-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold font-mono animate-pulse" title={`${expiringCount} skills expiring in 7 days`}>
+                  {expiringCount}
+                </span>
+              )}
             </button>
           );
         })}

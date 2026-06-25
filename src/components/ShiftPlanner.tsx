@@ -20,12 +20,21 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
     allocateAssociate,
     deallocateWorkstation,
     updateWorkstation,
+    attendanceRecords,
+    markAttendance,
+    getConsecutiveWorkDays,
     role
   } = useApp();
 
   // Active filters state
   const [selectedDate, setSelectedDate] = useState('2026-06-25');
   const [selectedShiftId, setSelectedShiftId] = useState('SHIFT-A');
+
+  // Attendance state
+  const [attendanceSearch, setAttendanceSearch] = useState('');
+  const filteredAssociatesForAttendance = (associates || [])
+    .filter(assoc => assoc.status === 'Active')
+    .filter(assoc => assoc.name.toLowerCase().includes(attendanceSearch.toLowerCase()));
 
   // Animation & Modal states
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -83,6 +92,14 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
   // Direct allocation handler (eligible)
   const handleDirectAssign = async (assocId: string) => {
     if (!assigningWSId) return;
+
+    // OT check
+    const consecutiveDays = getConsecutiveWorkDays(assocId, selectedDate);
+    if (consecutiveDays >= 5) {
+      const confirmOt = window.confirm(`This operator has worked ${consecutiveDays} consecutive days. Assigning them will trigger Overtime. Do you want to proceed?`);
+      if (!confirmOt) return;
+    }
+
     const res = await allocateAssociate(selectedDate, selectedShiftId, currentLine.id, assigningWSId, assocId, null);
     if (res.success) {
       handleCloseAssignModal();
@@ -204,6 +221,61 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                   style={{ width: `${lineUtilization}%` }}
                 ></div>
               </div>
+            </div>
+          </div>
+
+          {/* Attendance Check-in Box */}
+          <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-premium-sm">
+            <h2 className="font-label-caps text-[9px] text-[#182c47] border-b border-slate-100 pb-2 mb-3 tracking-wider font-bold">ATTENDANCE CHECK-IN</h2>
+            <input
+              type="text"
+              placeholder="Search associate..."
+              value={attendanceSearch}
+              onChange={(e) => setAttendanceSearch(e.target.value)}
+              className="w-full text-[10px] p-2 border border-slate-200 rounded-lg mb-2 focus:border-[#182c47] focus:ring-0 focus:outline-none"
+            />
+            <div className="max-h-36 overflow-y-auto custom-scrollbar space-y-1.5 pr-0.5">
+              {filteredAssociatesForAttendance.length === 0 ? (
+                <p className="text-[9px] text-secondary/60 italic text-center py-2">No active associates found</p>
+              ) : (
+                filteredAssociatesForAttendance.map(assoc => {
+                  const record = (attendanceRecords || []).find(r => r.associateId === assoc.id && r.date === selectedDate && r.shiftId === selectedShiftId);
+                  const isPresent = record?.status === 'present';
+                  const isAbsent = record?.status === 'absent';
+
+                  return (
+                    <div key={assoc.id} className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                      <span className="text-[10px] font-bold text-on-surface truncate max-w-[120px]" title={assoc.name}>
+                        {assoc.name}
+                      </span>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => markAttendance(selectedDate, selectedShiftId, assoc.id, 'present')}
+                          className={`w-5 h-5 rounded flex items-center justify-center cursor-pointer border ${
+                            isPresent 
+                              ? 'bg-emerald-500 border-emerald-500 text-white font-bold' 
+                              : 'bg-white border-slate-200 text-slate-400 hover:bg-emerald-50'
+                          }`}
+                          title="Mark Present"
+                        >
+                          <span className="material-symbols-outlined text-[10px] font-bold">check</span>
+                        </button>
+                        <button
+                          onClick={() => markAttendance(selectedDate, selectedShiftId, assoc.id, 'absent')}
+                          className={`w-5 h-5 rounded flex items-center justify-center cursor-pointer border ${
+                            isAbsent 
+                              ? 'bg-rose-500 border-rose-500 text-white font-bold' 
+                              : 'bg-white border-slate-200 text-slate-400 hover:bg-rose-50'
+                          }`}
+                          title="Mark Absent"
+                        >
+                          <span className="material-symbols-outlined text-[10px] font-bold">close</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
 
@@ -364,11 +436,17 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                                       {assocDetails.name.substring(0, 2)}
                                     </div>
                                     <div className="overflow-hidden">
-                                      <div className="text-[11px] font-bold text-on-surface truncate leading-tight">
+                                      <div className="text-[11px] font-bold text-on-surface truncate leading-tight flex items-center gap-1 flex-wrap">
                                         {assocDetails.name}
                                         {alloc.overrideReasonCode && (
-                                          <span className="ml-1 text-[8px] bg-amber-100 text-amber-800 px-1 py-0.2 rounded font-bold font-mono" title={alloc.overrideReasonCode}>OVERRIDE</span>
+                                          <span className="text-[8px] bg-amber-100 text-amber-800 px-1 py-0.2 rounded font-bold font-mono" title={alloc.overrideReasonCode}>OVERRIDE</span>
                                         )}
+                                        {(() => {
+                                          const consecutiveDays = getConsecutiveWorkDays(assocDetails.id, selectedDate);
+                                          return consecutiveDays >= 5 ? (
+                                            <span className="bg-amber-500 text-white text-[8px] px-1 py-0.2 rounded font-bold font-mono animate-pulse" title={`Worked ${consecutiveDays} consecutive days`}>OT</span>
+                                          ) : null;
+                                        })()}
                                       </div>
                                       <div className="text-[8.5px] text-secondary font-mono truncate">
                                         {assocDetails.id} • {assocDetails.category}
@@ -523,26 +601,36 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                   </div>
                 ) : (
                   <div className="flex flex-col gap-2">
-                    {eligibility.eligible.map(({ associate, skillLevel, score }) => (
-                      <button
-                        key={associate.id}
-                        onClick={() => handleDirectAssign(associate.id)}
-                        className="w-full p-3 bg-white hover:bg-emerald-50/20 hover:border-emerald-300 border border-slate-200 rounded-lg flex justify-between items-center text-xs transition-all text-left cursor-pointer shadow-premium-sm"
-                      >
-                        <div>
-                          <div className="font-bold text-on-surface">{associate.name}</div>
-                          <div className="text-[10px] text-secondary font-mono mt-0.5">
-                            {associate.id} • {associate.category} • Has: <span className="font-bold text-emerald-700">{skillLevel}</span>
+                    {eligibility.eligible.map(({ associate, skillLevel, score }) => {
+                      const consecutiveDays = getConsecutiveWorkDays(associate.id, selectedDate);
+                      return (
+                        <button
+                          key={associate.id}
+                          onClick={() => handleDirectAssign(associate.id)}
+                          className="w-full p-3 bg-white hover:bg-emerald-50/20 hover:border-emerald-300 border border-slate-200 rounded-lg flex justify-between items-center text-xs transition-all text-left cursor-pointer shadow-premium-sm"
+                        >
+                          <div>
+                            <div className="font-bold text-on-surface flex items-center gap-1.5">
+                              {associate.name}
+                              {consecutiveDays >= 5 && (
+                                <span className="inline-flex items-center bg-amber-500 text-white text-[8px] px-1.5 py-0.2 rounded font-bold font-mono" title={`Worked ${consecutiveDays} consecutive days`}>
+                                  ⚠️ OT ({consecutiveDays}d)
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-secondary font-mono mt-0.5">
+                              {associate.id} • {associate.category} • Has: <span className="font-bold text-emerald-700">{skillLevel}</span>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded font-mono border border-emerald-200/50 shadow-premium-sm">
-                            SCORE: {score}
-                          </span>
-                          <span className="material-symbols-outlined text-emerald-600 text-sm">chevron_right</span>
-                        </div>
-                      </button>
-                    ))}
+                          <div className="flex items-center gap-1">
+                            <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded font-mono border border-emerald-200/50 shadow-premium-sm">
+                              SCORE: {score}
+                            </span>
+                            <span className="material-symbols-outlined text-emerald-600 text-sm">chevron_right</span>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>

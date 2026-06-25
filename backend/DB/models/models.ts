@@ -153,6 +153,26 @@ AuditLog.init({
   userRole: { type: DataTypes.STRING, allowNull: false }
 }, { sequelize, tableName: 'audit_logs', timestamps: false });
 
+// 10. ATTENDANCE RECORD MODEL
+export class AttendanceRecord extends Model {
+  public id!: string;
+  public date!: string;
+  public shiftId!: string;
+  public associateId!: string;
+  public status!: 'present' | 'absent';
+  public markedBy!: string;
+  public timestamp!: string;
+}
+AttendanceRecord.init({
+  id: { type: DataTypes.STRING, primaryKey: true },
+  date: { type: DataTypes.STRING, allowNull: false },
+  shiftId: { type: DataTypes.STRING, allowNull: false },
+  associateId: { type: DataTypes.STRING, allowNull: false },
+  status: { type: DataTypes.STRING, allowNull: false, defaultValue: 'present' },
+  markedBy: { type: DataTypes.STRING, allowNull: false },
+  timestamp: { type: DataTypes.STRING, allowNull: false }
+}, { sequelize, tableName: 'attendance_records', timestamps: false });
+
 // Relationships
 ProductionLine.hasMany(Workstation, { foreignKey: 'lineId', as: 'workstations', onDelete: 'CASCADE' });
 Workstation.belongsTo(ProductionLine, { foreignKey: 'lineId', as: 'productionLine' });
@@ -177,3 +197,6 @@ Allocation.belongsTo(Workstation, { foreignKey: 'workstationId', as: 'workstatio
 
 Shift.hasMany(Allocation, { foreignKey: 'shiftId', as: 'allocations', onDelete: 'CASCADE' });
 Allocation.belongsTo(Shift, { foreignKey: 'shiftId', as: 'shift' });
+
+Associate.hasMany(AttendanceRecord, { foreignKey: 'associateId', as: 'attendanceRecords', onDelete: 'CASCADE' });
+AttendanceRecord.belongsTo(Associate, { foreignKey: 'associateId', as: 'associate' });

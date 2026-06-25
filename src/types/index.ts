@@ -77,3 +77,13 @@ export interface LeaveRecord {
   date: string;
   shiftId: string; // which shift they are unavailable for, or 'ALL'
 }
+
+export interface AttendanceRecord {
+  id: string;
+  date: string;
+  shiftId: string;
+  associateId: string;
+  status: 'present' | 'absent';
+  markedBy: string;
+  timestamp: string;
+}

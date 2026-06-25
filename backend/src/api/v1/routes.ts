@@ -8,7 +8,8 @@ import {
   AssociateSkill,
   LeaveRecord,
   Allocation,
-  AuditLog
+  AuditLog,
+  AttendanceRecord
 } from "../../../DB/models/models";
 
 const router = Router();
@@ -41,6 +42,7 @@ router.get("/state", async (req: Request, res: Response) => {
     const allocations = await Allocation.findAll();
     const leaveRecords = await LeaveRecord.findAll();
     const auditLogs = await AuditLog.findAll({ order: [['timestamp', 'DESC']] });
+    const attendanceRecords = await AttendanceRecord.findAll();
 
     // Parse shift working days JSON
     const shifts = shiftsRaw.map(s => ({
@@ -57,7 +59,8 @@ router.get("/state", async (req: Request, res: Response) => {
       shifts,
       allocations,
       leaveRecords,
-      auditLogs
+      auditLogs,
+      attendanceRecords
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -496,6 +499,49 @@ router.post("/associates/bulk-import", async (req: Request, res: Response) => {
 
     await logAction("MASTER_DATA_UPDATED", `Processed bulk CSV import containing ${imported} associates.`);
     res.json({ success: true, message: `Successfully imported ${imported} associates.`, count: imported });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// ATTENDANCE ROUTES
+// GET attendance for a specific date + shift
+router.get("/attendance", async (req: Request, res: Response) => {
+  try {
+    const { date, shiftId } = req.query;
+    const where: any = {};
+    if (date) where.date = date;
+    if (shiftId) where.shiftId = shiftId;
+    const records = await AttendanceRecord.findAll({ where });
+    res.json(records);
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// POST mark attendance (upsert — one record per associate per shift per date)
+router.post("/attendance", async (req: Request, res: Response) => {
+  try {
+    const { date, shiftId, associateId, status, markedBy } = req.body;
+    if (!date || !shiftId || !associateId || !status) {
+      res.status(400).json({ success: false, message: 'Missing required fields.' });
+      return;
+    }
+    // Remove existing record for this associate+date+shift if any
+    await AttendanceRecord.destroy({ where: { date, shiftId, associateId } });
+    // Create fresh record
+    await AttendanceRecord.create({
+      id: `ATT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      date,
+      shiftId,
+      associateId,
+      status,
+      markedBy: markedBy || 'R. Sharma',
+      timestamp: new Date().toISOString()
+    });
+    const assoc = await Associate.findByPk(associateId);
+    await logAction('ATTENDANCE_MARKED', `${assoc?.get('name')} marked ${status} for shift ${shiftId} on ${date}.`);
+    res.json({ success: true });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
