@@ -52,7 +52,7 @@ function MainAppContent() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-background">
+    <div className="app-root flex w-screen overflow-hidden bg-background">
       {/* Sidebar Navigation */}
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
       

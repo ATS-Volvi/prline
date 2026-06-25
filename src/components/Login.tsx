@@ -43,7 +43,7 @@ export const Login: React.FC = () => {
         else if (selectedRole === 'HR / Training Coordinator') userType = 'sec_admin';
         else if (selectedRole === 'Plant Manager') userType = 'manager';
 
-        const res = await fetch('/api/v1/auth/signup', {
+        const res = await window.fetch('/api/v1/auth/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, email, password, userType }),
@@ -54,11 +54,13 @@ export const Login: React.FC = () => {
           throw new Error(data.message || 'Registration failed');
         }
 
-        setSuccessMsg('Account created successfully! Verify link sent to email.');
-        setViewMode('login');
+        setSuccessMsg('Account created! You can now sign in.');
+        setName('');
+        setEmail('');
         setPassword('');
+        setViewMode('login');
       } else if (viewMode === 'forgot') {
-        const res = await fetch('/api/v1/auth/forgetPassword', {
+        const res = await window.fetch('/api/v1/auth/forgetPassword', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email }),
@@ -76,7 +78,7 @@ export const Login: React.FC = () => {
           throw new Error('Passwords do not match');
         }
 
-        const res = await fetch(`/api/v1/auth/updatePassword?token=${encodeURIComponent(resetToken || '')}`, {
+        const res = await window.fetch(`/api/v1/auth/updatePassword?token=${encodeURIComponent(resetToken || '')}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password }),
@@ -149,9 +151,9 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-screen bg-[#0b1329] select-none font-sans overflow-y-auto">
+    <div className="login-root flex bg-[#0b1329] select-none font-sans" style={{ minHeight: '100dvh' }}>
       {/* LEFT PANEL: Branding & Plant Live Telemetry (Desktop Only) */}
-      <div className="hidden lg:flex lg:w-7/12 xl:w-8/12 bg-gradient-to-br from-[#050b18] via-[#0b1329] to-[#182547] relative flex-col justify-between p-12 overflow-hidden border-r border-[#1e293b]/40">
+      <div className="hidden lg:flex lg:w-7/12 xl:w-8/12 bg-gradient-to-br from-[#050b18] via-[#0b1329] to-[#182547] relative flex-col justify-between p-12 overflow-hidden border-r border-[#1e293b]/40" style={{ minHeight: '100dvh' }}>
         
         {/* Animated Grid Overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(20,184,166,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(20,184,166,0.025)_1px,transparent_1px)] bg-[size:3rem_3rem] animate-grid-move" />
@@ -226,12 +228,12 @@ export const Login: React.FC = () => {
       </div>
 
       {/* RIGHT PANEL: The Authentication Form */}
-      <div className="w-full lg:w-5/12 xl:w-4/12 flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8 bg-[#070d19] border-l border-[#1e293b]/20 relative min-h-screen">
+      <div className="w-full lg:w-5/12 xl:w-4/12 flex items-center justify-center bg-[#070d19] border-l border-[#1e293b]/20 relative" style={{ minHeight: '100dvh', padding: '2.5rem 1.5rem' }}>
         {/* Mobile Background Grid */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:3rem_3rem] lg:hidden opacity-30 pointer-events-none" />
         
         {/* Login Card */}
-        <div className="relative bg-[#10192e]/85 border border-[#1e293b]/80 rounded-2xl overflow-hidden shadow-2xl z-15 flex flex-col transition-all duration-300 w-full max-w-[420px]">
+        <div className="relative border border-[#1e293b] rounded-2xl overflow-hidden shadow-2xl z-10 flex flex-col transition-all duration-300 w-full max-w-[420px]" style={{ backgroundColor: '#10192e' }}>
           
           {/* Top Accent Strip */}
           <div className="h-1 w-full bg-gradient-to-r from-[#14b8a6] to-[#0f766e]" />
@@ -348,7 +350,8 @@ export const Login: React.FC = () => {
                 <select
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value as UserRole)}
-                  className="w-full h-11 border border-[#1e293b] rounded-xl px-3 text-xs font-sans focus:outline-none bg-[#10192e] text-white cursor-pointer"
+                  style={{ backgroundColor: '#0d1727', color: 'white' }}
+                  className="w-full h-11 border border-[#1e293b] rounded-xl px-3 text-xs font-sans focus:outline-none focus:border-[#14b8a6] focus:ring-1 focus:ring-[#14b8a6] cursor-pointer transition-all"
                 >
                   <option value="Production Supervisor">Production Supervisor (Floor Manager)</option>
                   <option value="HR / Training Coordinator">HR / Training Coordinator</option>
