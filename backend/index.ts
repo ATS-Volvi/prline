@@ -1,3 +1,8 @@
+import buffer from 'buffer';
+if (!(buffer as any).SlowBuffer) {
+  (buffer as any).SlowBuffer = buffer.Buffer;
+}
+
 import { variables } from "./config/envLoader";
 import Server from "./server";
 

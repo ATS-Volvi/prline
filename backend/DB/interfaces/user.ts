@@ -3,6 +3,7 @@ export interface IUser{
     email:string
     password:string
     isVerified:boolean
+    userType?:string
 }
 
 export interface ILogin{

@@ -31,6 +31,11 @@ module.exports = {
         type:Sequelize.BOOLEAN,
         defaultValue:false
       },
+      userType:{
+        type:Sequelize.STRING,
+        allowNull:false,
+        defaultValue:'reviewer'
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

@@ -10,12 +10,13 @@ class MainAuthDatabase{
     }
 
     static async createUser(data:IUser){
-        const {name,email,password}=data
+        const {name,email,password,userType}=data
         const newUser=new User({
             name:name,
             email:email,
             password:password,
-            isVerified:false
+            isVerified:false,
+            userType:userType || 'reviewer'
         })
 
         const result = await newUser.save();

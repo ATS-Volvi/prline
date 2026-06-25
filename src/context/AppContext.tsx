@@ -18,6 +18,10 @@ import {
 interface AppContextType {
   role: UserRole;
   setRole: (role: UserRole) => void;
+  token: string | null;
+  user: { name: string; email: string; userId: string } | null;
+  login: (token: string, user: { name: string; email: string; userId: string }, role: UserRole) => void;
+  logout: () => void;
   associates: Associate[];
   skills: Skill[];
   associateSkills: AssociateSkill[];
@@ -222,6 +226,8 @@ const SKILL_LEVEL_VALUE: Record<SkillLevel, number> = {
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [role, setRole] = useState<UserRole>('Production Supervisor');
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string; userId: string } | null>(null);
   const [associates, setAssociates] = useState<Associate[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [associateSkills, setAssociateSkills] = useState<AssociateSkill[]>([]);
@@ -233,9 +239,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [leaveRecords, setLeaveRecords] = useState<LeaveRecord[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
 
+  const handleLogin = (newToken: string, newUser: { name: string; email: string; userId: string }, newRole: UserRole) => {
+    setToken(newToken);
+    setUser(newUser);
+    setRole(newRole);
+    localStorage.setItem('pepsico_token', newToken);
+    localStorage.setItem('pepsico_user', JSON.stringify(newUser));
+    localStorage.setItem('pepsico_role', JSON.stringify(newRole));
+  };
+
+  const handleLogout = () => {
+    setToken(null);
+    setUser(null);
+    setRole('Production Supervisor');
+    localStorage.removeItem('pepsico_token');
+    localStorage.removeItem('pepsico_user');
+    localStorage.removeItem('pepsico_role');
+  };
+
+  // Locally scoped fetch to override window.fetch and inject authorization headers
+  const fetch = async (url: string | URL, options: RequestInit = {}) => {
+    const activeToken = token || localStorage.getItem('pepsico_token');
+    const headers: Record<string, string> = {
+      ...(options.headers as Record<string, string> || {}),
+    };
+    if (activeToken) {
+      headers['Authorization'] = `Bearer ${activeToken}`;
+    }
+    const res = await window.fetch(url, { ...options, headers });
+    if (res.status === 401) {
+      handleLogout();
+    }
+    return res;
+  };
+
   const fetchState = async () => {
     try {
-      const res = await fetch("http://localhost:5505/api/v1/state");
+      const res = await fetch("/api/v1/state");
       if (!res.ok) throw new Error("Backend response not OK");
       const data = await res.json();
       setAssociates(data.associates || []);
@@ -269,7 +309,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Load from Backend or LocalStorage fallback on mount
   useEffect(() => {
+    const storedToken = localStorage.getItem('pepsico_token');
+    const storedUser = localStorage.getItem('pepsico_user');
     const storedRole = localStorage.getItem('pepsico_role');
+
+    if (storedToken && storedUser) {
+      setToken(storedToken);
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        setUser(null);
+      }
+    }
+
     if (storedRole) {
       try {
         setRole(JSON.parse(storedRole) as UserRole);
@@ -279,8 +331,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else {
       setRole('Production Supervisor');
     }
-    fetchState();
   }, []);
+
+  // Fetch state whenever token changes
+  useEffect(() => {
+    if (token) {
+      fetchState();
+    }
+  }, [token]);
 
   // Save to LocalStorage helper
   const saveData = <T,>(key: string, data: T) => {
@@ -291,6 +349,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setRole(newRole);
     saveData('role', newRole);
   };
+
+
 
   const logAction = (actionType: string, details: string) => {
     const newLog: AuditLog = {
@@ -333,7 +393,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAction('MASTER_DATA_UPDATED', `Added associate ${associate.name} (${associate.id}) with ${skillsToAdd.length} skills.`);
 
     try {
-      const res = await fetch("http://localhost:5505/api/v1/associates", {
+      const res = await fetch("/api/v1/associates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ associate, skills: skillsToAdd })
@@ -369,7 +429,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAction('MASTER_DATA_UPDATED', `Updated associate ${associate.name} (${associate.id}).`);
 
     try {
-      const res = await fetch(`http://localhost:5505/api/v1/associates/${associate.id}`, {
+      const res = await fetch(`/api/v1/associates/${associate.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ associate, skills: skillsToAdd })
@@ -400,7 +460,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAction('MASTER_DATA_UPDATED', `Deleted associate ${id}.`);
 
     try {
-      const res = await fetch(`http://localhost:5505/api/v1/associates/${id}`, {
+      const res = await fetch(`/api/v1/associates/${id}`, {
         method: "DELETE"
       });
       if (res.ok) fetchState();
@@ -420,7 +480,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAction('MASTER_DATA_UPDATED', `Created workstation ${ws.name} (${ws.id}) on ${ws.lineId}.`);
 
     try {
-      const res = await fetch("http://localhost:5505/api/v1/workstations", {
+      const res = await fetch("/api/v1/workstations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(ws)
@@ -441,7 +501,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAction('MASTER_DATA_UPDATED', `Updated workstation ${ws.name} (${ws.id}).`);
 
     try {
-      const res = await fetch(`http://localhost:5505/api/v1/workstations/${ws.id}`, {
+      const res = await fetch(`/api/v1/workstations/${ws.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(ws)
@@ -467,7 +527,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAction('MASTER_DATA_UPDATED', `Deleted workstation ${id}.`);
 
     try {
-      const res = await fetch(`http://localhost:5505/api/v1/workstations/${id}`, {
+      const res = await fetch(`/api/v1/workstations/${id}`, {
         method: "DELETE"
       });
       if (res.ok) fetchState();
@@ -485,7 +545,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAction('MASTER_DATA_UPDATED', `Created production line ${line.name} (${line.id}).`);
 
     try {
-      const res = await fetch("http://localhost:5505/api/v1/production-lines", {
+      const res = await fetch("/api/v1/production-lines", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(line)
@@ -505,7 +565,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAction('MASTER_DATA_UPDATED', `Updated production line ${line.name} (${line.id}).`);
 
     try {
-      const res = await fetch(`http://localhost:5505/api/v1/production-lines/${line.id}`, {
+      const res = await fetch(`/api/v1/production-lines/${line.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(line)
@@ -535,7 +595,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAction('MASTER_DATA_UPDATED', `Deleted production line ${id}.`);
 
     try {
-      const res = await fetch(`http://localhost:5505/api/v1/production-lines/${id}`, {
+      const res = await fetch(`/api/v1/production-lines/${id}`, {
         method: "DELETE"
       });
       if (res.ok) fetchState();
@@ -632,7 +692,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .map(s => ({ skillId: s.skillId, level: s.level, expiryDate: s.expiryDate }));
         const allSkills = [...otherSkills, { skillId: record.skillId, level: record.level, expiryDate: record.expiryDate }];
         
-        const res = await fetch(`http://localhost:5505/api/v1/associates/${record.associateId}`, {
+        const res = await fetch(`/api/v1/associates/${record.associateId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ associate: assoc, skills: allSkills })
@@ -662,7 +722,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAction('MASTER_DATA_UPDATED', `Marked ${assoc?.name} on leave for ${record.date}.`);
 
     try {
-      const res = await fetch("http://localhost:5505/api/v1/leave", {
+      const res = await fetch("/api/v1/leave", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(record)
@@ -682,7 +742,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAction('MASTER_DATA_UPDATED', `Removed leave record ${id}.`);
 
     try {
-      const res = await fetch(`http://localhost:5505/api/v1/leave/${id}`, {
+      const res = await fetch(`/api/v1/leave/${id}`, {
         method: "DELETE"
       });
       if (res.ok) fetchState();
@@ -694,7 +754,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Bulk Import
   const bulkImportAssociates = async (csvContent: string): Promise<{ success: boolean; message: string; count: number }> => {
     try {
-      const res = await fetch("http://localhost:5505/api/v1/associates/bulk-import", {
+      const res = await fetch("/api/v1/associates/bulk-import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ csvContent })
@@ -942,7 +1002,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     try {
-      const res = await fetch("http://localhost:5505/api/v1/allocation/allocate", {
+      const res = await fetch("/api/v1/allocation/allocate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ date, shiftId, lineId, workstationId, associateId, overrideReason })
@@ -996,7 +1056,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     try {
-      const res = await fetch("http://localhost:5505/api/v1/allocation/deallocate", {
+      const res = await fetch("/api/v1/allocation/deallocate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ date, shiftId, workstationId, lineId, associateId })
@@ -1017,7 +1077,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAction('ALLOCATION_CONFIRMED', `Cleared all allocations for Line ${lineId.replace('LINE-', '')} for Shift ${shiftId.replace('SHIFT-', '')}.`);
 
     try {
-      const res = await fetch("http://localhost:5505/api/v1/allocation/clear", {
+      const res = await fetch("/api/v1/allocation/clear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ date, shiftId, lineId })
@@ -1031,7 +1091,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Auto Allocation Algorithm
   const autoAllocateLine = async (date: string, shiftId: string, lineId: string): Promise<{ success: boolean; allocatedCount: number }> => {
     try {
-      const res = await fetch("http://localhost:5505/api/v1/allocation/auto-allocate", {
+      const res = await fetch("/api/v1/allocation/auto-allocate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ date, shiftId, lineId })
@@ -1184,6 +1244,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       value={{
         role,
         setRole: handleSetRole,
+        token,
+        user,
+        login: handleLogin,
+        logout: handleLogout,
         associates,
         skills,
         associateSkills,

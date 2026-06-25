@@ -17,6 +17,7 @@ class User extends Model<UserAttributes,UserCreationAttributes> implements UserA
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
     public isVerified!: boolean;
+    public userType!: string;
 }
 
 User.init({
@@ -38,7 +39,11 @@ User.init({
     isVerified:{
         type:DataTypes.BOOLEAN,
         defaultValue:false
-        
+    },
+    userType:{
+        type:DataTypes.STRING,
+        allowNull:false,
+        defaultValue:'reviewer'
     }
 },{sequelize,tableName:"users"})
 

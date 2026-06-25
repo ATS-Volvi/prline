@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AppProvider } from './context/AppContext';
+import { AppProvider, useApp } from './context/AppContext';
 import { Navigation } from './components/Navigation';
 import { Dashboard } from './components/Dashboard';
 import { ShiftPlanner } from './components/ShiftPlanner';
@@ -8,10 +8,16 @@ import { Analytics } from './components/Analytics';
 import { MasterData } from './components/MasterData';
 import { AiReports } from './components/AiReports';
 import { AuditLogs } from './components/AuditLogs';
+import { Login } from './components/Login';
 
 function MainAppContent() {
+  const { token } = useApp();
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [selectedLineId, setSelectedLineId] = useState<string>('LINE-01');
+
+  if (!token) {
+    return <Login />;
+  }
 
   const renderActiveTab = () => {
     switch (activeTab) {

@@ -8,7 +8,7 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
-  const { role, setRole, associateSkills, associates, workstations, skills, productionLines } = useApp();
+  const { role, setRole, associateSkills, associates, workstations, skills, productionLines, logout } = useApp();
   const [masterDataOpen, setMasterDataOpen] = useState(true);
 
   const expiringCount = React.useMemo(() => {
@@ -104,6 +104,14 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
             </button>
           );
         })}
+        
+        <button
+          onClick={logout}
+          className="flex items-center gap-3 px-4 py-2.5 mt-4 transition-all duration-150 rounded-xl text-left font-body-md text-rose-350 hover:text-white hover:bg-rose-950/25 cursor-pointer border-l-4 border-transparent"
+        >
+          <span className="material-symbols-outlined text-lg">logout</span>
+          <span className="font-label-caps text-[10px] tracking-wider">Logout System</span>
+        </button>
       </nav>
 
 

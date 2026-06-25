@@ -11,6 +11,8 @@ import {
   AuditLog,
   AttendanceRecord
 } from "../../../DB/models/models";
+import AuthHandler from "../../../middleware/authHandler";
+import UserTypeHandler from "../../../middleware/getUserType";
 
 const router = Router();
 
@@ -31,7 +33,7 @@ const logAction = async (actionType: string, details: string, userId = "admin-us
 };
 
 // 1. GET FULL APP STATE
-router.get("/state", async (req: Request, res: Response) => {
+router.get("/state", AuthHandler.authMiddleware, async (req: Request, res: Response) => {
   try {
     const associates = await Associate.findAll();
     const skills = await Skill.findAll();
@@ -68,7 +70,7 @@ router.get("/state", async (req: Request, res: Response) => {
 });
 
 // 2. ASSOCIATES CRUD
-router.post("/associates", async (req: Request, res: Response) => {
+router.post("/associates", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const { associate, skills } = req.body;
     await Associate.create(associate);
@@ -93,7 +95,7 @@ router.post("/associates", async (req: Request, res: Response) => {
   }
 });
 
-router.put("/associates/:id", async (req: Request, res: Response) => {
+router.put("/associates/:id", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { associate, skills } = req.body;
@@ -122,7 +124,7 @@ router.put("/associates/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.delete("/associates/:id", async (req: Request, res: Response) => {
+router.delete("/associates/:id", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const assoc = await Associate.findByPk(id);
@@ -139,7 +141,7 @@ router.delete("/associates/:id", async (req: Request, res: Response) => {
 });
 
 // 3. WORKSTATIONS CRUD
-router.post("/workstations", async (req: Request, res: Response) => {
+router.post("/workstations", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const workstation = req.body;
     await Workstation.create(workstation);
@@ -150,7 +152,7 @@ router.post("/workstations", async (req: Request, res: Response) => {
   }
 });
 
-router.put("/workstations/:id", async (req: Request, res: Response) => {
+router.put("/workstations/:id", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const workstation = req.body;
@@ -162,7 +164,7 @@ router.put("/workstations/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.delete("/workstations/:id", async (req: Request, res: Response) => {
+router.delete("/workstations/:id", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const ws = await Workstation.findByPk(id);
@@ -177,7 +179,7 @@ router.delete("/workstations/:id", async (req: Request, res: Response) => {
 });
 
 // 3.1. PRODUCTION LINES CRUD
-router.post("/production-lines", async (req: Request, res: Response) => {
+router.post("/production-lines", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const line = req.body;
     await ProductionLine.create(line);
@@ -188,7 +190,7 @@ router.post("/production-lines", async (req: Request, res: Response) => {
   }
 });
 
-router.put("/production-lines/:id", async (req: Request, res: Response) => {
+router.put("/production-lines/:id", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const line = req.body;
@@ -200,7 +202,7 @@ router.put("/production-lines/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.delete("/production-lines/:id", async (req: Request, res: Response) => {
+router.delete("/production-lines/:id", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const line = await ProductionLine.findByPk(id);
@@ -215,7 +217,7 @@ router.delete("/production-lines/:id", async (req: Request, res: Response) => {
 });
 
 // 4. LEAVE RECORDS
-router.post("/leave", async (req: Request, res: Response) => {
+router.post("/leave", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const leave = req.body;
     const id = `LV-${Date.now()}`;
@@ -228,7 +230,7 @@ router.post("/leave", async (req: Request, res: Response) => {
   }
 });
 
-router.delete("/leave/:id", async (req: Request, res: Response) => {
+router.delete("/leave/:id", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const leave = await LeaveRecord.findByPk(id);
@@ -244,7 +246,7 @@ router.delete("/leave/:id", async (req: Request, res: Response) => {
 });
 
 // 5. MANUAL ALLOCATE & DEALLOCATE
-router.post("/allocation/allocate", async (req: Request, res: Response) => {
+router.post("/allocation/allocate", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, async (req: Request, res: Response) => {
   try {
     const { date, shiftId, lineId, workstationId, associateId, overrideReason } = req.body;
     
@@ -289,7 +291,7 @@ router.post("/allocation/allocate", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/allocation/deallocate", async (req: Request, res: Response) => {
+router.post("/allocation/deallocate", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, async (req: Request, res: Response) => {
   try {
     const { date, shiftId, workstationId, lineId, associateId } = req.body;
     const ws = await Workstation.findByPk(workstationId);
@@ -309,7 +311,7 @@ router.post("/allocation/deallocate", async (req: Request, res: Response) => {
 });
 
 // 6. CLEAR ALL ALLOCATIONS
-router.post("/allocation/clear", async (req: Request, res: Response) => {
+router.post("/allocation/clear", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, async (req: Request, res: Response) => {
   try {
     const { date, shiftId, lineId } = req.body;
     await Allocation.destroy({ where: { date, shiftId, lineId } });
@@ -328,7 +330,7 @@ const SKILL_LEVEL_VALUE: Record<string, number> = {
   'Expert': 4
 };
 
-router.post("/allocation/auto-allocate", async (req: Request, res: Response) => {
+router.post("/allocation/auto-allocate", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, async (req: Request, res: Response) => {
   try {
     const { date, shiftId, lineId } = req.body;
     const lineWS = await Workstation.findAll({ where: { lineId } });
@@ -445,7 +447,7 @@ router.post("/allocation/auto-allocate", async (req: Request, res: Response) => 
 });
 
 // 8. BULK IMPORT CSV
-router.post("/associates/bulk-import", async (req: Request, res: Response) => {
+router.post("/associates/bulk-import", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const { csvContent } = req.body;
     if (!csvContent || typeof csvContent !== 'string') {

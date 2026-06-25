@@ -14,7 +14,7 @@ export const sendEmail = async (reciever: string, subject: string, body: string,
       pass: variables.WORKSPACE_PASSWORD, // Google Workspace password
     },
     tls: {
-      rejectUnauthorized: false, // Bypass SSL certificate validation
+      rejectUnauthorized: true, // Enforce SSL certificate validation
     },
   })
   const hasHTMLTags = /<[a-z][\s\S]*>/i.test(body)

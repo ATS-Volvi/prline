@@ -29,8 +29,6 @@ class AuthHandler {
     response: express.Response,
     next: express.NextFunction
   ): Promise<void> {
-    let authData: IAuthData
-
     if (!request.headers.authorization) {
       return next(createError({status:401,message:"need signin"}))
     }
@@ -40,24 +38,19 @@ class AuthHandler {
     }
     const jwtSecret: Secret = variables.JWT_SECRET
 
-    let decodedToken: IDecodedJWT
-    jwt.verify(token, jwtSecret, (err, decoded) => {
-      if (!err) {
-        decodedToken = decoded as IDecodedJWT
-        authData = {
-          isAuth: true,
-          name: decodedToken.name,
-          userType: decodedToken.userType,
-          userId: decodedToken.userId,
-          email:decodedToken.email
-        }
-      } else {
-        return next(createError({status:401,message:"need signin"}))
+    try {
+      const decodedToken = jwt.verify(token, jwtSecret) as IDecodedJWT
+      request.authData = {
+        isAuth: true,
+        name: decodedToken.name,
+        userType: decodedToken.userType,
+        userId: decodedToken.userId,
+        email: decodedToken.email
       }
-      request.authData = authData
-    })
-
-    return next()
+      return next()
+    } catch (err) {
+      return next(createError({status:401,message:"need signin"}))
+    }
   }
 }
 

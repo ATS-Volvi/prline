@@ -7,6 +7,8 @@ import {
   Associate,
   AssociateSkill
 } from "./models/models";
+import User from "./models/user";
+import { hashPassword } from "../utils/hashPwd";
 
 const skillsData = [
   { id: 'BLADE_OPT', name: 'Blade Operation', description: 'Slicing blade calibration and replacement' },
@@ -217,6 +219,44 @@ export const seedDatabase = async () => {
     // Seed AssociateSkills
     await AssociateSkill.bulkCreate(associateSkillsData);
     console.log("Associate skills seeded.");
+
+    // Seed Default Testing Users
+    const hashedAdminPassword = await hashPassword('AdminPassword123');
+    const hashedSupervisorPassword = await hashPassword('SupervisorPassword123');
+    const hashedHRPassword = await hashPassword('HRPassword123');
+    const hashedManagerPassword = await hashPassword('ManagerPassword123');
+
+    await User.bulkCreate([
+      {
+        name: 'A. Mukhopadhyay',
+        email: 'admin@pepsico.com',
+        password: hashedAdminPassword,
+        isVerified: true,
+        userType: 'pri_admin'
+      },
+      {
+        name: 'R. Sharma',
+        email: 'supervisor@pepsico.com',
+        password: hashedSupervisorPassword,
+        isVerified: true,
+        userType: 'reviewer'
+      },
+      {
+        name: 'P. Banerjee',
+        email: 'hr@pepsico.com',
+        password: hashedHRPassword,
+        isVerified: true,
+        userType: 'sec_admin'
+      },
+      {
+        name: 'S. Chatterjee',
+        email: 'manager@pepsico.com',
+        password: hashedManagerPassword,
+        isVerified: true,
+        userType: 'manager'
+      }
+    ]);
+    console.log("Default users seeded.");
 
     console.log("Database Seeding Completed Successfully.");
   } catch (error) {

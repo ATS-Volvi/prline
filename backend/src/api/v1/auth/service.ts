@@ -54,11 +54,12 @@ class MainAuthService{
         const accessToken=signJwt({
             name:user.name,
             email:user.email,
-            userId:user.userId
+            userId:user.userId,
+            userType:user.userType
         },7)
 
         return {
-            data :{userId:user.userId,email:user.email,name:user.name},
+            data :{userId:user.userId,email:user.email,name:user.name,userType:user.userType},
             accessToken:accessToken
         }
     }
