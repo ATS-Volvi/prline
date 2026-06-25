@@ -216,9 +216,10 @@ export const SkillMatrix: React.FC = () => {
 
         {/* Sub-tab: Record Training */}
         {activeSubTab === 'training' && (
-          <div className="max-w-lg mx-auto bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 animate-slide-up w-full">
-            <div>
-              <h2 className="text-sm font-bold text-on-surface">Log Training & Recertifications</h2>
+          <div className="w-full flex justify-center animate-slide-up">
+            <div className="max-w-lg bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 w-full">
+              <div>
+                <h2 className="text-sm font-bold text-on-surface">Log Training & Recertifications</h2>
               <p className="text-[10px] text-secondary">Record a new operator qualification. Saving updates the shift allocator instantly.</p>
             </div>
 
@@ -306,12 +307,14 @@ export const SkillMatrix: React.FC = () => {
               </div>
             )}
           </div>
+          </div>
         )}
 
         {/* Sub-tab: Bulk Import */}
         {activeSubTab === 'bulk' && (
-          <div className="max-w-xl mx-auto bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 animate-slide-up w-full">
-            <div className="flex justify-between items-center">
+          <div className="w-full flex justify-center animate-slide-up">
+            <div className="max-w-xl bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 w-full">
+              <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-sm font-bold text-on-surface">CSV Workforce Importer</h2>
                 <p className="text-[10px] text-secondary">Pre-configure operators and skills in bulk.</p>
@@ -364,6 +367,7 @@ export const SkillMatrix: React.FC = () => {
                 Access Denied: Only HR coordinators and Plant Admins can perform bulk import actions.
               </div>
             )}
+          </div>
           </div>
         )}
 
