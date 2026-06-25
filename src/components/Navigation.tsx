@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 
 interface NavigationProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  setMasterDataSubTab?: (tab: string) => void;
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
-  const { role, setRole, associateSkills } = useApp();
+  const { role, setRole, associateSkills, associates, workstations, skills, productionLines } = useApp();
+  const [masterDataOpen, setMasterDataOpen] = useState(true);
 
   const expiringCount = React.useMemo(() => {
     const today = new Date();
@@ -103,6 +105,75 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
           );
         })}
       </nav>
+
+
+      {/* Master Data Quick Config Panel */}
+      {(role === 'Plant Admin' || role === 'HR / Training Coordinator') && (
+        <div className="px-3 pb-3">
+          <button
+            onClick={() => setMasterDataOpen(prev => !prev)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-[#293e5d]/40 hover:bg-[#293e5d]/60 transition-all cursor-pointer group"
+          >
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>database</span>
+              <span className="font-label-caps text-[9px] text-[#94a3b8] tracking-widest font-bold">MASTER DATA</span>
+            </div>
+            <span className={`material-symbols-outlined text-xs text-[#94a3b8] transition-transform duration-200 ${masterDataOpen ? 'rotate-180' : ''}`}>expand_more</span>
+          </button>
+
+          {masterDataOpen && (
+            <div className="mt-2 grid grid-cols-2 gap-1.5 animate-fade-in">
+              {/* Associates */}
+              <button
+                onClick={() => { setActiveTab('master_data'); localStorage.setItem('master_data_sub_tab', 'associates'); }}
+                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-[#293e5d]/60 ${activeTab === 'master_data' ? 'border-[#293e5d]/80 bg-[#293e5d]/50' : 'border-[#293e5d]/40 bg-[#182c47]'}`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>groups</span>
+                  <span className="text-white font-mono font-bold text-sm leading-none">{associates?.length ?? 0}</span>
+                </div>
+                <span className="font-label-caps text-[8px] text-[#94a3b8] tracking-wider leading-tight">Associates</span>
+              </button>
+
+              {/* Workstations */}
+              <button
+                onClick={() => { setActiveTab('master_data'); localStorage.setItem('master_data_sub_tab', 'workstations'); }}
+                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-[#293e5d]/60 ${activeTab === 'master_data' ? 'border-[#293e5d]/80 bg-[#293e5d]/50' : 'border-[#293e5d]/40 bg-[#182c47]'}`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>precision_manufacturing</span>
+                  <span className="text-white font-mono font-bold text-sm leading-none">{workstations?.length ?? 0}</span>
+                </div>
+                <span className="font-label-caps text-[8px] text-[#94a3b8] tracking-wider leading-tight">Workstations</span>
+              </button>
+
+              {/* Skills */}
+              <button
+                onClick={() => { setActiveTab('master_data'); localStorage.setItem('master_data_sub_tab', 'skills'); }}
+                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-[#293e5d]/60 ${activeTab === 'master_data' ? 'border-[#293e5d]/80 bg-[#293e5d]/50' : 'border-[#293e5d]/40 bg-[#182c47]'}`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span>
+                  <span className="text-white font-mono font-bold text-sm leading-none">{skills?.length ?? 0}</span>
+                </div>
+                <span className="font-label-caps text-[8px] text-[#94a3b8] tracking-wider leading-tight">Skills</span>
+              </button>
+
+              {/* Production Lines */}
+              <button
+                onClick={() => { setActiveTab('master_data'); localStorage.setItem('master_data_sub_tab', 'lines'); }}
+                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-[#293e5d]/60 ${activeTab === 'master_data' ? 'border-[#293e5d]/80 bg-[#293e5d]/50' : 'border-[#293e5d]/40 bg-[#182c47]'}`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>conveyor_belt</span>
+                  <span className="text-white font-mono font-bold text-sm leading-none">{productionLines?.length ?? 0}</span>
+                </div>
+                <span className="font-label-caps text-[8px] text-[#94a3b8] tracking-wider leading-tight">Prod. Lines</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Footer Section */}
       <div className="mt-auto p-4 border-t border-[#293e5d]/50 bg-[#12243d]">

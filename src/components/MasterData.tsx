@@ -17,6 +17,9 @@ export const MasterData: React.FC = () => {
     addProductionLine,
     updateProductionLine,
     deleteProductionLine,
+    addSkill,
+    updateSkill,
+    deleteSkill,
     associateSkills,
     role
   } = useApp();
@@ -57,6 +60,51 @@ export const MasterData: React.FC = () => {
   const [lineName, setLineName] = useState('');
   const [lineProduct, setLineProduct] = useState('');
   const [lineStatus, setLineStatus] = useState<LineStatus>('ACTIVE');
+
+  // Skill forms
+  const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
+  const [isAddingSkill, setIsAddingSkill] = useState(false);
+  const [skId, setSkId] = useState('');
+  const [skName, setSkName] = useState('');
+  const [skDesc, setSkDesc] = useState('');
+
+  // Skill Save
+  const handleSaveSkill = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!skId || !skName) {
+      alert('Missing ID or Name');
+      return;
+    }
+
+    const item: Skill = {
+      id: skId,
+      name: skName,
+      description: skDesc
+    };
+
+    if (editingSkill) {
+      updateSkill(item);
+      setEditingSkill(null);
+    } else {
+      if (skills.some(s => s.id === skId)) {
+        alert('Skill ID already exists.');
+        return;
+      }
+      addSkill(item);
+      setIsAddingSkill(false);
+    }
+
+    setSkId('');
+    setSkName('');
+    setSkDesc('');
+  };
+
+  const startEditSkill = (s: Skill) => {
+    setEditingSkill(s);
+    setSkId(s.id);
+    setSkName(s.name);
+    setSkDesc(s.description);
+  };
 
   // Skill check helper
   const handleSkillLevelChange = (skillId: string, level: SkillLevel, expiryDate: string, isChecked: boolean) => {
@@ -424,9 +472,19 @@ export const MasterData: React.FC = () => {
           {/* Sub-tab: Skills */}
           {activeSubTab === 'skills' && (
             <>
-              <div>
-                <h2 className="text-sm font-bold text-on-surface">Skill Master Register</h2>
-                <p className="text-[10px] text-secondary">Operational and technical safety skill descriptors</p>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-sm font-bold text-on-surface">Skill Master Register</h2>
+                  <p className="text-[10px] text-secondary">Operational and technical safety skill descriptors</p>
+                </div>
+                {canWriteAllMasterData && !isAddingSkill && !editingSkill && (
+                  <button
+                    onClick={() => { setSkId(''); setSkName(''); setSkDesc(''); setIsAddingSkill(true); }}
+                    className="py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-900 flex items-center gap-1.5 cursor-pointer shadow-premium-md font-label-caps tracking-wider transition-all hover:scale-[1.02]"
+                  >
+                    <span className="material-symbols-outlined text-sm">add_circle</span> ADD SKILL
+                  </button>
+                )}
               </div>
 
               <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-premium-sm">
@@ -436,6 +494,7 @@ export const MasterData: React.FC = () => {
                       <th className="p-3.5">SKILL CODE</th>
                       <th className="p-3.5">SKILL NAME</th>
                       <th className="p-3.5">DESCRIPTION & APPLICATION</th>
+                      {canWriteAllMasterData && <th className="p-3.5 text-right">ACTIONS</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -444,6 +503,26 @@ export const MasterData: React.FC = () => {
                         <td className="p-3.5 font-mono font-bold text-primary">{sk.id}</td>
                         <td className="p-3.5 font-bold text-on-surface">{sk.name}</td>
                         <td className="p-3.5 text-secondary font-medium leading-relaxed">{sk.description}</td>
+                        {canWriteAllMasterData && (
+                          <td className="p-3.5 text-right select-none space-x-3">
+                            <button
+                              onClick={() => startEditSkill(sk)}
+                              className="text-primary hover:underline font-bold text-[10px] cursor-pointer"
+                            >
+                              EDIT
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Delete skill ${sk.name}? This will clear all associate skill certifications.`)) {
+                                  deleteSkill(sk.id);
+                                }
+                              }}
+                              className="text-rose-600 hover:underline font-bold text-[10px] cursor-pointer"
+                            >
+                              REMOVE
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -537,11 +616,11 @@ export const MasterData: React.FC = () => {
         </div>
  
         {/* Right Add/Edit Side Form Panel */}
-        {((canWriteAssociates && (isAddingAssoc || editingAssoc)) || (canWriteAllMasterData && (isAddingWS || editingWS || isAddingLine || editingLine))) && (
+        {((canWriteAssociates && (isAddingAssoc || editingAssoc)) || (canWriteAllMasterData && (isAddingWS || editingWS || isAddingLine || editingLine || isAddingSkill || editingSkill))) && (
           <aside className="w-[380px] h-full border-l border-slate-200 bg-white p-5 overflow-y-auto custom-scrollbar flex flex-col gap-5 shadow-premium-lg z-30 animate-slide-up">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-xs text-primary uppercase tracking-wider font-label-caps">
-                {isAddingAssoc ? 'Create Associate' : editingAssoc ? 'Modify Associate' : isAddingWS ? 'Create Workstation' : editingWS ? 'Modify Workstation' : isAddingLine ? 'Create Production Line' : 'Modify Production Line'}
+                {isAddingAssoc ? 'Create Associate' : editingAssoc ? 'Modify Associate' : isAddingWS ? 'Create Workstation' : editingWS ? 'Modify Workstation' : isAddingLine ? 'Create Production Line' : editingLine ? 'Modify Production Line' : isAddingSkill ? 'Create Skill' : 'Modify Skill'}
               </h3>
               <button
                 onClick={() => {
@@ -551,6 +630,8 @@ export const MasterData: React.FC = () => {
                   setEditingWS(null);
                   setIsAddingLine(false);
                   setEditingLine(null);
+                  setIsAddingSkill(false);
+                  setEditingSkill(null);
                   setLineId('');
                   setLineName('');
                   setLineProduct('');
@@ -558,6 +639,9 @@ export const MasterData: React.FC = () => {
                   setWsId('');
                   setWsName('');
                   setWsMaxStaffCount(1);
+                  setSkId('');
+                  setSkName('');
+                  setSkDesc('');
                   resetAssocForm();
                 }}
                 className="p-1 hover:bg-slate-100 rounded-lg text-secondary transition-colors flex items-center justify-center cursor-pointer"
@@ -849,6 +933,53 @@ export const MasterData: React.FC = () => {
                   className="w-full py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-slate-800 text-[10px] font-label-caps tracking-wider uppercase transition-all shadow-premium-md hover:shadow-premium-lg cursor-pointer"
                 >
                   SAVE PRODUCTION LINE
+                </button>
+              </form>
+            )}
+            {/* Form: Skill */}
+            {(isAddingSkill || editingSkill) && (
+              <form onSubmit={handleSaveSkill} className="flex flex-col gap-4 text-xs">
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">SKILL CODE / ID</label>
+                  <input
+                    type="text"
+                    required
+                    disabled={!!editingSkill}
+                    value={skId}
+                    onChange={(e) => setSkId(e.target.value.toUpperCase())}
+                    className="py-2 px-3 border border-slate-200 bg-slate-50 font-mono disabled:opacity-65 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm text-xs"
+                    placeholder="e.g. PACKING_QA"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">SKILL NAME</label>
+                  <input
+                    type="text"
+                    required
+                    value={skName}
+                    onChange={(e) => setSkName(e.target.value)}
+                    className="py-2 px-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-slate-50 shadow-premium-sm text-xs"
+                    placeholder="e.g. Packing Quality Assurance"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">DESCRIPTION</label>
+                  <textarea
+                    rows={3}
+                    value={skDesc}
+                    onChange={(e) => setSkDesc(e.target.value)}
+                    className="py-2 px-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-slate-50 shadow-premium-sm text-xs"
+                    placeholder="Describe skill competency rules..."
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-slate-800 text-[10px] font-label-caps tracking-wider uppercase transition-all shadow-premium-md hover:shadow-premium-lg cursor-pointer"
+                >
+                  SAVE SKILL
                 </button>
               </form>
             )}

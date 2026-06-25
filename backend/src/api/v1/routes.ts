@@ -547,4 +547,59 @@ router.post("/attendance", async (req: Request, res: Response) => {
   }
 });
 
+// SKILL CRUD ROUTES
+router.post("/skills", async (req: Request, res: Response) => {
+  try {
+    const { id, name, description } = req.body;
+    if (!id || !name) {
+      res.status(400).json({ success: false, message: 'Missing ID or Name.' });
+      return;
+    }
+    const exists = await Skill.findByPk(id);
+    if (exists) {
+      res.status(400).json({ success: false, message: 'Skill ID already exists.' });
+      return;
+    }
+    const skill = await Skill.create({ id, name, description });
+    await logAction('MASTER_DATA_UPDATED', `Created skill ${name} (${id}).`);
+    res.json({ success: true, skill });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.put("/skills/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, description } = req.body;
+    const skill = await Skill.findByPk(id);
+    if (!skill) {
+      res.status(404).json({ success: false, message: 'Skill not found.' });
+      return;
+    }
+    await skill.update({ name, description });
+    await logAction('MASTER_DATA_UPDATED', `Updated skill ${name} (${id}).`);
+    res.json({ success: true, skill });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.delete("/skills/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const skill = await Skill.findByPk(id);
+    if (!skill) {
+      res.status(404).json({ success: false, message: 'Skill not found.' });
+      return;
+    }
+    const name = skill.get('name');
+    await skill.destroy();
+    await logAction('MASTER_DATA_UPDATED', `Deleted skill ${name} (${id}).`);
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 export default router;

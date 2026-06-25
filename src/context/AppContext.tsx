@@ -40,6 +40,9 @@ interface AppContextType {
   addProductionLine: (line: ProductionLine) => void;
   updateProductionLine: (line: ProductionLine) => void;
   deleteProductionLine: (id: string) => void;
+  addSkill: (skill: Skill) => void;
+  updateSkill: (skill: Skill) => void;
+  deleteSkill: (id: string) => void;
   addTrainingRecord: (record: AssociateSkill) => void;
   bulkImportAssociates: (csvContent: string) => Promise<{ success: boolean; message: string; count: number }>;
   
@@ -540,6 +543,70 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error("Backend error, local fallback used:", err);
     }
   };
+
+  const addSkill = async (skill: Skill) => {
+    setSkills(prev => {
+      const updated = [...prev, skill];
+      saveData('skills', updated);
+      return updated;
+    });
+    logAction('MASTER_DATA_UPDATED', `Created skill ${skill.name} (${skill.id}).`);
+
+    try {
+      const res = await fetch("http://localhost:5505/api/v1/skills", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(skill)
+      });
+      if (res.ok) fetchState();
+    } catch (err) {
+      console.error("Backend error, local fallback used:", err);
+    }
+  };
+
+  const updateSkill = async (skill: Skill) => {
+    setSkills(prev => {
+      const updated = prev.map(s => s.id === skill.id ? skill : s);
+      saveData('skills', updated);
+      return updated;
+    });
+    logAction('MASTER_DATA_UPDATED', `Updated skill ${skill.name} (${skill.id}).`);
+
+    try {
+      const res = await fetch(`http://localhost:5505/api/v1/skills/${skill.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(skill)
+      });
+      if (res.ok) fetchState();
+    } catch (err) {
+      console.error("Backend error, local fallback used:", err);
+    }
+  };
+
+  const deleteSkill = async (id: string) => {
+    setSkills(prev => {
+      const updated = prev.filter(s => s.id !== id);
+      saveData('skills', updated);
+      return updated;
+    });
+    setAssociateSkills(prev => {
+      const updated = prev.filter(s => s.skillId !== id);
+      saveData('associateSkills', updated);
+      return updated;
+    });
+    logAction('MASTER_DATA_UPDATED', `Deleted skill ${id}.`);
+
+    try {
+      const res = await fetch(`http://localhost:5505/api/v1/skills/${id}`, {
+        method: "DELETE"
+      });
+      if (res.ok) fetchState();
+    } catch (err) {
+      console.error("Backend error, local fallback used:", err);
+    }
+  };
+
 
   const addTrainingRecord = async (record: AssociateSkill) => {
     // Optimistic / fallback local state update
@@ -1137,6 +1204,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addProductionLine,
         updateProductionLine,
         deleteProductionLine,
+        addSkill,
+        updateSkill,
+        deleteSkill,
         addTrainingRecord,
         bulkImportAssociates,
         addLeaveRecord,
