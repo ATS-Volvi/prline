@@ -7,7 +7,7 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
-  const { role, associateSkills } = useApp();
+  const { role, setRole, associateSkills } = useApp();
 
   const expiringCount = React.useMemo(() => {
     const today = new Date();
@@ -45,20 +45,35 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
           </div>
         </div>
 
-        {/* Profile Card / ID Badge */}
-        <div className="mt-4 flex items-center gap-3 p-3 bg-[#293e5d]/30 border border-[#293e5d]/50 rounded-xl">
-          <img 
-            className="w-10 h-10 rounded-lg border border-[#293e5d]/70 object-cover shadow-premium-sm" 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdgJNACyT_CWwq_Gk3iuVS92due0LKPya-WGA-i8hJezbLXHIbSSgaqAiE9jFCILMbJLRHkU-9ztYRluhVrrHFICR7BGLMengv2pLiAeSPLSIO-H_pkmel5pdMoHxmvyx0iHojUCAXXY8esSQ4dKcLXZGr0QvPRtAgq0HSRrbzJSTjNh-9pURuUUo78Vf8VLEL0quupTsh13jqWlak_S4EOXEzgsGfFQSgK97F7vrEn9JnRbSDcrn_ZxHtwuc982ituyVcJs-KpA" 
-            alt="User avatar"
-          />
-          <div className="overflow-hidden">
-            <p className="font-body-md text-xs font-bold text-white truncate">
-              {role === 'Plant Admin' ? 'A. Mukhopadhyay' : role === 'HR / Training Coordinator' ? 'P. Banerjee' : role === 'Plant Manager' ? 'S. Chatterjee' : 'R. Sharma'}
-            </p>
-            <p className="font-label-caps text-[8px] text-[#94a3b8] truncate">
-              {role === 'Plant Admin' ? 'Admin • #101' : role === 'HR / Training Coordinator' ? 'HR Coord • #103' : role === 'Plant Manager' ? 'Manager • #104' : 'Floor Mgr • #102'}
-            </p>
+        {/* Profile Card / ID Badge with interactive Role Switcher */}
+        <div className="mt-4 flex flex-col gap-2.5 p-3 bg-[#293e5d]/30 border border-[#293e5d]/50 rounded-xl">
+          <div className="flex items-center gap-3">
+            <img 
+              className="w-10 h-10 rounded-lg border border-[#293e5d]/70 object-cover shadow-premium-sm" 
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdgJNACyT_CWwq_Gk3iuVS92due0LKPya-WGA-i8hJezbLXHIbSSgaqAiE9jFCILMbJLRHkU-9ztYRluhVrrHFICR7BGLMengv2pLiAeSPLSIO-H_pkmel5pdMoHxmvyx0iHojUCAXXY8esSQ4dKcLXZGr0QvPRtAgq0HSRrbzJSTjNh-9pURuUUo78Vf8VLEL0quupTsh13jqWlak_S4EOXEzgsGfFQSgK97F7vrEn9JnRbSDcrn_ZxHtwuc982ituyVcJs-KpA" 
+              alt="User avatar"
+            />
+            <div className="overflow-hidden">
+              <p className="font-body-md text-xs font-bold text-white truncate">
+                {role === 'Plant Admin' ? 'A. Mukhopadhyay' : role === 'HR / Training Coordinator' ? 'P. Banerjee' : role === 'Plant Manager' ? 'S. Chatterjee' : 'R. Sharma'}
+              </p>
+              <p className="font-label-caps text-[8px] text-[#94a3b8]/75 truncate">
+                ID: {role === 'Plant Admin' ? '#101' : role === 'HR / Training Coordinator' ? '#103' : role === 'Plant Manager' ? '#104' : '#102'}
+              </p>
+            </div>
+          </div>
+          <div className="relative mt-1">
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as any)}
+              className="w-full h-7 border border-[#293e5d]/85 bg-[#182c47] px-2 text-[9px] font-bold text-[#e2eafc] focus:outline-none appearance-none rounded-lg cursor-pointer shadow-premium-sm"
+            >
+              <option value="Production Supervisor">Production Supervisor</option>
+              <option value="HR / Training Coordinator">HR / Training Coordinator</option>
+              <option value="Plant Manager">Plant Manager</option>
+              <option value="Plant Admin">Plant Admin</option>
+            </select>
+            <span className="material-symbols-outlined absolute right-2 top-1.5 pointer-events-none text-[#94a3b8] text-xs">expand_more</span>
           </div>
         </div>
       </div>
