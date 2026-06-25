@@ -208,7 +208,8 @@ export const MasterData: React.FC = () => {
     setLineStatus(l.status);
   };
 
-  const hasWriteAccess = role === 'Plant Admin' || role === 'HR / Training Coordinator';
+  const canWriteAssociates = role === 'Plant Admin' || role === 'HR / Training Coordinator';
+  const canWriteAllMasterData = role === 'Plant Admin';
 
   return (
     <div className="flex-1 h-full flex flex-col overflow-hidden bg-background select-none animate-fade-in">
@@ -270,7 +271,7 @@ export const MasterData: React.FC = () => {
                   <h2 className="text-sm font-bold text-on-surface">Associate List</h2>
                   <p className="text-[10px] text-secondary">Manage shift operators, contractors, and category classifications</p>
                 </div>
-                {hasWriteAccess && !isAddingAssoc && !editingAssoc && (
+                {canWriteAssociates && !isAddingAssoc && !editingAssoc && (
                   <button
                     onClick={() => { resetAssocForm(); setIsAddingAssoc(true); }}
                     className="py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-905 flex items-center gap-1.5 cursor-pointer shadow-premium-md font-label-caps tracking-wider transition-all hover:scale-[1.02]"
@@ -290,7 +291,7 @@ export const MasterData: React.FC = () => {
                       <th className="p-3.5">JOINING DATE</th>
                       <th className="p-3.5">SKILLS ROSTERED</th>
                       <th className="p-3.5">STATUS</th>
-                      {hasWriteAccess && <th className="p-3.5 text-right">ACTIONS</th>}
+                      {canWriteAssociates && <th className="p-3.5 text-right">ACTIONS</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -314,7 +315,7 @@ export const MasterData: React.FC = () => {
                               {assoc.status.toUpperCase()}
                             </span>
                           </td>
-                          {hasWriteAccess && (
+                          {canWriteAssociates && (
                             <td className="p-3.5 text-right select-none space-x-3">
                               <button
                                 onClick={() => startEditAssociate(assoc)}
@@ -351,7 +352,7 @@ export const MasterData: React.FC = () => {
                   <h2 className="text-sm font-bold text-on-surface">Workstations Directory</h2>
                   <p className="text-[10px] text-secondary">Manage plant floor workstation constraints and required minimum skills</p>
                 </div>
-                {hasWriteAccess && !isAddingWS && !editingWS && (
+                {canWriteAllMasterData && !isAddingWS && !editingWS && (
                   <button
                     onClick={() => { setWsId(''); setWsName(''); setIsAddingWS(true); }}
                     className="py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-900 flex items-center gap-1.5 cursor-pointer shadow-premium-md font-label-caps tracking-wider transition-all hover:scale-[1.02]"
@@ -371,7 +372,7 @@ export const MasterData: React.FC = () => {
                       <th className="p-3.5">REQUIRED SKILL</th>
                       <th className="p-3.5">MINIMUM LEVEL</th>
                       <th className="p-3.5">CAPACITY</th>
-                      {hasWriteAccess && <th className="p-3.5 text-right">ACTIONS</th>}
+                      {canWriteAllMasterData && <th className="p-3.5 text-right">ACTIONS</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -391,7 +392,7 @@ export const MasterData: React.FC = () => {
                           <td className="p-3.5 font-mono font-bold text-slate-700">
                             {ws.maxStaffCount || 1} { (ws.maxStaffCount || 1) === 1 ? 'Worker' : 'Workers' }
                           </td>
-                          {hasWriteAccess && (
+                          {canWriteAllMasterData && (
                             <td className="p-3.5 text-right select-none space-x-3">
                               <button
                                 onClick={() => startEditWS(ws)}
@@ -459,7 +460,7 @@ export const MasterData: React.FC = () => {
                   <h2 className="text-sm font-bold text-on-surface">Production Lines Directory</h2>
                   <p className="text-[10px] text-secondary">Manage plant floor production channels, current product running, and operational status</p>
                 </div>
-                {hasWriteAccess && !isAddingLine && !editingLine && (
+                {canWriteAllMasterData && !isAddingLine && !editingLine && (
                   <button
                     onClick={() => {
                       setLineId('');
@@ -483,7 +484,7 @@ export const MasterData: React.FC = () => {
                       <th className="p-3.5">LINE NAME</th>
                       <th className="p-3.5">CURRENT PRODUCT</th>
                       <th className="p-3.5">STATUS</th>
-                      {hasWriteAccess && <th className="p-3.5 text-right">ACTIONS</th>}
+                      {canWriteAllMasterData && <th className="p-3.5 text-right">ACTIONS</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -505,7 +506,7 @@ export const MasterData: React.FC = () => {
                             {line.status}
                           </span>
                         </td>
-                        {hasWriteAccess && (
+                        {canWriteAllMasterData && (
                           <td className="p-3.5 text-right select-none space-x-3">
                             <button
                               onClick={() => startEditLine(line)}
@@ -536,7 +537,7 @@ export const MasterData: React.FC = () => {
         </div>
  
         {/* Right Add/Edit Side Form Panel */}
-        {hasWriteAccess && (isAddingAssoc || editingAssoc || isAddingWS || editingWS || isAddingLine || editingLine) && (
+        {((canWriteAssociates && (isAddingAssoc || editingAssoc)) || (canWriteAllMasterData && (isAddingWS || editingWS || isAddingLine || editingLine))) && (
           <aside className="w-[380px] h-full border-l border-slate-200 bg-white p-5 overflow-y-auto custom-scrollbar flex flex-col gap-5 shadow-premium-lg z-30 animate-slide-up">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-xs text-primary uppercase tracking-wider font-label-caps">
