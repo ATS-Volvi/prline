@@ -94,12 +94,17 @@ export const Login: React.FC = () => {
         setPassword('');
         setConfirmPassword('');
       } else {
-        // Login flow
-        const res = await fetch('/api/v1/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
+        // Login flow — use window.fetch to bypass AppContext interceptor
+        let res: Response;
+        try {
+          res = await window.fetch('/api/v1/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+          });
+        } catch {
+          throw new Error('Cannot reach server. Make sure the backend is running on port 5505.');
+        }
 
         const data = await res.json();
         if (!res.ok || data.status === false) {
@@ -144,7 +149,7 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-[#0b1329] select-none font-sans overflow-hidden">
+    <div className="flex min-h-screen w-screen bg-[#0b1329] select-none font-sans overflow-y-auto">
       {/* LEFT PANEL: Branding & Plant Live Telemetry (Desktop Only) */}
       <div className="hidden lg:flex lg:w-7/12 xl:w-8/12 bg-gradient-to-br from-[#050b18] via-[#0b1329] to-[#182547] relative flex-col justify-between p-12 overflow-hidden border-r border-[#1e293b]/40">
         
@@ -221,7 +226,7 @@ export const Login: React.FC = () => {
       </div>
 
       {/* RIGHT PANEL: The Authentication Form */}
-      <div className="w-full lg:w-5/12 xl:w-4/12 flex items-center justify-center p-6 bg-[#070d19] border-l border-[#1e293b]/20 relative">
+      <div className="w-full lg:w-5/12 xl:w-4/12 flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8 bg-[#070d19] border-l border-[#1e293b]/20 relative min-h-screen">
         {/* Mobile Background Grid */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:3rem_3rem] lg:hidden opacity-30 pointer-events-none" />
         

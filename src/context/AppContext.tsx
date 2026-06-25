@@ -258,7 +258,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Locally scoped fetch to override window.fetch and inject authorization headers
-  const fetch = async (url: string | URL, options: RequestInit = {}) => {
+  const fetch = async (url: string | URL, options: RequestInit = {}, skipLogoutOn401 = false) => {
     const activeToken = token || localStorage.getItem('pepsico_token');
     const headers: Record<string, string> = {
       ...(options.headers as Record<string, string> || {}),
@@ -267,7 +267,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       headers['Authorization'] = `Bearer ${activeToken}`;
     }
     const res = await window.fetch(url, { ...options, headers });
-    if (res.status === 401) {
+    if (res.status === 401 && !skipLogoutOn401) {
       handleLogout();
     }
     return res;
@@ -275,7 +275,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const fetchState = async () => {
     try {
-      const res = await fetch("/api/v1/state");
+      // skipLogoutOn401=true: if the stored token is expired, fall back gracefully
+      // instead of triggering an auto-logout that can race with manual login
+      const res = await fetch("/api/v1/state", {}, true);
+      if (res.status === 401) {
+        // Token expired — clear stale localStorage and fall through to local data
+        localStorage.removeItem('pepsico_token');
+        localStorage.removeItem('pepsico_user');
+        localStorage.removeItem('pepsico_role');
+        setToken(null);
+        setUser(null);
+        throw new Error('Token expired');
+      }
       if (!res.ok) throw new Error("Backend response not OK");
       const data = await res.json();
       setAssociates(data.associates || []);
