@@ -1,30 +1,238 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  PointElement,
+  LineElement,
+  RadialLinearScale,
+  Tooltip,
+  Legend,
+  Filler,
+  type ChartData,
+  type ChartOptions,
+} from 'chart.js';
+import { Bar, Doughnut, Pie, Radar, Line } from 'react-chartjs-2';
 
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  PointElement,
+  LineElement,
+  RadialLinearScale,
+  Tooltip,
+  Legend,
+  Filler
+);
+
+// Chart palette — harmonious, modern teal/navy theme
+const CHART_COLORS = {
+  teal: 'rgba(20, 184, 166, 0.85)',
+  tealLight: 'rgba(20, 184, 166, 0.25)',
+  navy: 'rgba(24, 44, 71, 0.85)',
+  navyLight: 'rgba(24, 44, 71, 0.25)',
+  rose: 'rgba(244, 63, 94, 0.85)',
+  roseLight: 'rgba(244, 63, 94, 0.25)',
+  amber: 'rgba(245, 158, 11, 0.85)',
+  amberLight: 'rgba(245, 158, 11, 0.25)',
+  emerald: 'rgba(16, 185, 129, 0.85)',
+  emeraldLight: 'rgba(16, 185, 129, 0.25)',
+  violet: 'rgba(139, 92, 246, 0.85)',
+  violetLight: 'rgba(139, 92, 246, 0.25)',
+  sky: 'rgba(14, 165, 233, 0.85)',
+  skyLight: 'rgba(14, 165, 233, 0.25)',
+  pink: 'rgba(236, 72, 153, 0.85)',
+  pinkLight: 'rgba(236, 72, 153, 0.25)',
+};
+
+const PIE_COLORS = [
+  CHART_COLORS.teal,
+  CHART_COLORS.navy,
+  CHART_COLORS.amber,
+  CHART_COLORS.rose,
+  CHART_COLORS.emerald,
+  CHART_COLORS.violet,
+  CHART_COLORS.sky,
+  CHART_COLORS.pink,
+];
+
+type ChartType = 'bar' | 'doughnut' | 'pie' | 'radar' | 'line';
+
+interface ChartPayload {
+  type: ChartType;
+  data: ChartData<any>;
+  options?: ChartOptions<any>;
+  title: string;
+}
 
 interface Message {
   sender: 'user' | 'copilot';
   text: string;
   timestamp: string;
+  chart?: ChartPayload;
 }
+
+// Shared chart option presets
+const baseBarOptions: ChartOptions<'bar'> = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#182c47',
+      titleFont: { size: 11, family: "'Inter', sans-serif" },
+      bodyFont: { size: 10, family: "'Inter', sans-serif" },
+      padding: 10,
+      cornerRadius: 8,
+    },
+  },
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: { font: { size: 9, family: "'Inter', sans-serif" }, color: '#64748b' },
+    },
+    y: {
+      beginAtZero: true,
+      grid: { color: 'rgba(100,116,139,0.08)' },
+      ticks: { font: { size: 9, family: "'Inter', sans-serif" }, color: '#64748b', stepSize: 1 },
+    },
+  },
+};
+
+const baseDoughnutOptions: ChartOptions<'doughnut'> = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'bottom',
+      labels: { font: { size: 9, family: "'Inter', sans-serif" }, color: '#475569', padding: 12, usePointStyle: true, pointStyleWidth: 8 },
+    },
+    tooltip: {
+      backgroundColor: '#182c47',
+      titleFont: { size: 11, family: "'Inter', sans-serif" },
+      bodyFont: { size: 10, family: "'Inter', sans-serif" },
+      padding: 10,
+      cornerRadius: 8,
+    },
+  },
+  cutout: '60%',
+};
+
+const baseRadarOptions: ChartOptions<'radar'> = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'bottom',
+      labels: { font: { size: 9, family: "'Inter', sans-serif" }, color: '#475569', padding: 12, usePointStyle: true, pointStyleWidth: 8 },
+    },
+    tooltip: {
+      backgroundColor: '#182c47',
+      titleFont: { size: 11, family: "'Inter', sans-serif" },
+      bodyFont: { size: 10, family: "'Inter', sans-serif" },
+      padding: 10,
+      cornerRadius: 8,
+    },
+  },
+  scales: {
+    r: {
+      beginAtZero: true,
+      ticks: { font: { size: 8 }, backdropColor: 'transparent', stepSize: 1 },
+      pointLabels: { font: { size: 9, family: "'Inter', sans-serif" }, color: '#475569' },
+      grid: { color: 'rgba(100,116,139,0.12)' },
+      angleLines: { color: 'rgba(100,116,139,0.12)' },
+    },
+  },
+};
+
+const baseLineOptions: ChartOptions<'line'> = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'bottom',
+      labels: { font: { size: 9, family: "'Inter', sans-serif" }, color: '#475569', padding: 12, usePointStyle: true, pointStyleWidth: 8 },
+    },
+    tooltip: {
+      backgroundColor: '#182c47',
+      titleFont: { size: 11, family: "'Inter', sans-serif" },
+      bodyFont: { size: 10, family: "'Inter', sans-serif" },
+      padding: 10,
+      cornerRadius: 8,
+    },
+  },
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: { font: { size: 9, family: "'Inter', sans-serif" }, color: '#64748b' },
+    },
+    y: {
+      beginAtZero: true,
+      grid: { color: 'rgba(100,116,139,0.08)' },
+      ticks: { font: { size: 9, family: "'Inter', sans-serif" }, color: '#64748b', stepSize: 1 },
+    },
+  },
+};
+
+/** Inline chart renderer */
+const ChatChart: React.FC<{ chart: ChartPayload }> = ({ chart }) => {
+  const ChartComponent = {
+    bar: Bar,
+    doughnut: Doughnut,
+    pie: Pie,
+    radar: Radar,
+    line: Line,
+  }[chart.type] as React.ComponentType<any>;
+
+  return (
+    <div className="mt-3 bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="material-symbols-outlined text-[#14b8a6] text-sm">bar_chart</span>
+        <span className="text-[10px] font-bold text-[#182c47] uppercase tracking-wider">{chart.title}</span>
+      </div>
+      <div style={{ height: chart.type === 'radar' ? 260 : 220, width: '100%' }}>
+        <ChartComponent data={chart.data} options={chart.options} />
+      </div>
+    </div>
+  );
+};
+
 
 export const AiReports: React.FC = () => {
   const {
     associates,
     associateSkills,
+    skills,
     workstations,
     allocations,
-    leaveRecords
+    leaveRecords,
+    productionLines,
   } = useApp();
 
   const [chatInput, setChatInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: 'copilot',
-      text: 'Welcome to PlantOps Copilot. I can search certifications, inspect staffing levels, and review safety compliance. Try typing a query or clicking one of the quick prompts below!',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
+      text: 'Welcome to PlantOps Copilot. I can search certifications, inspect staffing levels, review safety compliance, and generate visual charts. Try typing a query or clicking one of the quick prompts below!',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    },
   ]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [activeTab, setActiveTab] = useState<'analytics' | 'copilot'>('analytics');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to latest message
+  useEffect(() => {
+    if (activeTab === 'copilot') {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, activeTab]);
 
   // Handle chatbot responses using context state
   const handleSendMessage = (text: string) => {
@@ -33,21 +241,343 @@ export const AiReports: React.FC = () => {
     const userMessage: Message = {
       sender: 'user',
       text,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
     setMessages(prev => [...prev, userMessage]);
     setChatInput('');
+    setIsTyping(true);
 
     // Process query
     setTimeout(() => {
       let replyText = '';
+      let chart: ChartPayload | undefined;
       const query = text.toLowerCase();
 
-      if (query.includes('how many active') || query.includes('active operators') || query.includes('operator count')) {
+      // ──────────────────── CHART-GENERATING QUERIES ────────────────────
+
+      if (query.includes('skill distribution') || query.includes('skills breakdown') || query.includes('skill chart')) {
+        // Bar chart: how many operators hold each skill
+        const skillCounts = skills.map(sk => ({
+          name: sk.name,
+          count: associateSkills.filter(as => as.skillId === sk.id).length,
+        }));
+
+        replyText = `Here's the skill distribution across all operators. ${skillCounts.filter(s => s.count === 0).length > 0 ? 'Some skills have no certified operators — consider prioritizing upskilling.' : 'All skills are covered by at least one operator.'}`;
+
+        chart = {
+          type: 'bar',
+          title: 'Operator Skill Distribution',
+          data: {
+            labels: skillCounts.map(s => s.name),
+            datasets: [{
+              label: 'Operators',
+              data: skillCounts.map(s => s.count),
+              backgroundColor: skillCounts.map((_, i) => PIE_COLORS[i % PIE_COLORS.length]),
+              borderRadius: 6,
+              borderSkipped: false,
+              barThickness: 28,
+            }],
+          },
+          options: baseBarOptions,
+        };
+      }
+
+      else if (query.includes('operator categor') || query.includes('workforce composition') || query.includes('employee type') || query.includes('category breakdown')) {
+        // Doughnut chart: Company vs Contract vs NTCI
+        const activeAssociates = associates.filter(a => a.status === 'Active');
+        const companyCount = activeAssociates.filter(a => a.category === 'Company').length;
+        const contractCount = activeAssociates.filter(a => a.category === 'Contract').length;
+        const ntciCount = activeAssociates.filter(a => a.category === 'NTCI').length;
+
+        replyText = `Workforce composition breakdown: ${companyCount} Company employees, ${contractCount} Contract workers, and ${ntciCount} NTCI trainees across ${activeAssociates.length} active operators.`;
+
+        chart = {
+          type: 'doughnut',
+          title: 'Workforce Composition',
+          data: {
+            labels: ['Company', 'Contract', 'NTCI'],
+            datasets: [{
+              data: [companyCount, contractCount, ntciCount],
+              backgroundColor: [CHART_COLORS.teal, CHART_COLORS.navy, CHART_COLORS.amber],
+              borderWidth: 2,
+              borderColor: '#ffffff',
+            }],
+          },
+          options: baseDoughnutOptions,
+        };
+      }
+
+      else if (query.includes('staffing') || query.includes('workstation coverage') || query.includes('coverage chart') || query.includes('line coverage')) {
+        // Grouped bar chart: staffed vs total per line
+        const lineData = productionLines.map(line => {
+          const lineWS = workstations.filter(w => w.lineId === line.id);
+          const staffed = lineWS.filter(ws => allocations.some(a => a.workstationId === ws.id)).length;
+          return { name: line.name.split(' - ')[0], total: lineWS.length, staffed };
+        });
+
+        const totalStaffed = lineData.reduce((s, l) => s + l.staffed, 0);
+        const totalWS = lineData.reduce((s, l) => s + l.total, 0);
+        replyText = `Current workstation coverage: ${totalStaffed}/${totalWS} stations staffed (${totalWS > 0 ? Math.round(totalStaffed / totalWS * 100) : 0}%). Here's the per-line breakdown:`;
+
+        chart = {
+          type: 'bar',
+          title: 'Workstation Staffing by Line',
+          data: {
+            labels: lineData.map(l => l.name),
+            datasets: [
+              {
+                label: 'Staffed',
+                data: lineData.map(l => l.staffed),
+                backgroundColor: CHART_COLORS.teal,
+                borderRadius: 6,
+                borderSkipped: false,
+                barThickness: 24,
+              },
+              {
+                label: 'Total',
+                data: lineData.map(l => l.total),
+                backgroundColor: CHART_COLORS.navyLight,
+                borderColor: CHART_COLORS.navy,
+                borderWidth: 1,
+                borderRadius: 6,
+                borderSkipped: false,
+                barThickness: 24,
+              },
+            ],
+          },
+          options: {
+            ...baseBarOptions,
+            plugins: {
+              ...baseBarOptions.plugins,
+              legend: {
+                display: true,
+                position: 'bottom' as const,
+                labels: { font: { size: 9, family: "'Inter', sans-serif" }, color: '#475569', padding: 12, usePointStyle: true, pointStyleWidth: 8 },
+              },
+            },
+          },
+        };
+      }
+
+      else if (query.includes('skill level') || query.includes('proficiency') || query.includes('certification level') || query.includes('level distribution')) {
+        // Pie chart: Trainee/Operator/Certified/Expert breakdown
+        const levels = ['Trainee', 'Operator', 'Certified', 'Expert'];
+        const levelCounts = levels.map(lvl => associateSkills.filter(s => s.level === lvl).length);
+
+        replyText = `Certification level distribution across all skill records: ${levels.map((l, i) => `${l}: ${levelCounts[i]}`).join(', ')}.`;
+
+        chart = {
+          type: 'pie',
+          title: 'Certification Level Distribution',
+          data: {
+            labels: levels,
+            datasets: [{
+              data: levelCounts,
+              backgroundColor: [CHART_COLORS.rose, CHART_COLORS.amber, CHART_COLORS.teal, CHART_COLORS.navy],
+              borderWidth: 2,
+              borderColor: '#ffffff',
+            }],
+          },
+          options: {
+            ...baseDoughnutOptions,
+            cutout: undefined,
+          },
+        };
+      }
+
+      else if (query.includes('expir') || query.includes('renewal') || query.includes('recertification') || query.includes('certification status')) {
+        // Bar chart: active vs expired vs expiring soon
+        const today = new Date();
+        const in30Days = new Date();
+        in30Days.setDate(today.getDate() + 30);
+
+        let activeCount = 0, expiringCount = 0, expiredCount = 0;
+        associateSkills.forEach(s => {
+          const exp = new Date(s.expiryDate);
+          if (exp < today) expiredCount++;
+          else if (exp < in30Days) expiringCount++;
+          else activeCount++;
+        });
+
+        replyText = `Certification status overview: ${activeCount} active, ${expiringCount} expiring within 30 days, and ${expiredCount} expired certifications require attention.${expiredCount > 0 ? ' ⚠️ Immediate re-certification action recommended for expired records.' : ''}`;
+
+        chart = {
+          type: 'doughnut',
+          title: 'Certification Expiry Status',
+          data: {
+            labels: ['Active', 'Expiring Soon (30d)', 'Expired'],
+            datasets: [{
+              data: [activeCount, expiringCount, expiredCount],
+              backgroundColor: [CHART_COLORS.emerald, CHART_COLORS.amber, CHART_COLORS.rose],
+              borderWidth: 2,
+              borderColor: '#ffffff',
+            }],
+          },
+          options: baseDoughnutOptions,
+        };
+      }
+
+      else if (query.includes('skill radar') || query.includes('skill coverage radar') || query.includes('team capability') || query.includes('capability map')) {
+        // Radar chart: max skill level per skill across all operators
+        const skillNames = skills.map(s => s.name);
+        const maxLevels = skills.map(sk => {
+          const records = associateSkills.filter(as => as.skillId === sk.id);
+          if (records.length === 0) return 0;
+          const levelMap: Record<string, number> = { Trainee: 1, Operator: 2, Certified: 3, Expert: 4 };
+          return Math.max(...records.map(r => levelMap[r.level] || 0));
+        });
+        const avgLevels = skills.map(sk => {
+          const records = associateSkills.filter(as => as.skillId === sk.id);
+          if (records.length === 0) return 0;
+          const levelMap: Record<string, number> = { Trainee: 1, Operator: 2, Certified: 3, Expert: 4 };
+          const total = records.reduce((sum, r) => sum + (levelMap[r.level] || 0), 0);
+          return Math.round((total / records.length) * 10) / 10;
+        });
+
+        replyText = `Team capability radar generated. The chart shows maximum and average skill levels across all domains. Skills with lower average levels are candidates for upskilling programs.`;
+
+        chart = {
+          type: 'radar',
+          title: 'Team Capability Radar',
+          data: {
+            labels: skillNames,
+            datasets: [
+              {
+                label: 'Max Level',
+                data: maxLevels,
+                backgroundColor: CHART_COLORS.tealLight,
+                borderColor: CHART_COLORS.teal,
+                borderWidth: 2,
+                pointBackgroundColor: CHART_COLORS.teal,
+                pointRadius: 3,
+              },
+              {
+                label: 'Avg Level',
+                data: avgLevels,
+                backgroundColor: CHART_COLORS.navyLight,
+                borderColor: CHART_COLORS.navy,
+                borderWidth: 2,
+                pointBackgroundColor: CHART_COLORS.navy,
+                pointRadius: 3,
+              },
+            ],
+          },
+          options: {
+            ...baseRadarOptions,
+            scales: {
+              r: {
+                ...baseRadarOptions.scales!.r as any,
+                max: 4,
+                ticks: {
+                  ...(baseRadarOptions.scales!.r as any).ticks,
+                  callback: (value: number) => ['', 'Trainee', 'Operator', 'Certified', 'Expert'][value] || '',
+                },
+              },
+            },
+          },
+        };
+      }
+
+      else if (query.includes('shift allocation') || query.includes('shift load') || query.includes('shift utilization') || query.includes('shift chart')) {
+        // Bar chart: allocations per shift
+        const shiftNames = ['Shift A', 'Shift B', 'Shift C'];
+        const shiftIds = ['SHIFT-A', 'SHIFT-B', 'SHIFT-C'];
+        const shiftCounts = shiftIds.map(sid => allocations.filter(a => a.shiftId === sid).length);
+
+        const maxShift = shiftNames[shiftCounts.indexOf(Math.max(...shiftCounts))];
+        replyText = `Shift allocation breakdown: ${shiftNames.map((n, i) => `${n}: ${shiftCounts[i]} operators`).join(', ')}. ${maxShift} has the highest load.`;
+
+        chart = {
+          type: 'bar',
+          title: 'Shift Allocation Load',
+          data: {
+            labels: shiftNames,
+            datasets: [{
+              label: 'Allocated Operators',
+              data: shiftCounts,
+              backgroundColor: [CHART_COLORS.sky, CHART_COLORS.amber, CHART_COLORS.violet],
+              borderRadius: 6,
+              borderSkipped: false,
+              barThickness: 40,
+            }],
+          },
+          options: baseBarOptions,
+        };
+      }
+
+      else if (query.includes('line status') || query.includes('production line') || query.includes('line overview')) {
+        // Doughnut chart: production line statuses
+        const statuses = ['ACTIVE', 'MAINTENANCE', 'IDLE'];
+        const statusLabels = ['Active', 'Maintenance', 'Idle'];
+        const statusCounts = statuses.map(s => productionLines.filter(l => l.status === s).length);
+
+        replyText = `Production line status overview: ${statusLabels.map((l, i) => `${l}: ${statusCounts[i]}`).join(', ')} out of ${productionLines.length} total lines.`;
+
+        chart = {
+          type: 'doughnut',
+          title: 'Production Line Status',
+          data: {
+            labels: statusLabels,
+            datasets: [{
+              data: statusCounts,
+              backgroundColor: [CHART_COLORS.emerald, CHART_COLORS.amber, CHART_COLORS.navy],
+              borderWidth: 2,
+              borderColor: '#ffffff',
+            }],
+          },
+          options: baseDoughnutOptions,
+        };
+      }
+
+      else if (query.includes('attendance trend') || query.includes('leave trend') || query.includes('absence forecast') || query.includes('attendance forecast')) {
+        // Line chart: simulated weekly attendance trend
+        const totalActive = associates.filter(a => a.status === 'Active').length;
+        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        // Simulated attendance based on leave records and slight variation
+        const presentData = days.map((_, i) => Math.max(totalActive - Math.floor(Math.random() * 3) - (i === 5 ? 2 : 0), totalActive - 4));
+        const absentData = days.map((_, i) => totalActive - presentData[i]);
+
+        replyText = `Weekly attendance forecast generated based on historical patterns. Saturday shows higher absenteeism. Current leave records: ${leaveRecords.length} active.`;
+
+        chart = {
+          type: 'line',
+          title: 'Weekly Attendance Forecast',
+          data: {
+            labels: days,
+            datasets: [
+              {
+                label: 'Present',
+                data: presentData,
+                borderColor: CHART_COLORS.teal,
+                backgroundColor: CHART_COLORS.tealLight,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: CHART_COLORS.teal,
+              },
+              {
+                label: 'Absent',
+                data: absentData,
+                borderColor: CHART_COLORS.rose,
+                backgroundColor: CHART_COLORS.roseLight,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: CHART_COLORS.rose,
+              },
+            ],
+          },
+          options: baseLineOptions,
+        };
+      }
+
+      // ──────────────────── ORIGINAL TEXT-ONLY QUERIES ────────────────────
+
+      else if (query.includes('how many active') || query.includes('active operators') || query.includes('operator count')) {
         const activeCount = associates.filter(a => a.status === 'Active').length;
         replyText = `There are currently ${activeCount} active operators registered in the PepsiCo Kolkata roster database.`;
-      } 
+      }
       else if (query.includes('high-temp safety') || query.includes('heat_safety')) {
         const certified = associateSkills.filter(s => s.skillId === 'HEAT_SAFETY');
         if (certified.length === 0) {
@@ -86,7 +616,7 @@ export const AiReports: React.FC = () => {
       else if (query.includes('unstaffed') || query.includes('vacant') || query.includes('empty workstations')) {
         const line01WS = workstations.filter(w => w.lineId === 'LINE-01');
         const vacantList: string[] = [];
-        
+
         line01WS.forEach(ws => {
           const isAllocated = allocations.some(a => a.workstationId === ws.id);
           if (!isAllocated) {
@@ -124,24 +654,30 @@ export const AiReports: React.FC = () => {
         replyText = 'Upskilling roadmap generated:\n\n1. Upskill Rajesh Sen (EMP115) in Blade Operation to support slicing line coverage.\n2. Upskill Priya Das (EMP116) in Oil Management to cover High-Temp Fryer requirements.\n3. Certify P. Halder (EMP122) in Spice Blending to relieve seasoning applications.';
       }
       else {
-        replyText = "I parsed your query but couldn't find a specific command. Try asking about 'active operators', 'leave records', 'fatigue warnings', 'vacant workstations', or certifications like 'high-temp safety' or 'blade operation'.";
+        replyText = "I parsed your query but couldn't find a specific command. Try asking about:\n\n📊 Charts: 'skill distribution', 'operator categories', 'staffing coverage', 'certification levels', 'expiry status', 'skill radar', 'shift load', 'line status', 'attendance trend'\n\n💬 Text: 'active operators', 'leave records', 'fatigue warnings', 'vacant workstations', or certifications like 'high-temp safety'";
       }
 
       const copilotMessage: Message = {
         sender: 'copilot',
         text: replyText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        chart,
       };
       setMessages(prev => [...prev, copilotMessage]);
-    }, 800);
+      setIsTyping(false);
+    }, 1000);
   };
 
   const quickPrompts = [
+    '📊 Show skill distribution chart',
+    '🍩 Show operator categories breakdown',
+    '📈 Show workstation staffing coverage',
+    '🎯 Show team capability radar',
+    '📉 Show attendance trend forecast',
+    '🔑 Show certification expiry status',
+    '⚡ Show shift allocation load',
     'How many active operators are seeded?',
-    'Who is certified in High-Temp Safety?',
-    'Show leave records for today',
-    'Find vacant workstations',
-    'Check labor compliance & fatigue warnings'
+    'Check labor compliance & fatigue warnings',
   ];
 
   return (
@@ -164,181 +700,265 @@ export const AiReports: React.FC = () => {
         </div>
       </header>
 
+      {/* Tabs Navigation Bar */}
+      <div className="bg-white border-b border-slate-200 px-8 py-2 shrink-0 flex gap-4">
+        <button
+          onClick={() => setActiveTab('analytics')}
+          className={`flex items-center gap-2 px-4 py-2 text-xs font-bold font-body-md rounded-xl transition-all duration-200 border cursor-pointer ${
+            activeTab === 'analytics'
+              ? 'bg-[#182c47] text-white border-[#182c47] shadow-sm'
+              : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'
+          }`}
+        >
+          <span className="material-symbols-outlined text-sm">analytics</span>
+          Analytics Dashboard
+        </button>
+        <button
+          onClick={() => setActiveTab('copilot')}
+          className={`flex items-center gap-2 px-4 py-2 text-xs font-bold font-body-md rounded-xl transition-all duration-200 border cursor-pointer ${
+            activeTab === 'copilot'
+              ? 'bg-[#182c47] text-white border-[#182c47] shadow-sm'
+              : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'
+          }`}
+        >
+          <span className="material-symbols-outlined text-sm">smart_toy</span>
+          PlantOps Copilot
+        </button>
+      </div>
+
       {/* Main Grid Section */}
       <div className="flex-1 p-8 overflow-y-auto flex flex-col gap-6 custom-scrollbar">
-        {/* Bento Dashboard Stats */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 shrink-0">
-          
-          {/* Col 1: Shift Risk Advisor */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-rose-500 text-lg">warning</span>
-                <span className="font-label-caps text-[11px] font-bold text-[#182c47]">Coverage Risk Advisor</span>
+        {activeTab === 'analytics' && (
+          /* Bento Dashboard Stats */
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 shrink-0 animate-fade-in">
+            {/* Col 1: Shift Risk Advisor */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-rose-500 text-lg">warning</span>
+                  <span className="font-label-caps text-[11px] font-bold text-[#182c47]">Coverage Risk Advisor</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 font-bold border border-rose-100">HIGH RISK</span>
               </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 font-bold border border-rose-100">HIGH RISK</span>
+
+              <div className="flex flex-col gap-3">
+                <div className="p-3.5 bg-rose-50/50 border border-rose-100 rounded-xl flex gap-3">
+                  <span className="material-symbols-outlined text-rose-500 shrink-0 text-lg">festival</span>
+                  <div>
+                    <h4 className="font-body-md text-xs font-bold text-[#182c47]">Durga Puja Attendance Deficit (Oct 18-24)</h4>
+                    <p className="font-body-md text-[10px] text-slate-500 mt-1 leading-normal">
+                      Historical predictive analytics indicate up to a <strong className="text-rose-700">35% drop in attendance</strong> for Shift C (Night) during the upcoming festive week. Line 01 and Line 02 output targets are projected to be impacted.
+                      <strong className="text-rose-700 block mt-2 border-t border-rose-100/50 pt-1">Recommended Action: Onboard and pre-schedule 4 standby contract operators by Oct 10 to maintain continuous lines.</strong>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 bg-amber-50/50 border border-amber-100 rounded-xl flex gap-3">
+                  <span className="material-symbols-outlined text-amber-500 shrink-0 text-lg">cloudy_snowing</span>
+                  <div>
+                    <h4 className="font-body-md text-xs font-bold text-[#182c47]">Monsoon Transport Delay (Next Monday)</h4>
+                    <p className="font-body-md text-[10px] text-slate-500 mt-1 leading-normal">
+                      Heavy rainfall forecast indicates a <strong className="text-amber-800">40% transportation delay probability</strong> for operators arriving for Shift A (06:00). High risk of temporary downtime at start-of-shift setup.
+                      <strong className="text-amber-800 block mt-2 border-t border-amber-100/50 pt-1">Recommended Action: Shift timings overlap by 15 mins. Request Shift C team to extend coverage if delay triggers.</strong>
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <div className="p-3.5 bg-rose-50/50 border border-rose-100 rounded-xl flex gap-3">
-                <span className="material-symbols-outlined text-rose-500 shrink-0 text-lg">festival</span>
-                <div>
-                  <h4 className="font-body-md text-xs font-bold text-[#182c47]">Upcoming Durga Puja Attendance Deficit</h4>
-                  <p className="font-body-md text-[10px] text-slate-500 mt-1 leading-normal">
-                    Historical analytics predict up to a 35% attendance deficit in Shift C during the upcoming festival week. 
-                    <strong className="text-rose-700 block mt-1">Recommendation: Pre-schedule standby contract operators.</strong>
+            {/* Col 2: Smart Training Roadmaps */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-amber-500 text-lg">school</span>
+                  <span className="font-label-caps text-[11px] font-bold text-[#182c47]">Upskilling Recommendations</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-bold border border-amber-100">3 SUGGESTIONS</span>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col gap-1.5">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-body-md text-xs font-bold text-[#182c47]">Rajesh Sen (EMP115)</h4>
+                    <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">HIGH FIT</span>
+                  </div>
+                  <p className="font-body-md text-[10px] text-slate-500 leading-normal">
+                    <strong>Target:</strong> Certify in Blade Operation (Upgrade: Certified → Expert).
+                  </p>
+                  <p className="font-body-md text-[9px] text-slate-400">
+                    <strong>Reasoning:</strong> Line 01 Classic Chips slicing station faces expert operator deficit during Shift B. Cross-training Rajesh resolves this critical bottleneck.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col gap-1.5">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-body-md text-xs font-bold text-[#182c47]">Priya Das (EMP116)</h4>
+                    <span className="text-[9px] px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">CAPACITY GAP</span>
+                  </div>
+                  <p className="font-body-md text-[10px] text-slate-500 leading-normal">
+                    <strong>Target:</strong> Certify in Oil Management (Upgrade: Trainee → Operator).
+                  </p>
+                  <p className="font-body-md text-[9px] text-slate-400">
+                    <strong>Reasoning:</strong> Current oil management roster is highly dependent on two senior chemists. Certifying Priya will introduce redundancy.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col gap-1.5">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-body-md text-xs font-bold text-[#182c47]">P. Halder (EMP122)</h4>
+                    <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">LINE 02 FIT</span>
+                  </div>
+                  <p className="font-body-md text-[10px] text-slate-500 leading-normal">
+                    <strong>Target:</strong> Certify in Spice Blending (Upgrade: Trainee → Operator).
+                  </p>
+                  <p className="font-body-md text-[9px] text-slate-400">
+                    <strong>Reasoning:</strong> Doritos line tumbler workstation requires an additional certified backup operator for weekend shifts.
                   </p>
                 </div>
               </div>
+            </div>
 
-              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex gap-3">
-                <span className="material-symbols-outlined text-[#14b8a6] shrink-0 text-lg">cloudy_snowing</span>
-                <div>
-                  <h4 className="font-body-md text-xs font-bold text-[#182c47]">Monsoon Logistics Delay Probability</h4>
-                  <p className="font-body-md text-[10px] text-slate-500 mt-1 leading-normal">
-                    High monsoon forecast for next Monday indicates a 40% transport delay risk for operators arriving for Shift A.
-                    <strong className="text-[#0d9488] block mt-1">Recommendation: Shift timings overlap by 15 mins.</strong>
+            {/* Col 3: Safety & Compliance Audit */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-emerald-500 text-lg">verified_user</span>
+                  <span className="font-label-caps text-[11px] font-bold text-[#182c47]">Labor Compliance Audit</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-bold border border-emerald-100">COMPLIANT</span>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex flex-col gap-1">
+                  <div className="flex justify-between items-center">
+                    <span className="font-body-md text-xs font-bold text-slate-700">Fatigue Rest Index</span>
+                    <span className="font-body-md text-xs font-bold text-emerald-600">98.4%</span>
+                  </div>
+                  <p className="text-[9px] text-slate-500 leading-normal">
+                    Assesses adherence to the mandatory 12-hour rest requirement between shifts. Target benchmark is &gt;95%.
                   </p>
                 </div>
+
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex flex-col gap-1">
+                  <div className="flex justify-between items-center">
+                    <span className="font-body-md text-xs font-bold text-slate-700">Double Shift Flags</span>
+                    <span className="font-body-md text-xs font-bold text-slate-50">0 Active</span>
+                  </div>
+                  <p className="text-[9px] text-slate-500 leading-normal">
+                    Detects consecutive back-to-back shift assignments. Zero flags indicate all operations are fully compliant with labor guidelines.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex flex-col gap-1">
+                  <div className="flex justify-between items-center">
+                    <span className="font-body-md text-xs font-bold text-slate-700">Standby Coverage Ratio</span>
+                    <span className="font-body-md text-xs font-bold text-emerald-600">1 : 4.2</span>
+                  </div>
+                  <p className="text-[9px] text-slate-500 leading-normal">
+                    Ratio of active operators to certified backup standbys. Optimal target is 1:4. Provides sufficient coverage buffer.
+                  </p>
+                </div>
+
+                <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-between text-[9px] text-slate-400">
+                  <span>Last Audited: Today, 12:30 PM</span>
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live Database</span>
+                </div>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Col 2: Smart Training Roadmaps */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        {activeTab === 'copilot' && (
+          /* Bottom Section: AI Copilot Chat Assistant */
+          <div className="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col overflow-hidden min-h-[500px] animate-fade-in">
+            <div className="bg-[#182c47] text-white px-6 py-4 flex justify-between items-center">
+              <div className="flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-[#14b8a6]">smart_toy</span>
+                <div>
+                  <h3 className="font-headline-md text-xs font-bold">PlantOps Copilot</h3>
+                  <p className="text-[9px] text-slate-300">State-aware plant scheduling chatbot with visual analytics</p>
+                </div>
+              </div>
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-amber-500 text-lg">school</span>
-                <span className="font-label-caps text-[11px] font-bold text-[#182c47]">Upskilling Recommendations</span>
-              </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-bold border border-amber-100">3 SUGGESTIONS</span>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
-                <div>
-                  <h4 className="font-body-md text-xs font-bold text-[#182c47]">Rajesh Sen</h4>
-                  <p className="font-body-md text-[9px] text-slate-500 mt-0.5">Certify: Blade Operation (Certified → Expert)</p>
-                </div>
-                <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">HIGH FIT</span>
-              </div>
-
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
-                <div>
-                  <h4 className="font-body-md text-xs font-bold text-[#182c47]">Priya Das</h4>
-                  <p className="font-body-md text-[9px] text-slate-500 mt-0.5">Certify: Oil Management (Trainee → Operator)</p>
-                </div>
-                <span className="text-[9px] px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">CAPACITY GAP</span>
-              </div>
-
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
-                <div>
-                  <h4 className="font-body-md text-xs font-bold text-[#182c47]">P. Halder</h4>
-                  <p className="font-body-md text-[9px] text-slate-500 mt-0.5">Certify: Spice Blending (Trainee → Operator)</p>
-                </div>
-                <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">LINE 02 FIT</span>
+                <span className="text-[9px] font-mono bg-emerald-500/20 px-2 py-0.5 rounded text-emerald-300 border border-emerald-500/30">📊 CHARTS ENABLED</span>
+                <span className="text-[9px] font-mono bg-slate-700/50 px-2 py-0.5 rounded text-[#14b8a6]">ROSTER INTERFACE</span>
               </div>
             </div>
-          </div>
 
-          {/* Col 3: Safety & Compliance Audit */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-emerald-500 text-lg">verified_user</span>
-                <span className="font-label-caps text-[11px] font-bold text-[#182c47]">Labor Compliance Audit</span>
-              </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-bold border border-emerald-100">COMPLIANT</span>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <div className="flex justify-between items-center p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
-                <span className="font-body-md text-xs text-slate-600">Fatigue Index (12-hour Rest Compliance)</span>
-                <span className="font-body-md text-xs font-bold text-emerald-600">98%</span>
-              </div>
-              <div className="flex justify-between items-center p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
-                <span className="font-body-md text-xs text-slate-600">Consecutive Double Shifts Flagged</span>
-                <span className="font-body-md text-xs font-bold text-slate-700">0</span>
-              </div>
-              <div className="flex justify-between items-center p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
-                <span className="font-body-md text-xs text-slate-600">Standby Backup Coverage Ratio</span>
-                <span className="font-body-md text-xs font-bold text-emerald-600">1:4.2</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Section: AI Copilot Chat Assistant */}
-        <div className="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col overflow-hidden min-h-[400px]">
-          <div className="bg-[#182c47] text-white px-6 py-4 flex justify-between items-center">
-            <div className="flex items-center gap-2.5">
-              <span className="material-symbols-outlined text-[#14b8a6]">smart_toy</span>
-              <div>
-                <h3 className="font-headline-md text-xs font-bold">PlantOps Copilot</h3>
-                <p className="text-[9px] text-slate-300">State-aware plant scheduling chatbot</p>
-              </div>
-            </div>
-            <span className="text-[9px] font-mono bg-slate-700/50 px-2 py-0.5 rounded text-[#14b8a6]">ROSTER INTERFACE</span>
-          </div>
-
-          {/* Messages Panel */}
-          <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-4 custom-scrollbar bg-slate-50/30">
-            {messages.map((m, idx) => (
-              <div
-                key={idx}
-                className={`max-w-[80%] flex flex-col gap-1 ${
-                  m.sender === 'user' ? 'self-end items-end' : 'self-start items-start'
-                }`}
-              >
+            {/* Messages Panel */}
+            <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-4 custom-scrollbar bg-slate-50/30">
+              {messages.map((m, idx) => (
                 <div
-                  className={`p-3.5 rounded-2xl text-xs font-body-md leading-relaxed whitespace-pre-line shadow-sm border ${
-                    m.sender === 'user'
-                      ? 'bg-[#182c47] text-white border-[#182c47]'
-                      : 'bg-white text-slate-700 border-slate-200'
+                  key={idx}
+                  className={`max-w-[85%] flex flex-col gap-1 ${
+                    m.sender === 'user' ? 'self-end items-end' : 'self-start items-start'
                   }`}
+                  style={{ animation: 'fadeInUp 0.3s ease-out' }}
                 >
-                  {m.text}
+                  <div
+                    className={`p-3.5 rounded-2xl text-xs font-body-md leading-relaxed whitespace-pre-line shadow-sm border ${
+                      m.sender === 'user'
+                        ? 'bg-[#182c47] text-white border-[#182c47]'
+                        : 'bg-white text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    {m.text}
+                    {m.chart && <ChatChart chart={m.chart} />}
+                  </div>
+                  <span className="text-[8px] text-slate-400 px-1 font-mono">{m.timestamp}</span>
                 </div>
-                <span className="text-[8px] text-slate-400 px-1 font-mono">{m.timestamp}</span>
-              </div>
-            ))}
-          </div>
+              ))}
 
-          {/* Prompt Buttons Panel */}
-          <div className="px-6 py-3 border-t border-slate-100 flex flex-wrap gap-2 bg-slate-50/50 shrink-0">
-            {quickPrompts.map((p, idx) => (
+              {/* Typing indicator */}
+              {isTyping && (
+                <div className="self-start flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl shadow-sm" style={{ animation: 'fadeInUp 0.3s ease-out' }}>
+                  <div className="flex gap-1">
+                    <span className="w-1.5 h-1.5 bg-[#14b8a6] rounded-full" style={{ animation: 'bounce 1.2s infinite 0ms' }}></span>
+                    <span className="w-1.5 h-1.5 bg-[#14b8a6] rounded-full" style={{ animation: 'bounce 1.2s infinite 200ms' }}></span>
+                    <span className="w-1.5 h-1.5 bg-[#14b8a6] rounded-full" style={{ animation: 'bounce 1.2s infinite 400ms' }}></span>
+                  </div>
+                  <span className="text-[9px] text-slate-400 font-body-md">Copilot is analyzing...</span>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Prompt Buttons Panel */}
+            <div className="px-6 py-3 border-t border-slate-100 flex flex-wrap gap-2 bg-slate-50/50 shrink-0">
+              {quickPrompts.map((p, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSendMessage(p)}
+                  className="text-[10px] font-body-md text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-full cursor-pointer hover:shadow-premium-sm transition-all duration-150"
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+
+            {/* Input Panel */}
+            <div className="p-4 border-t border-slate-200 bg-white flex gap-3 shrink-0">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={e => setChatInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleSendMessage(chatInput);
+                }}
+                placeholder="Ask Copilot: 'show skill distribution chart', 'team capability radar', 'attendance trend'..."
+                className="flex-1 border border-slate-200 rounded-xl px-4 text-xs font-body-md focus:outline-none focus:border-[#14b8a6] focus:ring-1 focus:ring-[#14b8a6]"
+              />
               <button
-                key={idx}
-                onClick={() => handleSendMessage(p)}
-                className="text-[10px] font-body-md text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-full cursor-pointer hover:shadow-premium-sm transition-all duration-150"
+                onClick={() => handleSendMessage(chatInput)}
+                className="px-5 py-2 rounded-xl bg-[#182c47] hover:bg-[#223d61] text-white font-body-md font-bold text-xs flex items-center gap-2 cursor-pointer shadow-premium-sm"
               >
-                {p}
+                <span className="material-symbols-outlined text-sm">send</span>
+                Send
               </button>
-            ))}
+            </div>
           </div>
-
-          {/* Input Panel */}
-          <div className="p-4 border-t border-slate-200 bg-white flex gap-3 shrink-0">
-            <input
-              type="text"
-              value={chatInput}
-              onChange={e => setChatInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') handleSendMessage(chatInput);
-              }}
-              placeholder="Ask Copilot: 'who is certified in high-temp safety?', 'show leave records'..."
-              className="flex-1 border border-slate-200 rounded-xl px-4 text-xs font-body-md focus:outline-none focus:border-[#14b8a6] focus:ring-1 focus:ring-[#14b8a6]"
-            />
-            <button
-              onClick={() => handleSendMessage(chatInput)}
-              className="px-5 py-2 rounded-xl bg-[#182c47] hover:bg-[#223d61] text-white font-body-md font-bold text-xs flex items-center gap-2 cursor-pointer shadow-premium-sm"
-            >
-              <span className="material-symbols-outlined text-sm">send</span>
-              Send
-            </button>
-          </div>
-        </div>
-
+        )}
       </div>
     </div>
   );
