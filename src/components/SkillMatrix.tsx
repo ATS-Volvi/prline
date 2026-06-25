@@ -216,7 +216,7 @@ export const SkillMatrix: React.FC = () => {
 
         {/* Sub-tab: Record Training */}
         {activeSubTab === 'training' && (
-          <div className="flex-1 max-w-lg mx-auto bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 animate-slide-up self-start w-full">
+          <div className="max-w-lg mx-auto bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 animate-slide-up w-full">
             <div>
               <h2 className="text-sm font-bold text-on-surface">Log Training & Recertifications</h2>
               <p className="text-[10px] text-secondary">Record a new operator qualification. Saving updates the shift allocator instantly.</p>
@@ -310,7 +310,7 @@ export const SkillMatrix: React.FC = () => {
 
         {/* Sub-tab: Bulk Import */}
         {activeSubTab === 'bulk' && (
-          <div className="flex-1 max-w-xl mx-auto bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 animate-slide-up self-start w-full">
+          <div className="max-w-xl mx-auto bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 animate-slide-up w-full">
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-sm font-bold text-on-surface">CSV Workforce Importer</h2>
