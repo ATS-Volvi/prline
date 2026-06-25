@@ -214,3 +214,12 @@ body {
 .shadow-premium-lg {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
 }
+
+@keyframes gridMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 3rem 3rem; }
+}
+
+.animate-grid-move {
+  animation: gridMove 30s linear infinite;
+}
