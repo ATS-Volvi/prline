@@ -1,0 +1,216 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@theme {
+  /* Spacing configurations */
+  --spacing-base-unit: 4px;
+  --spacing-gutter: 16px;
+  --spacing-margin-mobile: 16px;
+  --spacing-margin-desktop: 24px;
+  --spacing-touch-target-min: 48px;
+  
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-touch-target: 48px;
+
+  /* Standard Corporate Border Radii (matching --radius: 0.5rem) */
+  --radius-sm: 4px;
+  --radius-DEFAULT: 8px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
+
+  /* Font Mappings */
+  --font-label-caps: 'JetBrains Mono', monospace;
+  --font-body-md: 'Inter', sans-serif;
+  --font-data-mono-md: 'JetBrains Mono', monospace;
+  --font-headline-lg: 'Inter', sans-serif;
+  --font-body-lg: 'Inter', sans-serif;
+  --font-data-mono-lg: 'JetBrains Mono', monospace;
+  --font-headline-md: 'Inter', sans-serif;
+
+  /* demand-match-flow HSL Palette Mapped to Hex Colors */
+  --color-primary: #182c47; /* HSL 215 50% 18% (Deep Navy) */
+  --color-on-primary: #ffffff;
+  --color-primary-container: #e2eafc; /* HSL 215 50% 92% */
+  --color-on-primary-container: #182c47;
+  
+  --color-secondary: #475569; /* Slate 600 */
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #f1f5f9; /* Slate 100 */
+  --color-on-secondary-container: #1e293b; /* Slate 800 */
+  
+  --color-tertiary: #0f172a;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #f8fafc;
+  --color-on-tertiary-container: #0f172a;
+  
+  --color-error: #ef4444; /* Red 500 */
+  --color-on-error: #ffffff;
+  --color-error-container: #fee2e2;
+  --color-on-error-container: #991b1b;
+  
+  --color-background: #f8fafc; /* HSL 210 20% 98% (Light Gray-Slate) */
+  --color-on-background: #0f172a;
+  
+  --color-surface: #ffffff;
+  --color-surface-dim: #f1f5f9;
+  --color-surface-bright: #ffffff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f8fafc;
+  --color-surface-container: #f1f5f9;
+  --color-surface-container-high: #e2e8f0;
+  --color-surface-container-highest: #cbd5e1;
+  --color-on-surface: #0f172a;
+  --color-on-surface-variant: #64748b;
+  --color-inverse-surface: #1e293b;
+  --color-inverse-on-surface: #f8fafc;
+  --color-outline: #cbd5e1;
+  --color-outline-variant: #e2e8f0;
+  --color-surface-tint: #182c47;
+}
+
+/* Typography styles matching ATS Design System */
+.font-headline-lg {
+  font-family: 'Inter', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 36px;
+}
+.font-headline-md {
+  font-family: 'Inter', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 28px;
+}
+.font-body-lg {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 450;
+  line-height: 22px;
+}
+.font-body-md {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 450;
+  line-height: 18px;
+}
+.font-data-mono-lg {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 550;
+  line-height: 22px;
+}
+.font-data-mono-md {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 18px;
+}
+.font-label-caps {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  line-height: 14px;
+  text-transform: uppercase;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 450, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+
+/* Status Caps indicators */
+.status-bar-active { border-top: 3px solid #182c47; }
+.status-bar-critical { border-top: 3px solid #ef4444; }
+.status-bar-warning { border-top: 3px solid #f59e0b; }
+.status-bar-neutral { border-top: 3px solid #cbd5e1; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Clean, flat card interactions */
+.card-interactive {
+  transition: all 0.2s ease-in-out;
+}
+.card-interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.25s ease-out forwards;
+}
+
+/* Shadows matching demand-match-flow */
+.shadow-premium-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.shadow-premium-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-premium-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+}
