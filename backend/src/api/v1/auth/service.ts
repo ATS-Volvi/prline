@@ -21,25 +21,6 @@ class MainAuthService{
         data.password=hashedPassword
         const result = await MainAuthDatabase.createUser(data)
 
-<<<<<<< HEAD
-        // const accessToken=signJwt({
-        //     name:name,
-        //     userId:result.userId,
-        //     email:result.email
-        // },"7d")
-        const encryptedEmail=generateToken(email,"30d")
-        const emailBody=verifyEmail(`${variables.BASE_URL}/api/v1/auth/verifyEmail?token=${encodeURIComponent(encryptedEmail)}`)
-        try {
-            await sendEmail(result.email,"Email Verification",emailBody,next)
-        } catch (emailErr) {
-            console.error("Failed to send verification email:", emailErr);
-            try {
-                await MainAuthDatabase.verifyEmail(email);
-            } catch (dbErr) {
-                console.error("Failed to auto-verify user:", dbErr);
-            }
-        }
-=======
         // Try to send verification email; if SMTP not configured, auto-verify the user
         try {
             const encryptedEmail=generateToken(email,"30d")
@@ -52,8 +33,6 @@ class MainAuthService{
         } catch {
             await MainAuthDatabase.verifyEmail(email)
         }
-
->>>>>>> 45f4818 (fixed the signup and sign in)
         return {
             data:{userId:result.userId,name:result.name,email:result.email},
         }

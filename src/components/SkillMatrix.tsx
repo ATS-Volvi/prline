@@ -146,12 +146,8 @@ export const SkillMatrix: React.FC = () => {
     return 'bg-amber-50 text-amber-700 border-amber-100';
   };
 
-  // Expiry badge for filter button
-  const expiryBadge = (status: string) => {
-    if (status === 'expired') return 'bg-rose-100 text-rose-700 border-rose-200';
-    if (status === 'expiring_soon') return 'bg-amber-100 text-amber-700 border-amber-200';
-    return 'bg-slate-100 text-slate-700 border-slate-200';
-  };
+
+
 
   return (
     <div className="flex-1 h-full flex flex-col overflow-hidden bg-background select-none animate-fade-in">
