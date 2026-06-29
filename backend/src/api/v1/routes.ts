@@ -152,6 +152,86 @@ router.post("/workstations", AuthHandler.authMiddleware, UserTypeHandler.checkSe
   }
 });
 
+// Workstation bulk import
+router.post("/workstations/bulk-import", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
+  try {
+    const { csvContent } = req.body;
+    if (!csvContent) {
+      res.status(400).json({ success: false, message: "No CSV content provided." });
+      return;
+    }
+
+    const lines = csvContent.split("\n").map((l: string) => l.trim()).filter((l: string) => l.length > 0);
+    if (lines.length <= 1) {
+      res.status(400).json({ success: false, message: "Empty CSV or header-only content." });
+      return;
+    }
+
+    const headers = lines[0].toLowerCase().split(",");
+    const wsIdIdx = headers.indexOf("workstation_id");
+    const nameIdx = headers.indexOf("name");
+    const lineIdIdx = headers.indexOf("line_id");
+    const skillsIdx = headers.indexOf("required_skills");
+    const minLvlIdx = headers.indexOf("min_level");
+    const maxStaffIdx = headers.indexOf("max_staff");
+
+    if (wsIdIdx === -1 || nameIdx === -1 || lineIdIdx === -1) {
+      res.status(400).json({ success: false, message: "CSV missing required headers: workstation_id, name, line_id" });
+      return;
+    }
+
+    let importedCount = 0;
+    const errors: string[] = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const parts = lines[i].split(",");
+      if (parts.length < 3) continue;
+
+      const id = parts[wsIdIdx]?.trim();
+      const name = parts[nameIdx]?.trim();
+      const lineId = parts[lineIdIdx]?.trim();
+      const requiredSkillId = skillsIdx !== -1 ? parts[skillsIdx]?.trim() : "BLADE_OPT";
+      const minSkillLevel = minLvlIdx !== -1 ? parts[minLvlIdx]?.trim() : "Operator";
+      const maxStaffCount = maxStaffIdx !== -1 ? parseInt(parts[maxStaffIdx]?.trim()) || 1 : 1;
+
+      if (!id || !name || !lineId) {
+        errors.push(`Row ${i + 1}: Missing workstation ID, name or line ID`);
+        continue;
+      }
+
+      // Check if line exists
+      const targetLine = await ProductionLine.findByPk(lineId);
+      if (!targetLine) {
+        errors.push(`Row ${i + 1}: Production line "${lineId}" does not exist`);
+        continue;
+      }
+
+      // Create or update workstation
+      await Workstation.upsert({
+        id,
+        name,
+        lineId,
+        requiredSkillId,
+        minSkillLevel,
+        maxStaffCount
+      });
+      importedCount++;
+    }
+
+    if (errors.length > 0) {
+      res.status(400).json({
+        success: false,
+        message: `Imported ${importedCount} items. Errors: ${errors.join("; ")}`
+      });
+    } else {
+      await logAction("MASTER_DATA_UPDATED", `Bulk imported ${importedCount} workstation mappings.`);
+      res.json({ success: true, message: `Successfully imported ${importedCount} workstations.`, count: importedCount });
+    }
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 router.put("/workstations/:id", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

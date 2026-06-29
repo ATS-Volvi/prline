@@ -517,35 +517,22 @@ export const SkillMatrix: React.FC = () => {
                   setImportStatus({ type: 'success', message: 'Importing...' });
                   
                   if (bulkCsvText.includes("workstation_id")) {
-                    // Workstation Mapping Import flow
                     try {
-                      const lines = bulkCsvText.split('\n');
-                      let count = 0;
-                      for (let i = 1; i < lines.length; i++) {
-                        const line = lines[i].trim();
-                        if (!line) continue;
-                        const [wsId, wsName, wsLine, wsSkills, wsLvl, wsMax] = line.split(',');
-                        if (!wsId || !wsName || !wsLine) continue;
-                        
-                        // Call workstation creation route / context hook
-                        const wsData = {
-                          id: wsId.trim(),
-                          name: wsName.trim(),
-                          lineId: wsLine.trim(),
-                          requiredSkillId: wsSkills ? wsSkills.trim() : 'BLADE_OPT',
-                          minSkillLevel: (wsLvl ? wsLvl.trim() : 'Operator') as any,
-                          maxStaffCount: wsMax ? parseInt(wsMax.trim()) : 1
-                        };
-                        
-                        const res = await fetch("/api/v1/workstations", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem('pepsico_token')}` },
-                          body: JSON.stringify(wsData)
-                        });
-                        if (res.ok) count++;
+                      const res = await fetch("/api/v1/workstations/bulk-import", {
+                        method: "POST",
+                        headers: { 
+                          "Content-Type": "application/json", 
+                          "Authorization": `Bearer ${localStorage.getItem('pepsico_token')}` 
+                        },
+                        body: JSON.stringify({ csvContent: bulkCsvText })
+                      });
+                      const data = await res.json();
+                      if (res.ok) {
+                        setImportStatus({ type: 'success', message: data.message });
+                        setBulkCsvText('');
+                      } else {
+                        throw new Error(data.message || 'Import failed');
                       }
-                      setImportStatus({ type: 'success', message: `Successfully mapped ${count} workstations.` });
-                      setBulkCsvText('');
                     } catch (e: any) {
                       setImportStatus({ type: 'error', message: e.message || 'Mapping import failed.' });
                     }

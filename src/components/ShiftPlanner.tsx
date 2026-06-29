@@ -221,9 +221,15 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
           {/* Grid Layout (Matching Mockup look: bold stage numbers, outline-variant containers, and thick black left borders) */}
           <section className="flex-1 overflow-y-auto custom-scrollbar pr-1">
             {activeWS.length === 0 ? (
-              <div className="bg-white border border-dashed border-outline rounded-lg p-12 flex flex-col items-center justify-center text-secondary gap-2">
-                <span className="material-symbols-outlined text-2xl text-error">report</span>
-                <span className="text-xs font-bold uppercase font-label-caps">No workstations configured.</span>
+              <div className="bg-white border border-dashed border-outline rounded-lg p-12 flex flex-col items-center justify-center text-secondary gap-3">
+                <span className="material-symbols-outlined text-3xl text-amber-500 animate-pulse">construction</span>
+                <span className="text-xs font-bold uppercase font-label-caps">No workstations configured for this production line.</span>
+                <button
+                  onClick={() => setActiveTab('master_data')}
+                  className="mt-2 py-1.5 px-4 bg-primary text-white font-bold rounded-lg text-[10px] font-label-caps tracking-wider uppercase hover:bg-slate-800 transition-all cursor-pointer shadow-premium-sm"
+                >
+                  Configure Workstations
+                </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-md pb-md">

@@ -15,13 +15,16 @@ const AVATAR_MAP: Record<string, string> = {
 export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedLineId }) => {
   const { productionLines, workstations, allocations, associates, associateSkills, leaveRecords, role } = useApp();
 
+  // Get current date string formatted as YYYY-MM-DD (e.g. 2026-06-29)
+  const todayDateStr = new Date().toISOString().split('T')[0];
+
   // Calculations
   const activeLines = productionLines.filter(l => l.status === 'ACTIVE').length;
   const activeLineIds = productionLines.filter(l => l.status === 'ACTIVE').map(l => l.id);
   const activeWorkstations = workstations.filter(w => activeLineIds.includes(w.lineId));
   const totalRequiredStaff = activeWorkstations.length;
   
-  const currentAllocations = allocations.filter(a => a.date === '2026-06-25' && a.shiftId === 'SHIFT-A' && activeLineIds.includes(a.lineId));
+  const currentAllocations = allocations.filter(a => a.date === todayDateStr && a.shiftId === 'SHIFT-A' && activeLineIds.includes(a.lineId));
   const staffedCount = currentAllocations.length;
 
   const fillRate = totalRequiredStaff ? Math.round((staffedCount / totalRequiredStaff) * 100) : 0;
@@ -34,7 +37,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
   productionLines.forEach(line => {
     if (line.status === 'ACTIVE') {
       const lineWS = workstations.filter(w => w.lineId === line.id);
-      const lineAlloc = allocations.filter(a => a.date === '2026-06-25' && a.shiftId === 'SHIFT-A' && a.lineId === line.id);
+      const lineAlloc = allocations.filter(a => a.date === todayDateStr && a.shiftId === 'SHIFT-A' && a.lineId === line.id);
       if (lineAlloc.length < lineWS.length) {
         alerts.push({
           id: `understaffed-${line.id}`,
@@ -48,7 +51,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
   });
 
   // Expiring/Expired certification alert
-  const currentDate = new Date('2026-06-25');
+  const currentDate = new Date();
   associateSkills.forEach(as => {
     const expiry = new Date(as.expiryDate);
     const diffTime = expiry.getTime() - currentDate.getTime();
@@ -79,9 +82,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
   // Available workforce pool
   const availablePool = associates.filter(assoc => {
     if (assoc.status !== 'Active') return false;
-    const onLeave = leaveRecords.some(l => l.associateId === assoc.id && l.date === '2026-06-25');
+    const onLeave = leaveRecords.some(l => l.associateId === assoc.id && l.date === todayDateStr);
     if (onLeave) return false;
-    const isAllocated = allocations.some(a => a.date === '2026-06-25' && a.shiftId === 'SHIFT-A' && a.associateId === assoc.id);
+    const isAllocated = allocations.some(a => a.date === todayDateStr && a.shiftId === 'SHIFT-A' && a.associateId === assoc.id);
     return !isAllocated;
   });
 
@@ -92,7 +95,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
 
   const userName = role === 'Plant Admin' ? 'A. Mukhopadhyay' : role === 'HR / Training Coordinator' ? 'P. Banerjee' : role === 'Plant Manager' ? 'S. Chatterjee' : 'R. Sharma';
 
-  const todayStr = new Date('2026-06-25').toLocaleDateString('en-US', {
+  const todayStr = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -246,7 +249,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {productionLines.map(line => {
                 const lineWS = workstations.filter(w => w.lineId === line.id);
-                const lineAlloc = allocations.filter(a => a.date === '2026-06-25' && a.shiftId === 'SHIFT-A' && a.lineId === line.id);
+                const lineAlloc = allocations.filter(a => a.date === todayDateStr && a.shiftId === 'SHIFT-A' && a.lineId === line.id);
                 const pct = lineWS.length ? Math.round((lineAlloc.length / lineWS.length) * 100) : 0;
                 
                 let tagColor = 'bg-slate-50 text-secondary border border-slate-200/40';
