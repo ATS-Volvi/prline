@@ -47,6 +47,9 @@ interface AppContextType {
   addSkill: (skill: Skill) => void;
   updateSkill: (skill: Skill) => void;
   deleteSkill: (id: string) => void;
+  addShift: (shift: Shift) => void;
+  updateShift: (shift: Shift) => void;
+  deleteShift: (id: string) => void;
   addTrainingRecord: (record: AssociateSkill) => void;
   bulkImportAssociates: (csvContent: string) => Promise<{ success: boolean; message: string; count: number }>;
   
@@ -344,11 +347,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, []);
 
-  // Fetch state whenever token changes
+  // Fetch state on mount and whenever token changes
   useEffect(() => {
-    if (token) {
-      fetchState();
-    }
+    fetchState();
   }, [token]);
 
   // Save to LocalStorage helper
@@ -624,7 +625,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAction('MASTER_DATA_UPDATED', `Created skill ${skill.name} (${skill.id}).`);
 
     try {
-      const res = await fetch("http://localhost:5505/api/v1/skills", {
+      const res = await fetch("/api/v1/skills", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(skill)
@@ -644,7 +645,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAction('MASTER_DATA_UPDATED', `Updated skill ${skill.name} (${skill.id}).`);
 
     try {
-      const res = await fetch(`http://localhost:5505/api/v1/skills/${skill.id}`, {
+      const res = await fetch(`/api/v1/skills/${skill.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(skill)
@@ -669,7 +670,66 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logAction('MASTER_DATA_UPDATED', `Deleted skill ${id}.`);
 
     try {
-      const res = await fetch(`http://localhost:5505/api/v1/skills/${id}`, {
+      const res = await fetch(`/api/v1/skills/${id}`, {
+        method: "DELETE"
+      });
+      if (res.ok) fetchState();
+    } catch (err) {
+      console.error("Backend error, local fallback used:", err);
+    }
+  };
+
+
+  const addShift = async (shift: Shift) => {
+    setShifts(prev => {
+      const updated = [...prev, shift];
+      saveData('shifts', updated);
+      return updated;
+    });
+    logAction('MASTER_DATA_UPDATED', `Created shift ${shift.name} (${shift.id}).`);
+
+    try {
+      const res = await fetch("/api/v1/shifts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(shift)
+      });
+      if (res.ok) fetchState();
+    } catch (err) {
+      console.error("Backend error, local fallback used:", err);
+    }
+  };
+
+  const updateShift = async (shift: Shift) => {
+    setShifts(prev => {
+      const updated = prev.map(s => s.id === shift.id ? shift : s);
+      saveData('shifts', updated);
+      return updated;
+    });
+    logAction('MASTER_DATA_UPDATED', `Updated shift ${shift.name} (${shift.id}).`);
+
+    try {
+      const res = await fetch(`/api/v1/shifts/${shift.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(shift)
+      });
+      if (res.ok) fetchState();
+    } catch (err) {
+      console.error("Backend error, local fallback used:", err);
+    }
+  };
+
+  const deleteShift = async (id: string) => {
+    setShifts(prev => {
+      const updated = prev.filter(s => s.id !== id);
+      saveData('shifts', updated);
+      return updated;
+    });
+    logAction('MASTER_DATA_UPDATED', `Deleted shift ${id}.`);
+
+    try {
+      const res = await fetch(`/api/v1/shifts/${id}`, {
         method: "DELETE"
       });
       if (res.ok) fetchState();
@@ -875,7 +935,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const ws = workstations.find(w => w.id === workstationId);
     if (!ws) return { eligible: [], ineligible: [] };
 
-    const reqSkill = ws.requiredSkillId;
+    const reqSkills = ws.requiredSkillId.split(';');
     const reqMinLevelValue = SKILL_LEVEL_VALUE[ws.minSkillLevel];
 
     const eligibleList: { associate: Associate; skillLevel: SkillLevel; score: number }[] = [];
@@ -916,34 +976,59 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return;
       }
 
-      // 4. Skill check
-      const assocSkill = associateSkills.find(s => s.associateId === assoc.id && s.skillId === reqSkill);
-      if (!assocSkill) {
-        ineligibleList.push({ associate: assoc, reason: `Missing required skill (${reqSkill})` });
+      // 4. Multiple Skills Check
+      let hasAllSkills = true;
+      let missingSkillCode = '';
+      let expiredSkillCode = '';
+      let expiredDate = '';
+      let insufficientLvlSkillCode = '';
+      let lowestSkillLevelValue = 999;
+      let lowestSkillLevelName: SkillLevel = 'Trainee';
+
+      for (const reqSkill of reqSkills) {
+        const assocSkill = associateSkills.find(s => s.associateId === assoc.id && s.skillId === reqSkill);
+        if (!assocSkill) {
+          hasAllSkills = false;
+          missingSkillCode = reqSkill;
+          break;
+        }
+
+        // Expiration check
+        const isExpired = new Date(assocSkill.expiryDate) < new Date(date);
+        if (isExpired) {
+          hasAllSkills = false;
+          expiredSkillCode = reqSkill;
+          expiredDate = assocSkill.expiryDate;
+          break;
+        }
+
+        // Level check
+        const skillLevelValue = SKILL_LEVEL_VALUE[assocSkill.level];
+        if (skillLevelValue < reqMinLevelValue) {
+          hasAllSkills = false;
+          insufficientLvlSkillCode = reqSkill;
+          break;
+        }
+
+        if (skillLevelValue < lowestSkillLevelValue) {
+          lowestSkillLevelValue = skillLevelValue;
+          lowestSkillLevelName = assocSkill.level;
+        }
+      }
+
+      if (!hasAllSkills) {
+        if (missingSkillCode) {
+          ineligibleList.push({ associate: assoc, reason: `Missing required skill (${missingSkillCode})` });
+        } else if (expiredSkillCode) {
+          ineligibleList.push({ associate: assoc, reason: `Skill certification expired on ${expiredDate} (${expiredSkillCode})` });
+        } else if (insufficientLvlSkillCode) {
+          ineligibleList.push({ associate: assoc, reason: `Insufficient level for ${insufficientLvlSkillCode} (Requires: ${ws.minSkillLevel})` });
+        }
         return;
       }
 
-      // 5. Expiration check
-      const isExpired = new Date(assocSkill.expiryDate) < new Date(date);
-      if (isExpired) {
-        ineligibleList.push({ associate: assoc, reason: `Skill certification expired on ${assocSkill.expiryDate}` });
-        return;
-      }
-
-      // 6. Skill level check
-      const skillLevelValue = SKILL_LEVEL_VALUE[assocSkill.level];
-      if (skillLevelValue < reqMinLevelValue) {
-        ineligibleList.push({ 
-          associate: assoc, 
-          reason: `Insufficient skill level (Has: ${assocSkill.level}, Requires: ${ws.minSkillLevel})` 
-        });
-        return;
-      }
-
-      // Calculate Eligibility Score:
-      // Level points (Expert=40, Certified=30, Operator=20, Trainee=10)
-      // Category weight (Company operative=+5, Contract=+3, NTCI=+1)
-      let score = skillLevelValue * 10;
+      // Calculate Eligibility Score using lowest matching level:
+      let score = lowestSkillLevelValue * 10;
       if (assoc.category === 'Company') score += 5;
       else if (assoc.category === 'Contract') score += 3;
       else score += 1;
@@ -954,7 +1039,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       eligibleList.push({
         associate: assoc,
-        skillLevel: assocSkill.level,
+        skillLevel: lowestSkillLevelName,
         score,
       });
     });
@@ -1282,6 +1367,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addSkill,
         updateSkill,
         deleteSkill,
+        addShift,
+        updateShift,
+        deleteShift,
         addTrainingRecord,
         bulkImportAssociates,
         addLeaveRecord,

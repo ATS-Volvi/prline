@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navigation } from './components/Navigation';
 import { Dashboard } from './components/Dashboard';
@@ -11,9 +11,35 @@ import { AuditLogs } from './components/AuditLogs';
 import { Login } from './components/Login';
 
 function MainAppContent() {
-  const { token } = useApp();
+  const { token, logout } = useApp();
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [selectedLineId, setSelectedLineId] = useState<string>('LINE-01');
+
+  // Inactivity timeout: 30 minutes (1800000 ms)
+  useEffect(() => {
+    if (!token) return;
+
+    let timeoutId: number;
+
+    const resetTimer = () => {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => {
+        alert("Session expired due to inactivity on plant-floor tablet.");
+        logout();
+      }, 1800000);
+    };
+
+    // Activity event listeners
+    const events = ['mousedown', 'keydown', 'touchstart', 'scroll'];
+    events.forEach(event => window.addEventListener(event, resetTimer));
+
+    resetTimer(); // Initialize
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      events.forEach(event => window.removeEventListener(event, resetTimer));
+    };
+  }, [token, logout]);
 
   if (!token) {
     return <Login />;

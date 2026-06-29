@@ -473,7 +473,8 @@ router.post("/associates/bulk-import", AuthHandler.authMiddleware, UserTypeHandl
         name: name.trim(),
         category: cleanCat,
         joiningDate: new Date().toISOString().split('T')[0],
-        status: 'Active'
+        status: 'Active',
+        plantIdRef: `PID-${code.trim()}`
       });
 
       // Clear existing skills for this imported user to avoid duplicate key conflicts
@@ -598,6 +599,63 @@ router.delete("/skills/:id", async (req: Request, res: Response) => {
     const name = skill.get('name');
     await skill.destroy();
     await logAction('MASTER_DATA_UPDATED', `Deleted skill ${name} (${id}).`);
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// SHIFT CRUD ROUTES
+router.post("/shifts", async (req: Request, res: Response) => {
+  try {
+    const { id, name, timings, workingDays } = req.body;
+    if (!id || !name || !timings) {
+      res.status(400).json({ success: false, message: 'Missing Shift ID, Name, or Timings.' });
+      return;
+    }
+    const exists = await Shift.findByPk(id);
+    if (exists) {
+      res.status(400).json({ success: false, message: 'Shift ID already exists.' });
+      return;
+    }
+    const workingDaysStr = Array.isArray(workingDays) ? JSON.stringify(workingDays) : "[]";
+    const shift = await Shift.create({ id, name, timings, workingDays: workingDaysStr });
+    await logAction('MASTER_DATA_UPDATED', `Created shift ${name} (${id}).`);
+    res.json({ success: true, shift });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.put("/shifts/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, timings, workingDays } = req.body;
+    const shift = await Shift.findByPk(id);
+    if (!shift) {
+      res.status(404).json({ success: false, message: 'Shift not found.' });
+      return;
+    }
+    const workingDaysStr = Array.isArray(workingDays) ? JSON.stringify(workingDays) : JSON.stringify(workingDays || []);
+    await shift.update({ name, timings, workingDays: workingDaysStr });
+    await logAction('MASTER_DATA_UPDATED', `Updated shift ${name} (${id}).`);
+    res.json({ success: true, shift });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.delete("/shifts/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const shift = await Shift.findByPk(id);
+    if (!shift) {
+      res.status(404).json({ success: false, message: 'Shift not found.' });
+      return;
+    }
+    const name = shift.get('name');
+    await shift.destroy();
+    await logAction('MASTER_DATA_UPDATED', `Deleted shift ${name} (${id}).`);
     res.json({ success: true });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });

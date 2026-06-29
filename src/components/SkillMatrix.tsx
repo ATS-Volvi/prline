@@ -476,13 +476,25 @@ export const SkillMatrix: React.FC = () => {
           <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 w-full max-w-[576px] mx-auto animate-slide-up">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-sm font-bold text-on-surface">CSV Workforce Importer</h2>
-                <p className="text-[10px] text-secondary">Pre-configure operators and skills in bulk.</p>
+                <h2 className="text-sm font-bold text-on-surface">CSV Bulk Mappings Importer</h2>
+                <p className="text-[10px] text-secondary">Pre-configure operators or machine-skill workstation definitions in bulk.</p>
               </div>
-              <button onClick={downloadTemplate}
-                className="text-[9px] font-bold text-primary hover:underline flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer shadow-premium-sm font-label-caps tracking-wider">
-                <span className="material-symbols-outlined text-xs">download</span> Sample Template
-              </button>
+              <div className="flex gap-2">
+                <button onClick={downloadTemplate}
+                  className="text-[9px] font-bold text-primary hover:underline flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer shadow-premium-sm font-label-caps tracking-wider">
+                  <span className="material-symbols-outlined text-xs">download</span> Associate Template
+                </button>
+                <button onClick={() => {
+                  const csv = "data:text/csv;charset=utf-8,workstation_id,name,line_id,required_skills,min_level,max_staff\nWS-106,Flavor application,LINE-01,SPICE_MIX;HYGIENE_L2,Operator,1\n";
+                  const link = document.createElement('a');
+                  link.setAttribute('href', encodeURI(csv));
+                  link.setAttribute('download', 'workstation_mappings_template.csv');
+                  document.body.appendChild(link); link.click(); document.body.removeChild(link);
+                }}
+                  className="text-[9px] font-bold text-primary hover:underline flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer shadow-premium-sm font-label-caps tracking-wider">
+                  <span className="material-symbols-outlined text-xs">download</span> Workstation Template
+                </button>
+              </div>
             </div>
 
             {hasWriteAccess ? (
@@ -491,7 +503,7 @@ export const SkillMatrix: React.FC = () => {
                   <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">PASTE CSV CONTENT</label>
                   <textarea rows={6} value={bulkCsvText} onChange={e => setBulkCsvText(e.target.value)}
                     className="w-full p-3 border border-slate-200 rounded-lg font-mono text-[10px] focus:ring-1 focus:ring-primary focus:outline-none bg-slate-50 shadow-premium-sm"
-                    placeholder={"employee_id,name,category,skills\nEMP125,A. Banerjee,Company,BLADE_OPT:Expert:2027-12-31;HYGIENE_L2:Certified:2026-10-15"} />
+                    placeholder={"-- Associate CSV --\nemployee_id,name,category,skills\nEMP125,A. Banerjee,Company,BLADE_OPT:Expert:2027-12-31\n\n-- OR Workstation CSV --\nworkstation_id,name,line_id,required_skills,min_level,max_staff\nWS-106,Sieve,LINE-01,BLADE_OPT;HYGIENE_L2,Operator,1"} />
                 </div>
 
                 {importStatus.type && (
@@ -500,16 +512,56 @@ export const SkillMatrix: React.FC = () => {
                   </div>
                 )}
 
-                <button onClick={handleCsvImport}
+                <button onClick={async () => {
+                  if (!bulkCsvText.trim()) { setImportStatus({ type: 'error', message: 'Please paste valid CSV content first.' }); return; }
+                  setImportStatus({ type: 'success', message: 'Importing...' });
+                  
+                  if (bulkCsvText.includes("workstation_id")) {
+                    // Workstation Mapping Import flow
+                    try {
+                      const lines = bulkCsvText.split('\n');
+                      let count = 0;
+                      for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+                        const [wsId, wsName, wsLine, wsSkills, wsLvl, wsMax] = line.split(',');
+                        if (!wsId || !wsName || !wsLine) continue;
+                        
+                        // Call workstation creation route / context hook
+                        const wsData = {
+                          id: wsId.trim(),
+                          name: wsName.trim(),
+                          lineId: wsLine.trim(),
+                          requiredSkillId: wsSkills ? wsSkills.trim() : 'BLADE_OPT',
+                          minSkillLevel: (wsLvl ? wsLvl.trim() : 'Operator') as any,
+                          maxStaffCount: wsMax ? parseInt(wsMax.trim()) : 1
+                        };
+                        
+                        const res = await fetch("/api/v1/workstations", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem('pepsico_token')}` },
+                          body: JSON.stringify(wsData)
+                        });
+                        if (res.ok) count++;
+                      }
+                      setImportStatus({ type: 'success', message: `Successfully mapped ${count} workstations.` });
+                      setBulkCsvText('');
+                    } catch (e: any) {
+                      setImportStatus({ type: 'error', message: e.message || 'Mapping import failed.' });
+                    }
+                  } else {
+                    // Associate Skill import flow
+                    handleCsvImport();
+                  }
+                }}
                   className="w-full py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-slate-800 text-[10px] font-label-caps tracking-wider uppercase shadow-premium-md hover:shadow-premium-lg cursor-pointer transition-all">
                   Process CSV Import
                 </button>
 
                 <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-[9px] text-secondary leading-relaxed">
                   <span className="font-bold text-primary block mb-1">CSV Guidelines:</span>
-                  1. Headers: <strong>employee_id,name,category,skills</strong><br />
-                  2. Category: <strong>Company</strong>, <strong>Contract</strong>, or <strong>NTCI</strong><br />
-                  3. Skills: <strong>SKILL_CODE:Level:YYYY-MM-DD</strong> separated by semicolons
+                  - <strong>Associate Import Headers</strong>: employee_id, name, category, skills<br />
+                  - <strong>Workstation Mappings Headers</strong>: workstation_id, name, line_id, required_skills, min_level, max_staff
                 </div>
               </div>
             ) : (

@@ -152,10 +152,10 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
         {/* Left main content canvas */}
         <div className="flex-1 flex flex-col gap-md overflow-hidden">
           
-          {/* Controls Bar (Matching code.html mockup look) */}
-          <section className="bg-surface p-sm border border-outline flex items-center justify-between gap-md rounded-lg shadow-sm shrink-0">
-            <div className="flex items-center gap-lg">
-              <div className="flex flex-col">
+          {/* Controls Bar (Matching code.html mockup look with flex wrap to prevent overflow) */}
+          <section className="bg-surface p-sm border border-outline flex flex-wrap items-center justify-between gap-sm rounded-lg shadow-sm shrink-0">
+            <div className="flex flex-wrap items-center gap-md">
+              <div className="flex flex-col min-w-[120px]">
                 <label className="font-label-caps text-[10px] text-secondary mb-1 uppercase tracking-wider">Production Line</label>
                 <select
                   value={selectedLineId}
@@ -168,7 +168,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                 </select>
               </div>
 
-              <div className="flex flex-col">
+              <div className="flex flex-col min-w-[120px]">
                 <label className="font-label-caps text-[10px] text-secondary mb-1 uppercase tracking-wider">Active Shift</label>
                 <select
                   value={selectedShiftId}
@@ -181,7 +181,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                 </select>
               </div>
 
-              <div className="flex flex-col">
+              <div className="flex flex-col min-w-[120px]">
                 <label className="font-label-caps text-[10px] text-secondary mb-1 uppercase tracking-wider">Production Date</label>
                 <div className="relative">
                   <input
@@ -194,7 +194,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
               </div>
             </div>
 
-            <div className="flex items-center gap-sm">
+            <div className="flex items-center gap-xs shrink-0 mt-2 sm:mt-0">
               <button
                 onClick={() => {
                   setActiveTab('shift_planner');
@@ -203,14 +203,14 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                   }
                 }}
                 disabled={currentLine.status !== 'ACTIVE'}
-                className="bg-surface border border-primary text-primary px-4 py-1.5 font-label-caps text-[10px] font-bold rounded-lg hover:bg-slate-50 transition-colors active:scale-95 cursor-pointer disabled:opacity-50"
+                className="bg-surface border border-primary text-primary px-3 py-2 font-label-caps text-[10px] font-bold rounded-lg hover:bg-slate-50 transition-colors active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap"
               >
                 Save Configuration
               </button>
               <button
                 onClick={handleAutoAllocate}
                 disabled={isOptimizing || currentLine.status !== 'ACTIVE'}
-                className="bg-primary text-white px-5 py-1.5 font-label-caps text-[10px] font-bold rounded-lg hover:opacity-90 transition-all active:scale-95 shadow-md flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                className="bg-primary text-white px-3 py-2 font-label-caps text-[10px] font-bold rounded-lg hover:opacity-90 transition-all active:scale-95 shadow-md flex items-center gap-1 cursor-pointer disabled:opacity-50 whitespace-nowrap"
               >
                 {isOptimizing && <span className="material-symbols-outlined text-xs animate-spin">sync</span>}
                 {isOptimizing ? 'Allocating...' : 'Auto-Allocate Staff'}

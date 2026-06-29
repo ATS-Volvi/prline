@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import type { Associate, Workstation, AssociateCategory, SkillLevel, ProductionLine, LineStatus, Skill } from '../types';
+import type { Associate, Workstation, AssociateCategory, SkillLevel, ProductionLine, LineStatus, Skill, Shift } from '../types';
 
 export const MasterData: React.FC = () => {
   const {
@@ -8,6 +8,7 @@ export const MasterData: React.FC = () => {
     workstations,
     skills,
     productionLines,
+    shifts,
     addAssociate,
     updateAssociate,
     deleteAssociate,
@@ -20,16 +21,19 @@ export const MasterData: React.FC = () => {
     addSkill,
     updateSkill,
     deleteSkill,
+    addShift,
+    updateShift,
+    deleteShift,
     associateSkills,
     role
   } = useApp();
 
-  const [activeSubTab, setActiveSubTab] = useState<'associates' | 'workstations' | 'skills' | 'lines'>(() => {
+  const [activeSubTab, setActiveSubTab] = useState<'associates' | 'workstations' | 'skills' | 'lines' | 'shifts'>(() => {
     const stored = localStorage.getItem('master_data_sub_tab');
     return (stored as any) || 'associates';
   });
 
-  const changeSubTab = (tab: 'associates' | 'workstations' | 'skills' | 'lines') => {
+  const changeSubTab = (tab: 'associates' | 'workstations' | 'skills' | 'lines' | 'shifts') => {
     setActiveSubTab(tab);
     localStorage.setItem('master_data_sub_tab', tab);
   };
@@ -41,6 +45,7 @@ export const MasterData: React.FC = () => {
   const [assocName, setAssocName] = useState('');
   const [assocCategory, setAssocCategory] = useState<AssociateCategory>('Contract');
   const [assocStatus, setAssocStatus] = useState<'Active' | 'Inactive'>('Active');
+  const [assocPlantIdRef, setAssocPlantIdRef] = useState('');
   const [assocSkills, setAssocSkills] = useState<{ skillId: string; level: SkillLevel; expiryDate: string }[]>([]);
 
   // Workstation forms
@@ -67,6 +72,54 @@ export const MasterData: React.FC = () => {
   const [skId, setSkId] = useState('');
   const [skName, setSkName] = useState('');
   const [skDesc, setSkDesc] = useState('');
+
+  // Shift forms
+  const [editingShift, setEditingShift] = useState<Shift | null>(null);
+  const [isAddingShift, setIsAddingShift] = useState(false);
+  const [shiftId, setShiftId] = useState('');
+  const [shiftName, setShiftName] = useState('');
+  const [shiftTimings, setShiftTimings] = useState('');
+  const [shiftDays, setShiftDays] = useState<string[]>(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']);
+
+  const handleSaveShift = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!shiftId || !shiftName || !shiftTimings) {
+      alert('Missing ID, Name or Timings');
+      return;
+    }
+
+    const item: Shift = {
+      id: shiftId,
+      name: shiftName,
+      timings: shiftTimings,
+      workingDays: shiftDays
+    };
+
+    if (editingShift) {
+      updateShift(item);
+      setEditingShift(null);
+    } else {
+      if (shifts.some(s => s.id === shiftId)) {
+        alert('Shift ID already exists.');
+        return;
+      }
+      addShift(item);
+      setIsAddingShift(false);
+    }
+
+    setShiftId('');
+    setShiftName('');
+    setShiftTimings('');
+    setShiftDays(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']);
+  };
+
+  const startEditShift = (s: Shift) => {
+    setEditingShift(s);
+    setShiftId(s.id);
+    setShiftName(s.name);
+    setShiftTimings(s.timings);
+    setShiftDays(s.workingDays || []);
+  };
 
   // Skill Save
   const handleSaveSkill = (e: React.FormEvent) => {
@@ -132,6 +185,7 @@ export const MasterData: React.FC = () => {
       category: assocCategory,
       joiningDate: editingAssoc ? editingAssoc.joiningDate : new Date().toISOString().split('T')[0],
       status: assocStatus,
+      plantIdRef: assocPlantIdRef || undefined
     };
 
     if (editingAssoc) {
@@ -156,6 +210,7 @@ export const MasterData: React.FC = () => {
     setAssocName(a.name);
     setAssocCategory(a.category);
     setAssocStatus(a.status);
+    setAssocPlantIdRef(a.plantIdRef || '');
     
     // Load skills
     const existingSkills = associateSkills
@@ -169,6 +224,7 @@ export const MasterData: React.FC = () => {
     setAssocName('');
     setAssocCategory('Contract');
     setAssocStatus('Active');
+    setAssocPlantIdRef('');
     setAssocSkills([]);
   };
 
@@ -302,6 +358,14 @@ export const MasterData: React.FC = () => {
           >
             Line Master
           </button>
+          <button
+            onClick={() => changeSubTab('shifts' as any)}
+            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+              activeSubTab === ('shifts' as any) ? 'bg-white text-primary shadow-premium-sm border border-slate-200' : 'text-secondary hover:text-primary'
+            }`}
+          >
+            Shift Master
+          </button>
         </div>
       </header>
 
@@ -335,6 +399,7 @@ export const MasterData: React.FC = () => {
                     <tr className="bg-slate-50 border-b border-slate-200 text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps">
                       <th className="p-3.5">EMPLOYEE ID</th>
                       <th className="p-3.5">NAME</th>
+                      <th className="p-3.5">PLANT ID REF</th>
                       <th className="p-3.5">CATEGORY</th>
                       <th className="p-3.5">JOINING DATE</th>
                       <th className="p-3.5">SKILLS ROSTERED</th>
@@ -349,6 +414,7 @@ export const MasterData: React.FC = () => {
                         <tr key={assoc.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="p-3.5 font-mono font-bold text-primary">{assoc.id}</td>
                           <td className="p-3.5 font-bold text-on-surface">{assoc.name}</td>
+                          <td className="p-3.5 font-mono text-secondary font-semibold">{assoc.plantIdRef || 'N/A'}</td>
                           <td className="p-3.5 text-secondary font-medium">{assoc.category}</td>
                           <td className="p-3.5 font-mono text-secondary">{assoc.joiningDate}</td>
                           <td className="p-3.5">
@@ -613,14 +679,92 @@ export const MasterData: React.FC = () => {
             </>
           )}
 
+          {/* Sub-tab: Shifts */}
+          {activeSubTab === 'shifts' && (
+            <>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-sm font-bold text-on-surface">Shifts Directory</h2>
+                  <p className="text-[10px] text-secondary">Manage plant shift timings, schedule definitions, and active working days</p>
+                </div>
+                {canWriteAllMasterData && !isAddingShift && !editingShift && (
+                  <button
+                    onClick={() => {
+                      setShiftId('');
+                      setShiftName('');
+                      setShiftTimings('');
+                      setShiftDays(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']);
+                      setIsAddingShift(true);
+                    }}
+                    className="py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-900 flex items-center gap-1.5 cursor-pointer shadow-premium-md font-label-caps tracking-wider transition-all hover:scale-[1.02]"
+                  >
+                    <span className="material-symbols-outlined text-sm">add_circle</span> ADD SHIFT
+                  </button>
+                )}
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-premium-sm">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps">
+                      <th className="p-3.5">SHIFT ID</th>
+                      <th className="p-3.5">SHIFT NAME</th>
+                      <th className="p-3.5">TIMINGS</th>
+                      <th className="p-3.5">WORKING DAYS</th>
+                      {canWriteAllMasterData && <th className="p-3.5 text-right">ACTIONS</th>}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {shifts.map(shift => (
+                      <tr key={shift.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="p-3.5 font-mono font-bold text-primary">{shift.id}</td>
+                        <td className="p-3.5 font-bold text-on-surface">{shift.name}</td>
+                        <td className="p-3.5 font-mono text-secondary font-medium">{shift.timings}</td>
+                        <td className="p-3.5 text-secondary">
+                          <div className="flex flex-wrap gap-1">
+                            {shift.workingDays && shift.workingDays.map(day => (
+                              <span key={day} className="bg-slate-50 text-slate-600 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-[8px] font-mono shadow-premium-sm">
+                                {day.substring(0, 3)}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        {canWriteAllMasterData && (
+                          <td className="p-3.5 text-right select-none space-x-3">
+                            <button
+                              onClick={() => startEditShift(shift)}
+                              className="text-primary hover:underline font-bold text-[10px] cursor-pointer"
+                            >
+                              EDIT
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Delete shift ${shift.name}?`)) {
+                                  deleteShift(shift.id);
+                                }
+                              }}
+                              className="text-rose-600 hover:underline font-bold text-[10px] cursor-pointer"
+                            >
+                              REMOVE
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
         </div>
  
         {/* Right Add/Edit Side Form Panel */}
-        {((canWriteAssociates && (isAddingAssoc || editingAssoc)) || (canWriteAllMasterData && (isAddingWS || editingWS || isAddingLine || editingLine || isAddingSkill || editingSkill))) && (
+        {((canWriteAssociates && (isAddingAssoc || editingAssoc)) || (canWriteAllMasterData && (isAddingWS || editingWS || isAddingLine || editingLine || isAddingSkill || editingSkill || isAddingShift || editingShift))) && (
           <aside className="w-[380px] h-full border-l border-slate-200 bg-white p-5 overflow-y-auto custom-scrollbar flex flex-col gap-5 shadow-premium-lg z-30 animate-slide-up">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-xs text-primary uppercase tracking-wider font-label-caps">
-                {isAddingAssoc ? 'Create Associate' : editingAssoc ? 'Modify Associate' : isAddingWS ? 'Create Workstation' : editingWS ? 'Modify Workstation' : isAddingLine ? 'Create Production Line' : editingLine ? 'Modify Production Line' : isAddingSkill ? 'Create Skill' : 'Modify Skill'}
+                {isAddingAssoc ? 'Create Associate' : editingAssoc ? 'Modify Associate' : isAddingWS ? 'Create Workstation' : editingWS ? 'Modify Workstation' : isAddingLine ? 'Create Production Line' : editingLine ? 'Modify Production Line' : isAddingSkill ? 'Create Skill' : editingSkill ? 'Modify Skill' : isAddingShift ? 'Create Shift' : 'Modify Shift'}
               </h3>
               <button
                 onClick={() => {
@@ -632,6 +776,8 @@ export const MasterData: React.FC = () => {
                   setEditingLine(null);
                   setIsAddingSkill(false);
                   setEditingSkill(null);
+                  setIsAddingShift(false);
+                  setEditingShift(null);
                   setLineId('');
                   setLineName('');
                   setLineProduct('');
@@ -642,6 +788,10 @@ export const MasterData: React.FC = () => {
                   setSkId('');
                   setSkName('');
                   setSkDesc('');
+                  setShiftId('');
+                  setShiftName('');
+                  setShiftTimings('');
+                  setShiftDays(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']);
                   resetAssocForm();
                 }}
                 className="p-1 hover:bg-slate-100 rounded-lg text-secondary transition-colors flex items-center justify-center cursor-pointer"
@@ -675,6 +825,17 @@ export const MasterData: React.FC = () => {
                     onChange={(e) => setAssocName(e.target.value)}
                     className="py-2 px-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-slate-50 shadow-premium-sm text-xs"
                     placeholder="e.g. A. Mukhopadhyay"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">PLANT ID REFERENCE</label>
+                  <input
+                    type="text"
+                    value={assocPlantIdRef}
+                    onChange={(e) => setAssocPlantIdRef(e.target.value)}
+                    className="py-2 px-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-slate-50 shadow-premium-sm text-xs"
+                    placeholder="e.g. PID-12345"
                   />
                 </div>
 
@@ -980,6 +1141,81 @@ export const MasterData: React.FC = () => {
                   className="w-full py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-slate-800 text-[10px] font-label-caps tracking-wider uppercase transition-all shadow-premium-md hover:shadow-premium-lg cursor-pointer"
                 >
                   SAVE SKILL
+                </button>
+              </form>
+            )}
+
+            {/* Form: Shift */}
+            {(isAddingShift || editingShift) && (
+              <form onSubmit={handleSaveShift} className="flex flex-col gap-4 text-xs">
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">SHIFT ID</label>
+                  <input
+                    type="text"
+                    required
+                    disabled={!!editingShift}
+                    value={shiftId}
+                    onChange={(e) => setShiftId(e.target.value.toUpperCase())}
+                    className="py-2 px-3 border border-slate-200 bg-slate-50 font-mono disabled:opacity-65 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm text-xs"
+                    placeholder="e.g. SHIFT-D"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">SHIFT NAME</label>
+                  <input
+                    type="text"
+                    required
+                    value={shiftName}
+                    onChange={(e) => setShiftName(e.target.value)}
+                    className="py-2 px-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-slate-50 shadow-premium-sm text-xs"
+                    placeholder="e.g. Shift D"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">TIMINGS</label>
+                  <input
+                    type="text"
+                    required
+                    value={shiftTimings}
+                    onChange={(e) => setShiftTimings(e.target.value)}
+                    className="py-2 px-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-slate-50 shadow-premium-sm text-xs"
+                    placeholder="e.g. 06:00 - 14:00"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">WORKING DAYS</label>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => {
+                      const isSelected = shiftDays.includes(day);
+                      return (
+                        <label key={day} className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setShiftDays(prev => [...prev, day]);
+                              } else {
+                                setShiftDays(prev => prev.filter(d => d !== day));
+                              }
+                            }}
+                            className="rounded border-slate-300 text-primary focus:ring-0 cursor-pointer w-3.5 h-3.5"
+                          />
+                          <span className="font-semibold text-slate-700 text-[10px]">{day}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-slate-800 text-[10px] font-label-caps tracking-wider uppercase transition-all shadow-premium-md hover:shadow-premium-lg cursor-pointer"
+                >
+                  SAVE SHIFT
                 </button>
               </form>
             )}

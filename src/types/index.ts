@@ -9,6 +9,7 @@ export interface Associate {
   category: AssociateCategory;
   joiningDate: string;
   status: 'Active' | 'Inactive';
+  plantIdRef?: string;
 }
 
 export interface Skill {
