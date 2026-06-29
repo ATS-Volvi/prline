@@ -984,21 +984,33 @@ export const MasterData: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">COMPLIANT SKILLS (SELECT MULTIPLE)</label>
-                  <select
-                    multiple
-                    value={wsRequiredSkill.split(';')}
-                    onChange={(e) => {
-                      const selectedOptions = Array.from(e.target.selectedOptions).map(o => o.value);
-                      setWsRequiredSkill(selectedOptions.join(';'));
-                    }}
-                    className="py-2 px-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-white font-bold cursor-pointer shadow-premium-sm text-xs min-h-[100px]"
-                  >
-                    {skills.map(sk => (
-                      <option key={sk.id} value={sk.id}>{sk.name} ({sk.id})</option>
-                    ))}
-                  </select>
-                  <span className="text-[9px] text-secondary">Hold Ctrl (Windows) / Cmd (Mac) to select multiple required skills.</span>
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider block mb-1">COMPLIANT SKILLS (CHECK ALL REQUIRED)</label>
+                  <div className="flex flex-col gap-2 max-h-[160px] overflow-y-auto pr-1 border border-slate-200 rounded-lg p-2 bg-slate-50 shadow-inner">
+                    {skills.map(sk => {
+                      const isChecked = wsRequiredSkill.split(';').includes(sk.id);
+                      return (
+                        <label key={sk.id} className="flex items-center gap-2 cursor-pointer select-none py-0.5 hover:bg-slate-100/50 rounded px-1">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              const currentSelected = wsRequiredSkill ? wsRequiredSkill.split(';').filter(Boolean) : [];
+                              let updated: string[];
+                              if (e.target.checked) {
+                                updated = [...currentSelected, sk.id];
+                              } else {
+                                updated = currentSelected.filter(id => id !== sk.id);
+                              }
+                              setWsRequiredSkill(updated.join(';'));
+                            }}
+                            className="rounded border-slate-300 text-primary focus:ring-0 cursor-pointer w-3.5 h-3.5"
+                          />
+                          <span className="font-mono text-[10px] font-bold text-primary">{sk.id}</span>
+                          <span className="text-secondary text-[10px] truncate">— {sk.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
