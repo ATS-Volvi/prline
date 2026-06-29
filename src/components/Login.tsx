@@ -49,7 +49,13 @@ export const Login: React.FC = () => {
           body: JSON.stringify({ name, email, password, userType }),
         });
 
-        const data = await res.json();
+        let data: any;
+        try {
+          data = await res.json();
+        } catch {
+          throw new Error('Cannot reach server. Make sure the backend is running.');
+        }
+
         if (!res.ok || data.status === false) {
           throw new Error(data.message || 'Registration failed');
         }
@@ -66,7 +72,13 @@ export const Login: React.FC = () => {
           body: JSON.stringify({ email }),
         });
 
-        const data = await res.json();
+        let data: any;
+        try {
+          data = await res.json();
+        } catch {
+          throw new Error('Cannot reach server. Make sure the backend is running.');
+        }
+
         if (!res.ok || data.status === false) {
           throw new Error(data.message || 'Failed to request reset link');
         }
@@ -84,7 +96,13 @@ export const Login: React.FC = () => {
           body: JSON.stringify({ password }),
         });
 
-        const data = await res.json();
+        let data: any;
+        try {
+          data = await res.json();
+        } catch {
+          throw new Error('Cannot reach server. Make sure the backend is running.');
+        }
+
         if (!res.ok || data.status === false) {
           throw new Error(data.message || 'Password reset failed');
         }
@@ -108,7 +126,13 @@ export const Login: React.FC = () => {
           throw new Error('Cannot reach server. Make sure the backend is running on port 5505.');
         }
 
-        const data = await res.json();
+        let data: any;
+        try {
+          data = await res.json();
+        } catch {
+          throw new Error('Cannot reach server. Make sure the backend is running on port 5505.');
+        }
+
         if (!res.ok || data.status === false) {
           throw new Error(data.message || 'Invalid email or password');
         }

@@ -153,7 +153,17 @@ AuditLog.init({
   details: { type: DataTypes.TEXT, allowNull: false },
   userId: { type: DataTypes.STRING, allowNull: false },
   userRole: { type: DataTypes.STRING, allowNull: false }
-}, { sequelize, tableName: 'audit_logs', timestamps: false });
+}, {
+  sequelize,
+  tableName: 'audit_logs',
+  timestamps: false,
+  hooks: {
+    beforeUpdate: () => { throw new Error("Audit logs are read-only and immutable."); },
+    beforeDestroy: () => { throw new Error("Audit logs are read-only and immutable."); },
+    beforeBulkUpdate: () => { throw new Error("Audit logs are read-only and immutable."); },
+    beforeBulkDestroy: () => { throw new Error("Audit logs are read-only and immutable."); }
+  }
+});
 
 // 10. ATTENDANCE RECORD MODEL
 export class AttendanceRecord extends Model {
