@@ -662,4 +662,21 @@ router.delete("/shifts/:id", async (req: Request, res: Response) => {
   }
 });
 
+// AUDIT LOGS POST ROUTE
+router.post("/audit-logs", AuthHandler.authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { actionType, details } = req.body;
+    if (!actionType || !details) {
+      res.status(400).json({ success: false, message: 'Missing actionType or details.' });
+      return;
+    }
+    const userId = req.authData?.userId || "unknown-user";
+    const userRole = req.authData?.userType || "unknown-role";
+    await logAction(actionType, details, userId, userRole);
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 export default router;

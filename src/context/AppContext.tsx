@@ -364,20 +364,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
 
 
-  const logAction = (actionType: string, details: string) => {
+  const logAction = async (actionType: string, details: string) => {
+    const currentUserId = user?.userId || 'EMP102';
+    const currentRole = role;
     const newLog: AuditLog = {
       id: `LOG-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       timestamp: new Date().toISOString(),
       actionType,
       details,
-      userId: 'EMP102', // Simulated logged in supervisor
-      userRole: role,
+      userId: currentUserId,
+      userRole: currentRole,
     };
     setAuditLogs(prev => {
       const updated = [newLog, ...prev];
       saveData('auditLogs', updated);
       return updated;
     });
+
+    try {
+      const res = await fetch("/api/v1/audit-logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actionType, details })
+      });
+      if (res.ok) fetchState();
+    } catch (err) {
+      console.error("Failed to post audit log to backend:", err);
+    }
   };
 
   // Associates CRUD
