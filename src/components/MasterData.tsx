@@ -983,33 +983,36 @@ export const MasterData: React.FC = () => {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">COMPLIANT SKILL</label>
-                    <select
-                      value={wsRequiredSkill}
-                      onChange={(e) => setWsRequiredSkill(e.target.value)}
-                      className="py-2 px-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-white font-bold cursor-pointer shadow-premium-sm text-xs"
-                    >
-                      {skills.map(sk => (
-                        <option key={sk.id} value={sk.id}>{sk.id}</option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">COMPLIANT SKILLS (SELECT MULTIPLE)</label>
+                  <select
+                    multiple
+                    value={wsRequiredSkill.split(';')}
+                    onChange={(e) => {
+                      const selectedOptions = Array.from(e.target.selectedOptions).map(o => o.value);
+                      setWsRequiredSkill(selectedOptions.join(';'));
+                    }}
+                    className="py-2 px-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-white font-bold cursor-pointer shadow-premium-sm text-xs min-h-[100px]"
+                  >
+                    {skills.map(sk => (
+                      <option key={sk.id} value={sk.id}>{sk.name} ({sk.id})</option>
+                    ))}
+                  </select>
+                  <span className="text-[9px] text-secondary">Hold Ctrl (Windows) / Cmd (Mac) to select multiple required skills.</span>
+                </div>
 
-                  <div className="flex flex-col gap-1.5">
-                    <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">MIN LEVEL</label>
-                    <select
-                      value={wsMinLevel}
-                      onChange={(e) => setWsMinLevel(e.target.value as SkillLevel)}
-                      className="py-2 px-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-white font-bold cursor-pointer shadow-premium-sm text-xs"
-                    >
-                      <option value="Trainee">Trainee</option>
-                      <option value="Operator">Operator</option>
-                      <option value="Certified">Certified</option>
-                      <option value="Expert">Expert</option>
-                    </select>
-                  </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">MIN LEVEL REQUIRED</label>
+                  <select
+                    value={wsMinLevel}
+                    onChange={(e) => setWsMinLevel(e.target.value as SkillLevel)}
+                    className="py-2 px-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-white font-bold cursor-pointer shadow-premium-sm text-xs"
+                  >
+                    <option value="Trainee">Trainee</option>
+                    <option value="Operator">Operator</option>
+                    <option value="Certified">Certified</option>
+                    <option value="Expert">Expert</option>
+                  </select>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
