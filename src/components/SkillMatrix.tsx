@@ -155,7 +155,7 @@ export const SkillMatrix: React.FC = () => {
       <header className="flex justify-between items-center px-margin-desktop h-16 w-full border-b border-outline-variant shrink-0 bg-surface-container-lowest">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-primary text-headline-md font-bold">military_tech</span>
-          <h1 className="font-headline-md text-base font-bold text-primary">Skill & Training Matrix</h1>
+          <h1 className="text-base font-bold text-[#0F172A]">Skill & Training Matrix</h1>
         </div>
         <div className="flex gap-1 bg-surface-container p-1 rounded-lg border border-outline-variant shadow-premium-sm">
           {(['matrix', 'training', 'bulk'] as const).map(tab => (
@@ -384,7 +384,7 @@ export const SkillMatrix: React.FC = () => {
         {activeSubTab === 'training' && (
           <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-premium-md flex flex-col gap-5 w-full max-w-[512px] mx-auto animate-slide-up">
             <div>
-              <h2 className="text-sm font-bold text-on-surface">Log Training & Recertifications</h2>
+              <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">Log Training & Recertifications</h2>
               <p className="text-[10px] text-secondary">Record a new operator qualification. Saving updates the shift allocator instantly.</p>
             </div>
             {hasWriteAccess ? (
@@ -476,7 +476,7 @@ export const SkillMatrix: React.FC = () => {
           <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-premium-md flex flex-col gap-5 w-full max-w-[576px] mx-auto animate-slide-up">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-sm font-bold text-on-surface">CSV Bulk Mappings Importer</h2>
+                <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">CSV Bulk Mappings Importer</h2>
                 <p className="text-[10px] text-secondary">Pre-configure operators or machine-skill workstation definitions in bulk.</p>
               </div>
               <div className="flex gap-2">

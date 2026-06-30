@@ -60,8 +60,8 @@ export const PlantMap: React.FC<PlantMapProps> = ({ setActiveTab, setSelectedLin
             map
           </span>
           <div>
-            <h1 className="text-sm font-bold text-primary tracking-tight">Kolkata Plant Floor View</h1>
-            <p className="text-[10px] text-secondary">Interactive schematic map of active production lines</p>
+            <h1 className="text-base font-bold text-[#0F172A] tracking-tight">Kolkata Plant Floor View</h1>
+            <p className="text-[13px] font-normal text-[#64748B]">Interactive schematic map of active production lines</p>
           </div>
         </div>
       </header>
@@ -136,7 +136,7 @@ export const PlantMap: React.FC<PlantMapProps> = ({ setActiveTab, setSelectedLin
             <div className="flex flex-col gap-4 h-full animate-fade-in">
               <div className="flex items-center justify-between border-b border-outline-variant pb-3">
                 <div>
-                  <h3 className="text-xs font-bold text-slate-800">{selectedLine.name.split(' - ')[0]}</h3>
+                  <h3 className="text-xs font-bold text-[#0F172A]">{selectedLine.name.split(' - ')[0]}</h3>
                   <p className="text-[9px] text-secondary font-mono mt-0.5">Live status details</p>
                 </div>
                 <span className={`text-[9px] font-bold font-mono px-2.5 py-0.5 rounded-full border ${STATUS_TEXT[selectedLine.status]}`}>

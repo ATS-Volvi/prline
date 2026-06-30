@@ -124,8 +124,8 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({ setActiv
         <div className="flex items-center gap-2.5">
           <span className="material-symbols-outlined text-primary text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>bar_chart_4_bars</span>
           <div>
-            <h1 className="text-sm font-bold text-primary tracking-tight">Executive Operations Dashboard</h1>
-            <p className="text-[10px] text-secondary font-mono">
+            <h1 className="text-base font-bold text-[#0F172A] tracking-tight">Executive Operations Dashboard</h1>
+            <p className="text-[13px] font-normal text-[#64748B]">
               {today.toLocaleDateString('en', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               {' '}• Live Data
             </p>
@@ -220,7 +220,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({ setActiv
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-xs font-bold text-slate-800">Plant Floor Map</h3>
+                <h3 className="text-xs font-bold text-[#0F172A]">Plant Floor Map</h3>
                 <p className="text-[10px] text-secondary mt-0.5">Click a line to view live details</p>
               </div>
               <div className="flex items-center gap-3 text-[9px] font-mono text-secondary">
@@ -326,7 +326,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({ setActiv
 
           {/* 14-Day Forecast */}
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-sm" style={{ borderLeft: '4px solid #10b981' }}>
-            <h3 className="text-xs font-bold text-slate-800 mb-1">14-Day Staffing Forecast</h3>
+            <h3 className="text-xs font-bold text-[#0F172A] mb-1">14-Day Staffing Forecast</h3>
             <p className="text-[10px] text-secondary mb-3">Projected available operators vs workstation demand</p>
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -350,7 +350,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({ setActiv
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Line fill bar chart */}
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-sm" style={{ borderLeft: '4px solid #3b82f6' }}>
-            <h3 className="text-xs font-bold text-slate-800 mb-1">Production Line Fill Rate Today</h3>
+            <h3 className="text-xs font-bold text-[#0F172A] mb-1">Production Line Fill Rate Today</h3>
             <p className="text-[10px] text-secondary mb-3">Staffed workstations vs total capacity per line</p>
             <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -371,7 +371,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({ setActiv
 
           {/* Cert expiry timeline */}
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-sm" style={{ borderLeft: '4px solid #f59e0b' }}>
-            <h3 className="text-xs font-bold text-slate-800 mb-1">Certification Expiry Timeline</h3>
+            <h3 className="text-xs font-bold text-[#0F172A] mb-1">Certification Expiry Timeline</h3>
             <p className="text-[10px] text-secondary mb-3">Monthly renewal volume over next 12 months</p>
             <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -391,7 +391,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({ setActiv
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Pie chart */}
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-sm" style={{ borderLeft: '4px solid #8b5cf6' }}>
-            <h3 className="text-xs font-bold text-slate-800 mb-1">Workforce Skill Distribution</h3>
+            <h3 className="text-xs font-bold text-[#0F172A] mb-1">Workforce Skill Distribution</h3>
             <p className="text-[10px] text-secondary mb-3">Valid certifications by proficiency tier</p>
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -420,7 +420,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({ setActiv
           <div className="xl:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-sm flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xs font-bold text-slate-800">AI Recommendations</h3>
+                <h3 className="text-xs font-bold text-[#0F172A]">AI Recommendations</h3>
                 <p className="text-[10px] text-secondary mt-0.5">Generated from live plant data</p>
               </div>
               <span className="text-[9px] font-mono font-bold bg-primary/5 text-primary px-2 py-0.5 rounded-full border border-primary/10">

@@ -42,8 +42,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
             <span className="material-symbols-outlined text-white text-base">factory</span>
           </div>
           <div>
-            <div className="font-headline-md text-sm text-white font-bold tracking-tight">Plant Ops</div>
-            <div className="font-label-caps text-[8px] text-on-primary-container tracking-wider">Kolkata Plant • Roster</div>
+            <div className="text-sm font-bold text-white tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>Plant Ops</div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#64748B]">Kolkata Plant • Roster</div>
           </div>
         </div>
 
@@ -56,10 +56,10 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
               alt="User avatar"
             />
             <div className="overflow-hidden">
-              <p className="font-body-md text-xs font-bold text-white truncate">
+              <p className="text-xs font-bold text-white truncate" style={{ fontFamily: "'Inter', sans-serif" }}>
                 {user?.name || 'Unknown User'}
               </p>
-              <p className="font-label-caps text-[8px] text-on-primary-container truncate mt-0.5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#64748B] truncate mt-0.5">
                 {role}
               </p>
             </div>
@@ -75,14 +75,14 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-3 px-4 py-2.5 transition-all duration-150 rounded-xl text-left font-body-md cursor-pointer w-full ${
+              className={`flex items-center gap-3 px-4 py-2.5 transition-all duration-150 rounded-xl text-left cursor-pointer w-full ${
                 isActive
-                  ? 'text-white font-bold bg-on-primary-fixed-variant shadow-sm border-l-4 border-[#14b8a6]'
-                  : 'text-on-primary-container hover:text-white hover:bg-primary-container border-l-4 border-transparent'
+                  ? 'text-white font-semibold text-sm bg-on-primary-fixed-variant shadow-sm border-l-4 border-[#14b8a6]'
+                  : 'text-[#94A3B8] font-medium text-sm hover:text-white hover:bg-primary-container border-l-4 border-transparent'
               }`}
             >
               <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>{tab.icon}</span>
-              <span className="font-label-caps text-[10px] tracking-wider">{tab.name}</span>
+              <span className="text-[14px]">{tab.name}</span>
               {tab.id === 'skill_matrix' && expiringCount > 0 && (
                 <span className="ml-auto bg-amber-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold font-mono animate-pulse" title={`${expiringCount} skills expiring in 7 days`}>
                   {expiringCount}
@@ -94,10 +94,10 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
         
         <button
           onClick={logout}
-          className="flex items-center gap-3 px-4 py-2.5 mt-4 transition-all duration-150 rounded-xl text-left font-body-md text-error hover:text-white hover:bg-error-container/20 cursor-pointer border-l-4 border-transparent"
+          className="flex items-center gap-3 px-4 py-2.5 mt-4 transition-all duration-150 rounded-xl text-left text-sm font-medium text-error hover:text-white hover:bg-error-container/20 cursor-pointer border-l-4 border-transparent"
         >
           <span className="material-symbols-outlined text-lg">logout</span>
-          <span className="font-label-caps text-[10px] tracking-wider">Logout System</span>
+          <span className="text-[14px]">Logout System</span>
         </button>
       </nav>
 
@@ -110,7 +110,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
           >
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>database</span>
-              <span className="font-label-caps text-[9px] text-on-primary-container tracking-widest font-bold">MASTER DATA</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#64748B]">MASTER DATA</span>
             </div>
             <span className={`material-symbols-outlined text-xs text-on-primary-container transition-transform duration-200 ${masterDataOpen ? 'rotate-180' : ''}`}>expand_more</span>
           </button>
@@ -172,7 +172,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
       {/* Footer Section */}
       <div className="mt-auto p-4 border-t border-outline-variant bg-[#050b18]">
         <div className="flex items-center justify-between mb-1 px-1">
-          <span className="font-label-caps text-[8px] text-on-primary-container tracking-widest font-bold">OPERATIONS NOMINAL</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#64748B]">OPERATIONS NOMINAL</span>
           <div className="relative flex items-center justify-center h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#14b8a6]"></span>

@@ -107,15 +107,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
       {/* Top Header */}
       <header className="flex justify-between items-center px-margin-desktop h-16 w-full border-b border-outline-variant shrink-0 select-none z-10 bg-surface-container-lowest">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary text-headline-md font-bold">dashboard</span>
-          <h1 className="font-headline-md text-base font-bold text-primary">Plant Dashboard</h1>
+          <span className="material-symbols-outlined text-primary text-base font-bold">dashboard</span>
+          <h1 className="text-base font-bold text-[#0F172A]" style={{ fontFamily: "'Inter', sans-serif" }}>Plant Dashboard</h1>
         </div>
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-surface-container-low border border-outline-variant rounded-lg text-[10px] font-bold font-mono text-secondary">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-surface-container-low border border-outline-variant rounded-lg text-[13px] font-normal text-[#64748B]" style={{ fontFamily: "'Inter', sans-serif" }}>
             <span className="material-symbols-outlined text-xs">calendar_today</span>
             <span>{todayStr}</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 rounded-lg border border-primary/10 text-[10px] font-bold font-mono text-primary">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 rounded-lg border border-primary/10 text-[11px] font-semibold uppercase tracking-[0.05em] text-primary">
             <span className="material-symbols-outlined text-xs animate-pulse text-[#14b8a6]">schedule</span>
             <span>SHIFT A • ACTIVE</span>
           </div>
@@ -131,14 +131,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
           
           <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2 flex-1 w-full md:w-auto">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-lowest/10 text-[9px] font-bold font-mono tracking-widest uppercase text-[#14b8a6]">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-lowest/10 text-[11px] font-semibold uppercase tracking-[0.05em] text-[#14b8a6]">
                 <span className="material-symbols-outlined text-[10px] animate-pulse">sparkles</span>
                 System Operational
               </div>
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+              <h1 className="text-3xl font-bold leading-tight text-white" style={{ fontFamily: "'Inter', sans-serif" }}>
                 Welcome back, {userName}!
               </h1>
-              <p className="text-xs text-slate-200 leading-relaxed">
+              <p className="text-[13px] font-normal text-slate-300 leading-normal" style={{ fontFamily: "'Inter', sans-serif" }}>
                 Zone 4 Kolkata workforce allocation dashboard is active. You can automatically fill remaining vacancies, resolve compliance exceptions, or track operator skill coverages.
               </p>
             </div>
@@ -146,7 +146,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
             <div className="flex items-center gap-3 self-start md:self-center shrink-0">
               <button 
                 onClick={() => setActiveTab('shift_planner')}
-                className="px-4 py-2 bg-[#14b8a6] hover:bg-[#0f9f8e] text-white font-bold text-[10px] font-label-caps tracking-wider rounded-lg transition-all duration-150 shadow-premium-sm flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 bg-[#14b8a6] hover:bg-[#0f9f8e] text-white font-semibold text-[11px] uppercase tracking-[0.05em] rounded-lg transition-all duration-150 shadow-premium-sm flex items-center gap-1.5 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-sm">bolt</span>
                 ALLOCATE SHIFT
@@ -159,8 +159,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
           <div className="group relative overflow-hidden bg-surface-container-lowest border border-outline-variant p-4.5 rounded-xl transition-all duration-200 flex flex-col justify-between h-28">
             <div className="flex justify-between items-start">
               <div>
-                <span className="font-label-caps text-[9px] text-secondary font-bold block mb-1">STAFFING RATIO</span>
-                <span className="font-data-mono text-2xl font-bold text-emerald-600">{fillRate}%</span>
+                <span className="text-[13px] font-medium text-[#475569] block mb-1">STAFFING RATIO</span>
+                <span className="font-data-mono text-emerald-600">{fillRate}%</span>
               </div>
               <div className="w-8 h-8 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center justify-center border border-outline-variant shrink-0">
                 <span className="material-symbols-outlined text-lg">check_circle</span>
@@ -170,7 +170,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
               <div className="h-1.5 bg-surface-container w-full rounded-full overflow-hidden">
                 <div className="h-full bg-emerald-500 rounded-full transition-all duration-300" style={{ width: `${fillRate}%` }}></div>
               </div>
-              <span className="text-[8px] font-bold text-emerald-600 font-label-caps tracking-wider block">▲ NOMINAL COVERAGE</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-emerald-600 block">▲ NOMINAL COVERAGE</span>
             </div>
           </div>
 
@@ -178,8 +178,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
           <div className="group relative overflow-hidden bg-surface-container-lowest border border-outline-variant p-4.5 rounded-xl transition-all duration-200 flex flex-col justify-between h-28">
             <div className="flex justify-between items-start">
               <div>
-                <span className="font-label-caps text-[9px] text-secondary font-bold block mb-1">VACANT STATIONS</span>
-                <span className="font-data-mono text-2xl font-bold text-error">
+                <span className="text-[13px] font-medium text-[#475569] block mb-1">VACANT STATIONS</span>
+                <span className="font-data-mono text-error">
                   {openSlotsCount < 10 ? `0${openSlotsCount}` : openSlotsCount}
                 </span>
               </div>
@@ -191,7 +191,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
               <div className="h-1.5 bg-surface-container w-full rounded-full overflow-hidden">
                 <div className="h-full bg-error rounded-full transition-all duration-300" style={{ width: `${totalRequiredStaff ? (openSlotsCount / totalRequiredStaff) * 100 : 0}%` }}></div>
               </div>
-              <span className="text-[8px] font-bold text-error font-label-caps tracking-wider block">REQUIRES PLACEMENT</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-error block">REQUIRES PLACEMENT</span>
             </div>
           </div>
 
@@ -199,8 +199,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
           <div className="group relative overflow-hidden bg-surface-container-lowest border border-outline-variant p-4.5 rounded-xl transition-all duration-200 flex flex-col justify-between h-28">
             <div className="flex justify-between items-start">
               <div>
-                <span className="font-label-caps text-[9px] text-secondary font-bold block mb-1">COMPLIANCE GAP</span>
-                <span className="font-data-mono text-2xl font-bold text-amber-500">
+                <span className="text-[13px] font-medium text-[#475569] block mb-1">COMPLIANCE GAP</span>
+                <span className="font-data-mono text-amber-500">
                   {alerts.length < 10 ? `0${alerts.length}` : alerts.length}
                 </span>
               </div>
@@ -212,7 +212,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
               <div className="h-1.5 bg-surface-container w-full rounded-full overflow-hidden">
                 <div className="h-full bg-amber-500 rounded-full transition-all duration-300" style={{ width: `${alerts.length ? Math.min(100, alerts.length * 15) : 0}%` }}></div>
               </div>
-              <span className="text-[8px] font-bold text-amber-600 font-label-caps tracking-wider block">RE-CERTIFICATIONS DUE</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-amber-600 block">RE-CERTIFICATIONS DUE</span>
             </div>
           </div>
 
@@ -220,8 +220,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
           <div className="group relative overflow-hidden bg-surface-container-lowest border border-outline-variant p-4.5 rounded-xl transition-all duration-200 flex flex-col justify-between h-28">
             <div className="flex justify-between items-start">
               <div>
-                <span className="font-label-caps text-[9px] text-secondary font-bold block mb-1">RUNNING LINES</span>
-                <span className="font-data-mono text-2xl font-bold text-primary">{activeLines}</span>
+                <span className="text-[13px] font-medium text-[#475569] block mb-1">RUNNING LINES</span>
+                <span className="font-data-mono text-[#0F172A]">{activeLines}</span>
               </div>
               <div className="w-8 h-8 rounded-lg bg-primary-container text-on-primary flex items-center justify-center border border-outline-variant shrink-0">
                 <span className="material-symbols-outlined text-lg">precision_manufacturing</span>
@@ -231,7 +231,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
               <div className="h-1.5 bg-surface-container w-full rounded-full overflow-hidden">
                 <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${(activeLines / productionLines.length) * 100}%` }}></div>
               </div>
-              <span className="text-[8px] font-bold text-primary font-label-caps tracking-wider block">/ {productionLines.length} OPERATIONS CHANNELS</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-primary block">/ {productionLines.length} OPERATIONS CHANNELS</span>
             </div>
           </div>
         </section>
@@ -242,7 +242,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
           <section className="col-span-12 xl:col-span-8 flex flex-col">
             <div className="flex justify-between items-center mb-3">
               <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">Active Production Lines</h2>
-              <span className="text-[9px] font-bold text-secondary font-mono bg-surface-container/80 px-2 py-0.5 rounded border border-outline-variant/50">Shift A Roster Details</span>
+              <span className="text-[13px] font-normal text-[#64748B] bg-surface-container/80 px-2 py-0.5 rounded border border-outline-variant/50" style={{ fontFamily: "'Inter', sans-serif" }}>Shift A Roster Details</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {productionLines.map(line => {

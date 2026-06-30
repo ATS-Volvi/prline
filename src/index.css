@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 @theme {
   /* Spacing configurations */
@@ -28,13 +28,13 @@
   --radius-full: 9999px;
 
   /* Font Mappings */
-  --font-label-caps: 'JetBrains Mono', monospace;
-  --font-body-md: 'Inter', sans-serif;
-  --font-data-mono-md: 'JetBrains Mono', monospace;
-  --font-headline-lg: 'Inter', sans-serif;
-  --font-body-lg: 'Inter', sans-serif;
-  --font-data-mono-lg: 'JetBrains Mono', monospace;
-  --font-headline-md: 'Inter', sans-serif;
+  --font-sans: 'Inter', -apple-system, 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --font-display: 'Hanken Grotesk', 'Inter', sans-serif;
+  --font-label-caps: 'Inter', -apple-system, sans-serif;
+  --font-body-md: 'Inter', -apple-system, sans-serif;
+  --font-headline-lg: 'Inter', -apple-system, sans-serif;
+  --font-body-lg: 'Inter', -apple-system, sans-serif;
+  --font-headline-md: 'Inter', -apple-system, sans-serif;
   /* Industrial Logic Design Tokens */
   --color-primary: #091426;
   --color-on-primary: #ffffff;
@@ -86,64 +86,101 @@
   --color-on-tertiary-fixed-variant: #005236;
 }
 
-/* Typography styles matching Industrial Logic System */
+/* ─── Typography System ─────────────────────────────────────────────────────
+   All text uses Inter. Hanken Grotesk is available via font-display.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Page headings */
 .font-headline-lg {
-  font-family: 'Inter', sans-serif;
-  font-size: 24px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 30px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  line-height: 32px;
+  line-height: 1.2;
+  color: #0F172A;
 }
 .font-headline-md {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, sans-serif;
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.01em;
-  line-height: 28px;
+  line-height: 1.2;
+  color: #0F172A;
 }
+/* Section headings ("Project Sourcing Overview") */
 .font-headline-sm {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, sans-serif;
   font-size: 16px;
-  font-weight: 600;
-  line-height: 24px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #0F172A;
 }
+/* Body text */
 .font-body-lg {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, sans-serif;
   font-size: 16px;
   font-weight: 400;
-  line-height: 24px;
+  line-height: 1.5;
 }
 .font-body-md {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, sans-serif;
   font-size: 14px;
   font-weight: 400;
-  line-height: 20px;
+  line-height: 1.5;
 }
 .font-body-sm {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 13px;
   font-weight: 400;
-  line-height: 16px;
+  line-height: 1.5;
+  color: #64748B;
 }
+/* Labels / section eyebrows */
 .font-label-lg {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  line-height: 20px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
 }
 .font-label-md {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.05em;
-  line-height: 16px;
+  text-transform: uppercase;
+  color: #64748B;
 }
+/* Sidebar section eyebrows ("COMPANY" etc.) */
+.font-label-caps {
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #64748B;
+}
+/* Stat card numbers */
 .font-data-mono {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  color: #0F172A;
+}
+/* Badge / pill */
+.font-badge {
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+/* Dropdown / filter labels */
+.font-filter {
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: #334155;
 }
 
 .material-symbols-outlined {
@@ -221,10 +258,14 @@ html, body {
 }
 
 body {
-  background-color: #f8fafc;
-  color: #0f172a;
-  font-family: 'Inter', sans-serif;
+  background-color: #F8FAFC;
+  color: #0F172A;
+  font-family: 'Inter', -apple-system, 'Segoe UI', 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .custom-scrollbar::-webkit-scrollbar {

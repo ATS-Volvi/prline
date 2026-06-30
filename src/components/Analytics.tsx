@@ -71,7 +71,7 @@ export const Analytics: React.FC = () => {
       <header className="flex justify-between items-center px-margin-desktop h-16 w-full border-b border-outline-variant shrink-0 bg-surface-container-lowest">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-primary text-headline-md font-bold">analytics</span>
-          <h1 className="font-headline-md text-base font-bold text-primary">Skill Gap & Capacity Analysis</h1>
+          <h1 className="text-base font-bold text-[#0F172A]">Skill Gap & Capacity Analysis</h1>
         </div>
       </header>
 
@@ -117,7 +117,7 @@ export const Analytics: React.FC = () => {
         {/* Heatmap Grid */}
         <section className="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-premium-sm">
           <div className="mb-4">
-            <h2 className="text-sm font-bold text-on-surface">Skill Capacity & Adequacy Heatmap</h2>
+            <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">Skill Capacity & Adequacy Heatmap</h2>
             <p className="text-[10px] text-secondary">Roster metrics of qualified operators compared with operational demand</p>
           </div>
           
@@ -174,7 +174,7 @@ export const Analytics: React.FC = () => {
         {/* Training Needs Table */}
         <section className="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-premium-sm mb-4">
           <div className="mb-4">
-            <h2 className="text-sm font-bold text-on-surface">Training Needs & Expiring Certifications</h2>
+            <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">Training Needs & Expiring Certifications</h2>
             <p className="text-[10px] text-secondary">Active operators whose qualifications expire inside 90 days. Retraining should be prioritized.</p>
           </div>
 

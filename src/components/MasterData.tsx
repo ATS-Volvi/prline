@@ -321,7 +321,7 @@ export const MasterData: React.FC = () => {
       <header className="flex justify-between items-center px-margin-desktop h-16 w-full border-b border-outline-variant shrink-0 bg-surface-container-lowest">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-primary text-headline-md font-bold">database</span>
-          <h1 className="font-headline-md text-base font-bold text-primary">Master Data Configuration</h1>
+          <h1 className="text-base font-bold text-[#0F172A]">Master Data Configuration</h1>
         </div>
 
         {/* Sub tabs switcher */}
@@ -380,7 +380,7 @@ export const MasterData: React.FC = () => {
             <>
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-sm font-bold text-on-surface">Associate List</h2>
+                  <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">Associate List</h2>
                   <p className="text-[10px] text-secondary">Manage shift operators, contractors, and category classifications</p>
                 </div>
                 {canWriteAssociates && !isAddingAssoc && !editingAssoc && (
@@ -463,7 +463,7 @@ export const MasterData: React.FC = () => {
             <>
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-sm font-bold text-on-surface">Workstations Directory</h2>
+                  <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">Workstations Directory</h2>
                   <p className="text-[10px] text-secondary">Manage plant floor workstation constraints and required minimum skills</p>
                 </div>
                 {canWriteAllMasterData && !isAddingWS && !editingWS && (
@@ -540,7 +540,7 @@ export const MasterData: React.FC = () => {
             <>
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-sm font-bold text-on-surface">Skill Master Register</h2>
+                  <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">Skill Master Register</h2>
                   <p className="text-[10px] text-secondary">Operational and technical safety skill descriptors</p>
                 </div>
                 {canWriteAllMasterData && !isAddingSkill && !editingSkill && (
@@ -602,7 +602,7 @@ export const MasterData: React.FC = () => {
             <>
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-sm font-bold text-on-surface">Production Lines Directory</h2>
+                  <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">Production Lines Directory</h2>
                   <p className="text-[10px] text-secondary">Manage plant floor production channels, current product running, and operational status</p>
                 </div>
                 {canWriteAllMasterData && !isAddingLine && !editingLine && (
@@ -684,7 +684,7 @@ export const MasterData: React.FC = () => {
             <>
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-sm font-bold text-on-surface">Shifts Directory</h2>
+                  <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">Shifts Directory</h2>
                   <p className="text-[10px] text-secondary">Manage plant shift timings, schedule definitions, and active working days</p>
                 </div>
                 {canWriteAllMasterData && !isAddingShift && !editingShift && (

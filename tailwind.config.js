@@ -69,8 +69,9 @@ export default {
         xl: '32px',
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ["Inter", "-apple-system", "Segoe UI", "Helvetica Neue", "sans-serif"],
+        display: ["Hanken Grotesk", "Inter", "sans-serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "monospace"],
       },
     },
   },

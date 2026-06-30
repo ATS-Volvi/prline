@@ -71,7 +71,7 @@ export const AuditLogs: React.FC = () => {
       <header className="flex justify-between items-center px-margin-desktop h-16 w-full border-b border-outline-variant shrink-0 bg-surface-container-lowest">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-primary text-headline-md font-bold">terminal</span>
-          <h1 className="font-headline-md text-base font-bold text-primary">Audit Trail & Compliance Logs</h1>
+          <h1 className="text-base font-bold text-[#0F172A]">Audit Trail & Compliance Logs</h1>
         </div>
         
         {/* Export Buttons */}
