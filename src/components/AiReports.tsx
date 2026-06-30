@@ -113,7 +113,7 @@ export const AiReports: React.FC = () => {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const res = await fetch('/api/v1/state', { headers });
+      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/v1/state`, { headers });
       if (res.status === 401) {
         logout();
         window.location.reload();

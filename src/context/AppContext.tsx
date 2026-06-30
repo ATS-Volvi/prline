@@ -273,7 +273,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (activeToken) {
       headers['Authorization'] = `Bearer ${activeToken}`;
     }
-    const res = await window.fetch(url, { ...options, headers });
+    
+    // Prepend VITE_API_URL if it's a relative path
+    let finalUrl = url.toString();
+    if (finalUrl.startsWith('/')) {
+      finalUrl = `${import.meta.env.VITE_API_URL || ''}${finalUrl}`;
+    }
+
+    const res = await window.fetch(finalUrl, { ...options, headers });
     if (res.status === 401 && !skipLogoutOn401) {
       handleLogout();
     }
