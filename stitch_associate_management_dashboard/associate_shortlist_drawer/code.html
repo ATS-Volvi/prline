@@ -1,0 +1,441 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>PlantOps Manager - Shift Planning</title>
+<!-- Google Fonts & Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#4edea3",
+                    "secondary-fixed": "#d5e3fc",
+                    "primary-fixed": "#d8e3fb",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "surface-bright": "#f7f9fb",
+                    "surface-variant": "#e0e3e5",
+                    "background": "#f7f9fb",
+                    "surface-container": "#eceef0",
+                    "on-tertiary-container": "#00a472",
+                    "primary-container": "#1e293b",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "surface-container-low": "#f2f4f6",
+                    "surface-container-high": "#e6e8ea",
+                    "on-surface": "#191c1e",
+                    "inverse-primary": "#bcc7de",
+                    "tertiary-fixed": "#6ffbbe",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "primary-fixed-dim": "#bcc7de",
+                    "inverse-surface": "#2d3133",
+                    "tertiary-container": "#00301e",
+                    "on-error-container": "#93000a",
+                    "on-background": "#191c1e",
+                    "outline": "#75777d",
+                    "on-secondary-container": "#57657a",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "on-surface-variant": "#45474c",
+                    "surface-dim": "#d8dadc",
+                    "primary": "#091426",
+                    "secondary-container": "#d5e3fc",
+                    "on-primary-container": "#8590a6",
+                    "surface-container-highest": "#e0e3e5",
+                    "outline-variant": "#c5c6cd",
+                    "on-primary": "#ffffff",
+                    "surface": "#f7f9fb",
+                    "on-secondary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary": "#515f74",
+                    "on-tertiary-fixed": "#002113",
+                    "on-primary-fixed": "#111c2d",
+                    "tertiary": "#00190e",
+                    "surface-tint": "#545f73",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "error": "#ba1a1a",
+                    "inverse-on-surface": "#eff1f3"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "xs": "4px",
+                    "margin-mobile": "16px",
+                    "lg": "24px",
+                    "sm": "8px",
+                    "gutter-mobile": "12px",
+                    "xl": "32px",
+                    "md": "16px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "data-mono": ["JetBrains Mono"],
+                    "label-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom Industrial Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .drawer-overlay {
+            background-color: rgba(9, 20, 38, 0.4);
+            backdrop-filter: blur(2px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-secondary-fixed">
+<div class="flex h-screen overflow-hidden">
+<!-- Side Navigation (Shared Component) -->
+<aside class="flex flex-col h-screen p-sm bg-surface-container dark:bg-primary-container border-r border-outline-variant dark:border-outline w-64 shrink-0 z-10">
+<div class="px-md py-lg flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">precision_manufacturing</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-black text-on-surface dark:text-on-primary-container">Operations</h1>
+<p class="font-label-md text-label-md opacity-70">Facility A-12</p>
+</div>
+</div>
+<nav class="mt-xl space-y-1 px-sm">
+<a class="flex items-center gap-3 px-md py-3 text-on-surface-variant dark:text-on-primary-container opacity-80 font-label-md text-label-md transition-all duration-150 ease-in-out hover:bg-surface-container-high dark:hover:bg-primary" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-md py-3 bg-secondary-fixed dark:bg-secondary-fixed-dim text-on-secondary-fixed dark:text-on-secondary-fixed font-bold rounded-lg font-label-md text-label-md transition-all duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="">Shift Planning</span>
+</a>
+<a class="flex items-center gap-3 px-md py-3 text-on-surface-variant dark:text-on-primary-container opacity-80 font-label-md text-label-md transition-all duration-150 ease-in-out hover:bg-surface-container-high dark:hover:bg-primary" href="#">
+<span class="material-symbols-outlined" data-icon="precision_manufacturing">precision_manufacturing</span>
+<span class="">Workstations</span>
+</a>
+<a class="flex items-center gap-3 px-md py-3 text-on-surface-variant dark:text-on-primary-container opacity-80 font-label-md text-label-md transition-all duration-150 ease-in-out hover:bg-surface-container-high dark:hover:bg-primary" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="">Associates</span>
+</a>
+</nav>
+<div class="mt-auto space-y-1 px-sm border-t border-outline-variant pt-md">
+<a class="flex items-center gap-3 px-md py-3 text-on-surface-variant opacity-80 font-label-md text-label-md transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span class="">Logs</span>
+</a>
+<a class="flex items-center gap-3 px-md py-3 text-on-surface-variant opacity-80 font-label-md text-label-md transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="contact_support">contact_support</span>
+<span class="">Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area (Background Shift Planning Grid) -->
+<main class="flex-1 flex flex-col relative overflow-hidden">
+<!-- Top App Bar (Shared Component) -->
+<header class="flex justify-between items-center px-md w-full h-14 bg-surface-bright dark:bg-surface-dim border-b border-outline-variant dark:border-outline shrink-0">
+<div class="flex items-center gap-xl">
+<span class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed-dim">PlantOps Manager</span>
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full pl-10 pr-4 py-1.5 text-body-md focus:ring-2 focus:ring-primary" placeholder="Search workstation or shift..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="w-10 h-10 flex items-center justify-center hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center overflow-hidden ml-2 border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a female industrial plant manager in her 40s, wearing a dark navy polo shirt with a subtle corporate logo. She is standing against a clean, modern factory background with soft-focus machinery and high-key, professional studio lighting that conveys authority and competence in a light-mode UI style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA__Pal9fY9sx6Fl5oMoY-dfjNqn3sv4ivzOLuc85ms1kRzcjN5tXGsh0_0vRllRQ8BpsDKfMT9vv9tTIi-WWUdMDZPWjWAhLD0LuLm4jtEi-NQS14mCN9i0oRCbtYaRT3THlvo6D4X7moDDpRIM5ZirmVulQ0pIBUNRXcQt4uDkcOzvF13Gu30WscY3x__VscoaVICnEaAeARM2u0NkBTK_r1Swjd1V6L4sPAvwuv11FMuLXJp4xTWXwWvtoHsEjvjdhlrNphAU0A">
+</div>
+</div>
+</header>
+<!-- Dashboard Content (Dimmed/Background) -->
+<div class="flex-1 overflow-auto p-md space-y-md">
+<div class="flex justify-between items-center">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary">Shift Planning: Morning Shift</h2>
+<p class="text-on-surface-variant font-body-md">Oct 24, 2023 • 06:00 - 14:00</p>
+</div>
+<div class="flex gap-sm">
+<button class="bg-surface-container-highest px-md py-2 font-label-lg text-label-lg rounded-lg border border-outline-variant">View Timeline</button>
+<button class="bg-primary text-on-primary px-md py-2 font-label-lg text-label-lg rounded-lg shadow-sm">Auto-Assign Shift</button>
+</div>
+</div>
+<!-- Shift Grid Grid (Simplified) -->
+<div class="grid grid-cols-4 gap-md opacity-60 pointer-events-none">
+<!-- Workstation Cards -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md space-y-sm">
+<div class="flex justify-between items-start">
+<span class="font-data-mono text-data-mono text-on-surface-variant bg-surface-container px-2 py-0.5 rounded">CNC-L012</span>
+<span class="material-symbols-outlined text-on-tertiary-container bg-tertiary-fixed-dim/20 p-1 rounded-full text-xs">check_circle</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm">Lathe Complex A</h3>
+<div class="flex items-center gap-2 mt-4">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-xs font-bold">JD</div>
+<span class="text-body-md">James D.</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border-2 border-primary rounded-lg p-md space-y-sm shadow-sm ring-2 ring-primary/10">
+<div class="flex justify-between items-start">
+<span class="font-data-mono text-data-mono text-primary font-bold bg-primary-fixed px-2 py-0.5 rounded">CNC-L014</span>
+<span class="material-symbols-outlined text-primary text-xs">pending</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm">Milling Center B</h3>
+<div class="flex items-center gap-2 mt-4 italic text-on-surface-variant">
+<div class="w-8 h-8 rounded-full border-2 border-dashed border-outline flex items-center justify-center text-xs">?</div>
+<span class="text-body-md">Assign Associate...</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md space-y-sm">
+<div class="flex justify-between items-start">
+<span class="font-data-mono text-data-mono text-on-surface-variant bg-surface-container px-2 py-0.5 rounded">PKG-A01</span>
+<span class="material-symbols-outlined text-on-tertiary-container bg-tertiary-fixed-dim/20 p-1 rounded-full text-xs">check_circle</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm">Automated Packing</h3>
+<div class="flex items-center gap-2 mt-4">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-xs font-bold">SK</div>
+<span class="text-body-md">Sarah K.</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md space-y-sm">
+<div class="flex justify-between items-start">
+<span class="font-data-mono text-data-mono text-on-surface-variant bg-surface-container px-2 py-0.5 rounded">QC-I09</span>
+<span class="material-symbols-outlined text-on-tertiary-container bg-tertiary-fixed-dim/20 p-1 rounded-full text-xs">check_circle</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm">Precision Inspection</h3>
+<div class="flex items-center gap-2 mt-4">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-xs font-bold">MR</div>
+<span class="text-body-md">Mark R.</span>
+</div>
+</div>
+</div>
+<!-- Bento Grid Style Insights -->
+<div class="grid grid-cols-3 gap-md h-48 opacity-40">
+<div class="col-span-2 bg-surface-container-lowest border border-outline-variant rounded-lg p-md">
+<h4 class="font-label-lg text-label-lg uppercase tracking-wider text-on-surface-variant">Production Load Forecast</h4>
+<div class="mt-4 flex items-end gap-2 h-24">
+<div class="flex-1 bg-primary h-[40%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary h-[60%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary h-[90%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary h-[75%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary h-[85%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary h-[50%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary h-[30%] rounded-t-sm"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex flex-col justify-between">
+<h4 class="font-label-lg text-label-lg uppercase tracking-wider text-on-surface-variant">Shift Coverage</h4>
+<div class="text-headline-lg font-black text-primary">82%</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary w-[82%] h-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- SLIDE-OVER DRAWER OVERLAY -->
+<div class="drawer-overlay absolute inset-0 z-20 flex justify-end">
+<!-- Drawer Body -->
+<div class="w-[480px] bg-white h-full shadow-2xl flex flex-col transform translate-x-0 transition-transform duration-300 border-l border-outline-variant right-0">
+<!-- Header -->
+<div class="p-md border-b border-outline-variant bg-surface-bright shrink-0">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Associate Shortlist</h3>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-data-mono text-body-sm bg-primary text-white px-2 py-0.5 rounded">CNC-L014</span>
+<span class="text-body-sm text-on-surface-variant">• Milling Center B</span>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</div>
+<!-- Filter/Tabs -->
+<div class="flex gap-md px-md py-sm bg-surface-container-lowest border-b border-outline-variant shrink-0 overflow-x-auto pr-md">
+<button class="whitespace-nowrap px-md py-1.5 rounded-full bg-primary text-on-primary font-label-md text-label-md">Ranked Suitability</button>
+<button class="whitespace-nowrap px-md py-1.5 rounded-full border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors">Near Expiry</button>
+<button class="whitespace-nowrap px-md py-1.5 rounded-full border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors">Available Only</button>
+</div>
+<!-- List Area -->
+<div class="flex-1 overflow-y-auto bg-surface-container-lowest">
+<div class="p-md space-y-md pr-md">
+<!-- Row 1: Top Candidate -->
+<div class="flex items-center justify-between p-md border border-outline-variant rounded-lg hover:border-primary hover:shadow-sm transition-all bg-white group">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A portrait of a male production lead in his 30s, looking professional and alert. He is wearing a grey technical vest over a white t-shirt. The background is a brightly lit, high-tech industrial manufacturing floor with soft blue and white ambient lighting. The visual style is crisp, high-definition, and corporate." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzVOSp0Q30-OvRMcMvw-UZJy8TM_2DHv_d59xzXYTNn6FZU3SAsWMsxKIqhIDJK_SD8iMpEUfprpfwqMnel_U0p7F01TIRZUHTuExWs-6_uv6HVZK6eBmlDSlVcXQOc9wgaPm9Ukj2RISUB1guOUxZrtCStjfM8JfQvlBe8rxQsBYQOuUhbaZ50LbttJzwuxO2_MG2n3jOxLBQqWzhe0Ec0sV4oi8DR0kaPhhV5xi1Q0rHZVV9MoOf_YmdDpM7j60pY4bvhgb93ZQ">
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-body-lg font-bold text-primary">Marcus Holloway</span>
+<span class="bg-tertiary-fixed-dim/20 text-on-tertiary-container text-[10px] uppercase font-black px-2 py-0.5 rounded tracking-widest border border-on-tertiary-container/10">Expert</span>
+</div>
+<div class="flex items-center gap-3 mt-1 text-on-surface-variant text-body-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">history</span>
+                                                Last: Oct 12, 2023
+                                            </span>
+<span class="flex items-center gap-1 text-on-tertiary-container font-medium">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+                                                2 days ago
+                                            </span>
+</div>
+</div>
+</div>
+<button class="bg-primary text-on-primary px-4 py-2 font-label-lg text-label-lg rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">Confirm</button>
+</div>
+<!-- Row 2: Near Expiry Warning Row -->
+<div class="flex items-center justify-between p-md border border-outline-variant rounded-lg hover:border-primary hover:shadow-sm transition-all bg-white group">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a female industrial engineer with dark hair tied back, wearing safety glasses and a light grey polo. She has a focused and reliable expression. The environment behind her is a high-key, modern assembly area with warm and cool balanced lighting, reflecting an industrial light-mode UI aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnbTjpeWGnbgI4mCBO7goyUcWuRhc6kTIRlmorYMlrKu67EXSa0STXmd-j57aJf6LTHdsIJ4Jjw9C8nUht6FJbOF1lSZJK3xiEHQADkRlut80UhVosVomTYSq67bYgK2gYO7JcE4L6WsCsTWDy8i0m-Y9DZ9pnftF76OWKwR5I7eiOK5VpFSsLH3NwYhZndnHipWXzoxe7opBqMdB63w1dz1LXKfn8U4OpDLQkJy2XHD2BGL-Y8lqfYEUYRlomkyfBiSUoVTlQC60">
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-body-lg font-bold text-primary">Elena Rodriguez</span>
+<span class="bg-secondary-fixed text-on-secondary-fixed text-[10px] uppercase font-black px-2 py-0.5 rounded tracking-widest border border-on-secondary-fixed/10">Certified</span>
+<span class="material-symbols-outlined text-error text-[20px]" title="Certification Expiry Warning">warning</span>
+</div>
+<div class="flex items-center gap-3 mt-1 text-on-surface-variant text-body-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">history</span>
+                                                Last: Oct 08, 2023
+                                            </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                                                6 days ago
+                                            </span>
+</div>
+<p class="text-error text-[11px] font-bold mt-1">Hazardous Materials cert. expires in 4 days</p>
+</div>
+</div>
+<button class="bg-primary text-on-primary px-4 py-2 font-label-lg text-label-lg rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">Confirm</button>
+</div>
+<!-- Row 3: Solid Candidate -->
+<div class="flex items-center justify-between p-md border border-outline-variant rounded-lg hover:border-primary hover:shadow-sm transition-all bg-white group">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A portrait of a male production operator in his late 20s with short hair, wearing a navy blue industrial uniform. He has a friendly and professional look. The background shows blurred warehouse shelves and soft, natural high-key lighting consistent with a corporate industrial interface design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBS_yE7YyoLW1e4DyGhOQ5wY6H6TWdf5j2X77WF6A3Ecze7QwFEb5fd-tC223ay-BTuiMcYA3_ImduHekfNHP49ViX7NbCScr74Quj5aXy-Ae9oej7iXM3-7fYNiz3LlywnxBOTyNCzhSsjjbSkVQxAUn6NBqy3TeqJN9j37oi9JMqdv9XYXbl-IUCjIQ7-IpaBQgruOQcnNWD4dK6yCY9JKBXVCflLk1UHkVJfWID57x5QLMVfuoGXfI_XbziWZJKA7VWKqcODMj0">
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-body-lg font-bold text-primary">Chen Wei</span>
+<span class="bg-secondary-fixed text-on-secondary-fixed text-[10px] uppercase font-black px-2 py-0.5 rounded tracking-widest border border-on-secondary-fixed/10">Certified</span>
+</div>
+<div class="flex items-center gap-3 mt-1 text-on-surface-variant text-body-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">history</span>
+                                                Last: Sep 29, 2023
+                                            </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                                                15 days ago
+                                            </span>
+</div>
+</div>
+</div>
+<button class="bg-primary text-on-primary px-4 py-2 font-label-lg text-label-lg rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">Confirm</button>
+</div>
+<!-- Row 4: Solid Candidate -->
+<div class="flex items-center justify-between p-md border border-outline-variant rounded-lg hover:border-primary hover:shadow-sm transition-all bg-white group">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="Portrait of a mature male factory supervisor with grey hair and a calm, experienced face. He wears a dark slate collared shirt. The background is a clean, bright industrial corridor with high-end architectural lighting, symbolizing stability and expertise in a professional light-mode dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZBC0bhk9lxQ76UFJKJ3OZ7vqyPzknRXpzeX5FC-XKNu5g1b0zaZD8KWOue3BVx-NK0Xtap4kat5G42hyJAJ82CD1JnltT3gvRXIju7P80y_8amTl-nU9t0nJjdHBahUyeQ8MHjiyZAAZU2jDCaEnlQIrnj1OT_qW38YSFaN7u-FfsK2NX8yoXuVZKKyGwI0VQb5sQlR8ErnyfxtOvinBfFok1bv9ouL_05cFpa3VdHdPzyrLZt9zwsolkUHW4WSNKRjm18VALiUM">
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-body-lg font-bold text-primary">Thomas Burke</span>
+<span class="bg-tertiary-fixed-dim/20 text-on-tertiary-container text-[10px] uppercase font-black px-2 py-0.5 rounded tracking-widest border border-on-tertiary-container/10">Expert</span>
+</div>
+<div class="flex items-center gap-3 mt-1 text-on-surface-variant text-body-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">history</span>
+                                                Last: Oct 01, 2023
+                                            </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                                                23 days ago
+                                            </span>
+</div>
+</div>
+</div>
+<button class="bg-primary text-on-primary px-4 py-2 font-label-lg text-label-lg rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">Confirm</button>
+</div>
+</div>
+<!-- Info Tip -->
+<div class="mx-md mb-md p-md bg-surface-container-low rounded-lg border border-dashed border-outline-variant flex gap-sm pr-md">
+<span class="material-symbols-outlined text-on-surface-variant">lightbulb</span>
+<p class="text-body-sm text-on-surface-variant">Candidates are ranked based on historical workstation performance, certification status, and fatigue management protocols.</p>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="p-md bg-surface-bright border-t border-outline-variant space-y-md shrink-0">
+<button class="w-full bg-[#f97316] text-white py-3 font-label-lg text-label-lg rounded-lg shadow-md hover:bg-[#ea580c] transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">bolt</span>
+                            Manual Override &amp; Assign
+                        </button>
+<p class="text-center text-body-sm text-on-surface-variant opacity-60">Total eligible associates: 12</p>
+</div>
+</div>
+</div>
+<!-- Floating Action Button (FAB) - Suppressed as per context rules but visually represented if needed by intent -->
+<!-- We will exclude as this is a focused detail screen -->
+</main>
+</div>
+<!-- Micro-interactions Script -->
+<script>
+        document.querySelectorAll('.group-hover\\:opacity-100').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const name = e.target.closest('.group').querySelector('.font-bold').innerText;
+                alert(`Successfully assigned ${name} to Milling Center B (CNC-L014).`);
+                // UI logic to close drawer or update state would go here
+            });
+        });
+
+        // Simple Close Drawer Toggle (Internal)
+        const closeBtn = document.querySelector('.drawer-overlay button');
+        closeBtn.addEventListener('click', () => {
+            document.querySelector('.drawer-overlay').classList.add('hidden');
+            document.querySelector('main > div:nth-child(2)').classList.remove('opacity-60', 'pointer-events-none');
+        });
+    </script>
+
+
+</body></html>

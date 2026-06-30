@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Interactive Line Assignment - SNACK_OPS PRO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&amp;family=JetBrains+Mono:wght@600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Use Tailwind Config from Brand Anchors -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-tint": "#565e74",
+                    "secondary-fixed": "#d5e3fd",
+                    "primary-fixed-dim": "#bec6e0",
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#e4e2e4",
+                    "secondary-fixed-dim": "#b9c7e0",
+                    "secondary": "#515f74",
+                    "on-tertiary-fixed-variant": "#444749",
+                    "on-primary-container": "#7c839b",
+                    "on-error": "#ffffff",
+                    "surface-container-high": "#eae7e9",
+                    "surface-dim": "#dcd9db",
+                    "surface-container-low": "#f6f3f5",
+                    "inverse-surface": "#303032",
+                    "on-tertiary-container": "#818486",
+                    "inverse-primary": "#bec6e0",
+                    "surface-container": "#f0edef",
+                    "inverse-on-surface": "#f3f0f2",
+                    "on-error-container": "#93000a",
+                    "primary": "#000000",
+                    "surface-variant": "#e4e2e4",
+                    "secondary-container": "#d5e3fd",
+                    "background": "#fcf8fa",
+                    "primary-fixed": "#dae2fd",
+                    "outline-variant": "#c6c6cd",
+                    "surface-bright": "#fcf8fa",
+                    "on-tertiary-fixed": "#191c1e",
+                    "on-secondary-fixed": "#0d1c2f",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed-variant": "#3a485c",
+                    "outline": "#76777d",
+                    "tertiary-fixed-dim": "#c4c7c9",
+                    "on-background": "#1b1b1d",
+                    "tertiary": "#000000",
+                    "on-tertiary": "#ffffff",
+                    "on-surface": "#1b1b1d",
+                    "tertiary-container": "#191c1e",
+                    "on-secondary-container": "#57657b",
+                    "on-surface-variant": "#45464d",
+                    "tertiary-fixed": "#e0e3e5",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed": "#131b2e",
+                    "surface": "#fcf8fa",
+                    "on-primary": "#ffffff",
+                    "primary-container": "#131b2e",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "xs": "8px",
+                    "touch-target": "44px",
+                    "edge-margin": "16px",
+                    "sm": "12px",
+                    "base": "4px",
+                    "xl": "32px",
+                    "lg": "24px"
+            },
+            "fontFamily": {
+                    "label-caps": ["Inter"],
+                    "data-display": ["JetBrains Mono"],
+                    "headline-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-sm": ["Inter"]
+            },
+            "fontSize": {
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "data-display": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #fcf8fa;
+        color: #1b1b1d;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #c6c6cd;
+        border-radius: 10px;
+      }
+      .drop-zone-active {
+        border: 2px dashed #000000;
+        background-color: #dae2fd;
+      }
+    </style>
+</head>
+<body class="bg-background overflow-hidden">
+<!-- TopNavBar -->
+<header class="bg-surface border-b border-outline-variant flex justify-between items-center px-edge-margin h-touch-target w-full z-50 fixed top-0 left-0">
+<div class="flex items-center gap-md">
+<span class="font-headline-lg text-headline-lg font-bold tracking-tight text-primary">SNACK_OPS PRO</span>
+<div class="h-6 w-px bg-outline-variant mx-xs"></div>
+<h1 class="font-headline-md text-headline-md text-on-surface">Interactive Line Assignment</h1>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-high transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-high transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="flex items-center gap-xs ml-xs">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-fixed">person</span>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Floor Manager</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-touch-target h-[calc(100vh-44px)] w-64 bg-surface-container-low border-r border-outline-variant flex flex-col py-lg z-40">
+<div class="px-md mb-lg">
+<h2 class="font-headline-md text-headline-md font-black text-on-surface">Plant 04 - East</h2>
+<p class="font-label-caps text-label-caps text-on-surface-variant">Active Shift: B-02</p>
+</div>
+<nav class="flex-1 flex flex-col gap-base px-xs">
+<a class="flex items-center gap-xs text-on-surface-variant hover:bg-surface-container-high px-sm py-xs transition-all active:opacity-80" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-caps text-label-caps">Dashboard</span>
+</a>
+<a class="flex items-center gap-xs bg-primary-container text-on-primary-container rounded-lg px-sm py-xs border-l-4 border-primary transition-all" href="#">
+<span class="material-symbols-outlined">conveyor_belt</span>
+<span class="font-label-caps text-label-caps">Allocation</span>
+</a>
+<a class="flex items-center gap-xs text-on-surface-variant hover:bg-surface-container-high px-sm py-xs transition-all active:opacity-80" href="#">
+<span class="material-symbols-outlined">layers</span>
+<span class="font-label-caps text-label-caps">Pool</span>
+</a>
+<a class="flex items-center gap-xs text-on-surface-variant hover:bg-surface-container-high px-sm py-xs transition-all active:opacity-80" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="font-label-caps text-label-caps">Reports</span>
+</a>
+</nav>
+<div class="mt-auto px-xs flex flex-col gap-base border-t border-outline-variant pt-md">
+<a class="flex items-center gap-xs text-on-surface-variant hover:bg-surface-container-high px-sm py-xs transition-all active:opacity-80" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-caps text-label-caps">Help</span>
+</a>
+<a class="flex items-center gap-xs text-on-surface-variant hover:bg-surface-container-high px-sm py-xs transition-all active:opacity-80" href="#">
+<span class="material-symbols-outlined">contact_support</span>
+<span class="font-label-caps text-label-caps">Support</span>
+</a>
+<div class="px-sm py-md">
+<button class="w-full bg-error text-on-error py-xs font-label-caps text-label-caps rounded-lg hover:opacity-90 transition-opacity uppercase tracking-widest">
+                    Emergency Stop
+                </button>
+</div>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="ml-64 mt-touch-target p-md h-[calc(100vh-44px)] overflow-hidden flex flex-col gap-md">
+<!-- Controls Bar -->
+<section class="bg-surface p-sm border border-outline-variant flex items-center justify-between gap-md rounded-lg shadow-sm">
+<div class="flex items-center gap-lg">
+<div class="flex flex-col">
+<label class="font-label-caps text-label-caps text-on-surface-variant mb-base">Production Line</label>
+<select class="bg-surface-container-low border-outline-variant text-on-surface font-body-lg text-body-lg rounded-lg focus:ring-primary focus:border-primary py-xs pr-xl">
+<option>Kurkure Line A1</option>
+<option selected="">Lay's Classic L2</option>
+<option>Potato Chips Kettle K5</option>
+</select>
+</div>
+<div class="flex flex-col">
+<label class="font-label-caps text-label-caps text-on-surface-variant mb-base">Active Shift</label>
+<select class="bg-surface-container-low border-outline-variant text-on-surface font-body-lg text-body-lg rounded-lg focus:ring-primary focus:border-primary py-xs pr-xl">
+<option>A: 06:00-14:00</option>
+<option selected="">B: 14:00-22:00</option>
+<option>C: 22:00-06:00</option>
+</select>
+</div>
+<div class="flex flex-col">
+<label class="font-label-caps text-label-caps text-on-surface-variant mb-base">Production Date</label>
+<div class="relative">
+<input class="bg-surface-container-low border-outline-variant text-on-surface font-body-lg text-body-lg rounded-lg focus:ring-primary focus:border-primary py-xs pl-md pr-xl" type="text" value="Oct 24, 2023"/>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">calendar_month</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="bg-surface-container-high text-primary border border-primary px-lg py-xs font-label-caps text-label-caps rounded-lg hover:bg-primary-fixed transition-colors active:scale-95">
+                    Save Configuration
+                </button>
+<button class="bg-primary text-on-primary px-lg py-xs font-label-caps text-label-caps rounded-lg hover:opacity-90 transition-opacity active:scale-95 shadow-md">
+                    Auto-Allocate Staff
+                </button>
+</div>
+</section>
+<!-- Dynamic Content Area -->
+<div class="flex-1 flex gap-md overflow-hidden">
+<!-- Grid: Production Line Overview (8 Stages) -->
+<section class="flex-1 overflow-y-auto custom-scrollbar pr-xs">
+<div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-md pb-md">
+<!-- Stage Card 1 -->
+<div class="bg-surface border-l-4 border-primary border border-outline-variant p-md flex flex-col gap-sm rounded-lg hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant block uppercase">Stage 01</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Receiving</h3>
+</div>
+<span class="bg-secondary-container text-on-secondary-container px-xs py-base text-label-caps font-label-caps rounded">ACTIVE</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Staffing:</span>
+<span class="font-data-display text-data-display text-primary">2/3</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 66%"></div>
+</div>
+<div class="text-on-surface-variant">
+<p class="font-label-caps text-label-caps uppercase mb-base">Required Skills</p>
+<div class="flex flex-wrap gap-xs">
+<span class="text-[10px] border border-outline-variant px-xs rounded-full">Logistics</span>
+<span class="text-[10px] border border-outline-variant px-xs rounded-full">Hazzat-L1</span>
+</div>
+</div>
+<button class="mt-auto w-full py-xs border border-primary text-primary font-label-caps text-label-caps hover:bg-primary-fixed transition-colors rounded">ASSIGN</button>
+</div>
+<!-- Stage Card 2 (Understaffed) -->
+<div class="bg-surface border-l-4 border-error border border-outline-variant p-md flex flex-col gap-sm rounded-lg hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant block uppercase">Stage 02</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Washing</h3>
+</div>
+<span class="bg-error-container text-on-error-container px-xs py-base text-label-caps font-label-caps rounded">CRITICAL</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Staffing:</span>
+<span class="font-data-display text-data-display text-error">1/4</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-error" style="width: 25%"></div>
+</div>
+<div class="text-on-surface-variant">
+<p class="font-label-caps text-label-caps uppercase mb-base">Required Skills</p>
+<div class="flex flex-wrap gap-xs">
+<span class="text-[10px] border border-outline-variant px-xs rounded-full">Water Ops</span>
+<span class="text-[10px] border border-outline-variant px-xs rounded-full">Safety-L1</span>
+</div>
+</div>
+<button class="mt-auto w-full py-xs bg-error text-on-error font-label-caps text-label-caps hover:opacity-90 transition-opacity rounded">PRIORITY ASSIGN</button>
+</div>
+<!-- Stage Card 3 -->
+<div class="bg-surface border-l-4 border-primary border border-outline-variant p-md flex flex-col gap-sm rounded-lg hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant block uppercase">Stage 03</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Slicing</h3>
+</div>
+<span class="bg-secondary-container text-on-secondary-container px-xs py-base text-label-caps font-label-caps rounded">ACTIVE</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Staffing:</span>
+<span class="font-data-display text-data-display text-primary">2/2</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 100%"></div>
+</div>
+<div class="text-on-surface-variant">
+<p class="font-label-caps text-label-caps uppercase mb-base">Required Skills</p>
+<div class="flex flex-wrap gap-xs">
+<span class="text-[10px] border border-outline-variant px-xs rounded-full">Machine Control</span>
+</div>
+</div>
+<button class="mt-auto w-full py-xs border border-primary text-primary font-label-caps text-label-caps hover:bg-primary-fixed transition-colors rounded">ASSIGN</button>
+</div>
+<!-- Stage Card 4 -->
+<div class="bg-surface border-l-4 border-primary border border-outline-variant p-md flex flex-col gap-sm rounded-lg hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant block uppercase">Stage 04</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Frying</h3>
+</div>
+<span class="bg-secondary-container text-on-secondary-container px-xs py-base text-label-caps font-label-caps rounded">ACTIVE</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Staffing:</span>
+<span class="font-data-display text-data-display text-primary">3/3</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 100%"></div>
+</div>
+<div class="text-on-surface-variant">
+<p class="font-label-caps text-label-caps uppercase mb-base">Required Skills</p>
+<div class="flex flex-wrap gap-xs">
+<span class="text-[10px] border border-outline-variant px-xs rounded-full">Heat Ops</span>
+<span class="text-[10px] border border-outline-variant px-xs rounded-full">Fire Safety</span>
+</div>
+</div>
+<button class="mt-auto w-full py-xs border border-primary text-primary font-label-caps text-label-caps hover:bg-primary-fixed transition-colors rounded">ASSIGN</button>
+</div>
+<!-- Stage Card 5 -->
+<div class="bg-surface border-l-4 border-primary border border-outline-variant p-md flex flex-col gap-sm rounded-lg hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant block uppercase">Stage 05</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Seasoning</h3>
+</div>
+<span class="bg-secondary-container text-on-secondary-container px-xs py-base text-label-caps font-label-caps rounded">ACTIVE</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Staffing:</span>
+<span class="font-data-display text-data-display text-primary">2/2</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 100%"></div>
+</div>
+<div class="text-on-surface-variant">
+<p class="font-label-caps text-label-caps uppercase mb-base">Required Skills</p>
+<div class="flex flex-wrap gap-xs">
+<span class="text-[10px] border border-outline-variant px-xs rounded-full">Quality Ctrl</span>
+<span class="text-[10px] border border-outline-variant px-xs rounded-full">Ingredients</span>
+</div>
+</div>
+<button class="mt-auto w-full py-xs border border-primary text-primary font-label-caps text-label-caps hover:bg-primary-fixed transition-colors rounded">ASSIGN</button>
+</div>
+<!-- Stage Card 6 -->
+<div class="bg-surface border-l-4 border-error border border-outline-variant p-md flex flex-col gap-sm rounded-lg hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant block uppercase">Stage 06</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Packaging</h3>
+</div>
+<span class="bg-error-container text-on-error-container px-xs py-base text-label-caps font-label-caps rounded">UNDERSTAFFED</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Staffing:</span>
+<span class="font-data-display text-data-display text-error">4/6</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-error" style="width: 66%"></div>
+</div>
+<div class="text-on-surface-variant">
+<p class="font-label-caps text-label-caps uppercase mb-base">Required Skills</p>
+<div class="flex flex-wrap gap-xs">
+<span class="text-[10px] border border-outline-variant px-xs rounded-full">Pack Systems</span>
+<span class="text-[10px] border border-outline-variant px-xs rounded-full">Weight Check</span>
+</div>
+</div>
+<button class="mt-auto w-full py-xs border border-primary text-primary font-label-caps text-label-caps hover:bg-primary-fixed transition-colors rounded">ASSIGN</button>
+</div>
+<!-- Stage Card 7 -->
+<div class="bg-surface border-l-4 border-primary border border-outline-variant p-md flex flex-col gap-sm rounded-lg hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant block uppercase">Stage 07</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Boxing</h3>
+</div>
+<span class="bg-surface-container-high text-on-surface-variant px-xs py-base text-label-caps font-label-caps rounded">IDLE</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Staffing:</span>
+<span class="font-data-display text-data-display text-primary">0/4</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary opacity-20" style="width: 0%"></div>
+</div>
+<div class="text-on-surface-variant">
+<p class="font-label-caps text-label-caps uppercase mb-base">Required Skills</p>
+<div class="flex flex-wrap gap-xs">
+<span class="text-[10px] border border-outline-variant px-xs rounded-full">Robotics-L2</span>
+</div>
+</div>
+<button class="mt-auto w-full py-xs border border-primary text-primary font-label-caps text-label-caps hover:bg-primary-fixed transition-colors rounded">ASSIGN</button>
+</div>
+<!-- Stage Card 8 -->
+<div class="bg-surface border-l-4 border-primary border border-outline-variant p-md flex flex-col gap-sm rounded-lg hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant block uppercase">Stage 08</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Dispatch</h3>
+</div>
+<span class="bg-surface-container-high text-on-surface-variant px-xs py-base text-label-caps font-label-caps rounded">IDLE</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Staffing:</span>
+<span class="font-data-display text-data-display text-primary">0/2</span>
+</div>
+<div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary opacity-20" style="width: 0%"></div>
+</div>
+<div class="text-on-surface-variant">
+<p class="font-label-caps text-label-caps uppercase mb-base">Required Skills</p>
+<div class="flex flex-wrap gap-xs">
+<span class="text-[10px] border border-outline-variant px-xs rounded-full">Forklift Cert</span>
+</div>
+</div>
+<button class="mt-auto w-full py-xs border border-primary text-primary font-label-caps text-label-caps hover:bg-primary-fixed transition-colors rounded">ASSIGN</button>
+</div>
+</div>
+</section>
+<!-- Available Personnel Panel -->
+<aside class="w-80 bg-surface border border-outline-variant flex flex-col rounded-lg shadow-lg overflow-hidden">
+<div class="p-md bg-surface-container border-b border-outline-variant">
+<h3 class="font-headline-md text-headline-md text-on-surface">Available Personnel</h3>
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase">Current Pool: 12 Operators</p>
+</div>
+<div class="p-sm bg-surface-container-low border-b border-outline-variant">
+<div class="relative">
+<input class="w-full bg-surface border border-outline-variant rounded-lg text-body-sm py-xs pl-md pr-xl" placeholder="Search skills or ID..." type="text"/>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar p-sm flex flex-col gap-sm">
+<!-- Worker Item 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-sm rounded-lg cursor-grab active:cursor-grabbing hover:bg-surface-container-high transition-colors group" draggable="true">
+<div class="flex items-center justify-between mb-xs">
+<div class="flex items-center gap-xs">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center font-bold text-on-secondary-container text-xs">RJ</div>
+<div>
+<h4 class="font-body-lg text-body-lg text-on-surface">Rajesh J.</h4>
+<span class="font-data-display text-[10px] text-on-surface-variant">ID: 442901</span>
+</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 bg-primary text-on-primary p-xs rounded transition-opacity">
+<span class="material-symbols-outlined text-sm">add_task</span>
+</button>
+</div>
+<div class="flex flex-wrap gap-xs">
+<span class="text-[10px] bg-primary-fixed text-on-primary-fixed px-xs rounded-full">Machine Control</span>
+<span class="text-[10px] bg-primary-fixed text-on-primary-fixed px-xs rounded-full">Slicing</span>
+</div>
+</div>
+<!-- Worker Item 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-sm rounded-lg cursor-grab active:cursor-grabbing hover:bg-surface-container-high transition-colors group" draggable="true">
+<div class="flex items-center justify-between mb-xs">
+<div class="flex items-center gap-xs">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center font-bold text-on-secondary-container text-xs">ST</div>
+<div>
+<h4 class="font-body-lg text-body-lg text-on-surface">Sunita T.</h4>
+<span class="font-data-display text-[10px] text-on-surface-variant">ID: 441052</span>
+</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 bg-primary text-on-primary p-xs rounded transition-opacity">
+<span class="material-symbols-outlined text-sm">add_task</span>
+</button>
+</div>
+<div class="flex flex-wrap gap-xs">
+<span class="text-[10px] bg-primary-fixed text-on-primary-fixed px-xs rounded-full">Water Ops</span>
+<span class="text-[10px] bg-primary-fixed text-on-primary-fixed px-xs rounded-full">Quality Ctrl</span>
+</div>
+</div>
+<!-- Worker Item 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-sm rounded-lg cursor-grab active:cursor-grabbing hover:bg-surface-container-high transition-colors group" draggable="true">
+<div class="flex items-center justify-between mb-xs">
+<div class="flex items-center gap-xs">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center font-bold text-on-secondary-container text-xs">AK</div>
+<div>
+<h4 class="font-body-lg text-body-lg text-on-surface">Anil K.</h4>
+<span class="font-data-display text-[10px] text-on-surface-variant">ID: 443211</span>
+</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 bg-primary text-on-primary p-xs rounded transition-opacity">
+<span class="material-symbols-outlined text-sm">add_task</span>
+</button>
+</div>
+<div class="flex flex-wrap gap-xs">
+<span class="text-[10px] bg-primary-fixed text-on-primary-fixed px-xs rounded-full">Heat Ops</span>
+<span class="text-[10px] bg-primary-fixed text-on-primary-fixed px-xs rounded-full">Fire Safety</span>
+</div>
+</div>
+<!-- Worker Item 4 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-sm rounded-lg cursor-grab active:cursor-grabbing hover:bg-surface-container-high transition-colors group" draggable="true">
+<div class="flex items-center justify-between mb-xs">
+<div class="flex items-center gap-xs">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center font-bold text-on-secondary-container text-xs">PM</div>
+<div>
+<h4 class="font-body-lg text-body-lg text-on-surface">Priya M.</h4>
+<span class="font-data-display text-[10px] text-on-surface-variant">ID: 440982</span>
+</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 bg-primary text-on-primary p-xs rounded transition-opacity">
+<span class="material-symbols-outlined text-sm">add_task</span>
+</button>
+</div>
+<div class="flex flex-wrap gap-xs">
+<span class="text-[10px] bg-primary-fixed text-on-primary-fixed px-xs rounded-full">Logistics</span>
+<span class="text-[10px] bg-primary-fixed text-on-primary-fixed px-xs rounded-full">Packaging</span>
+</div>
+</div>
+<!-- Worker Item 5 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-sm rounded-lg cursor-grab active:cursor-grabbing hover:bg-surface-container-high transition-colors group" draggable="true">
+<div class="flex items-center justify-between mb-xs">
+<div class="flex items-center gap-xs">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center font-bold text-on-secondary-container text-xs">DS</div>
+<div>
+<h4 class="font-body-lg text-body-lg text-on-surface">Dev S.</h4>
+<span class="font-data-display text-[10px] text-on-surface-variant">ID: 445511</span>
+</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 bg-primary text-on-primary p-xs rounded transition-opacity">
+<span class="material-symbols-outlined text-sm">add_task</span>
+</button>
+</div>
+<div class="flex flex-wrap gap-xs">
+<span class="text-[10px] bg-primary-fixed text-on-primary-fixed px-xs rounded-full">Safety-L1</span>
+<span class="text-[10px] bg-primary-fixed text-on-primary-fixed px-xs rounded-full">Water Ops</span>
+</div>
+</div>
+</div>
+<div class="p-sm bg-surface-container-lowest border-t border-outline-variant">
+<button class="w-full py-xs bg-surface-container-high text-on-surface font-label-caps text-label-caps rounded hover:bg-surface-variant transition-colors flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-sm">groups</span>
+                        VIEW ALL CLOCKED-IN
+                    </button>
+</div>
+</aside>
+</div>
+</main>
+<!-- Micro-interactions Script -->
+<script>
+        // Simple drag & drop visual feedback simulation
+        const workers = document.querySelectorAll('[draggable="true"]');
+        const stageCards = document.querySelectorAll('.bg-surface.border');
+
+        workers.forEach(worker => {
+            worker.addEventListener('dragstart', () => {
+                worker.style.opacity = '0.5';
+            });
+            worker.addEventListener('dragend', () => {
+                worker.style.opacity = '1';
+                stageCards.forEach(card => card.classList.remove('drop-zone-active'));
+            });
+        });
+
+        stageCards.forEach(card => {
+            card.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                card.classList.add('drop-zone-active');
+            });
+            card.addEventListener('dragleave', () => {
+                card.classList.remove('drop-zone-active');
+            });
+            card.addEventListener('drop', () => {
+                card.classList.remove('drop-zone-active');
+                // Simulate assignment
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-md right-md bg-primary text-on-primary px-lg py-sm rounded-lg shadow-xl z-[100] flex items-center gap-xs animate-bounce';
+                notification.innerHTML = `<span class="material-symbols-outlined">check_circle</span> <span class="font-label-caps text-label-caps uppercase">Personnel Assigned Successfully</span>`;
+                document.body.appendChild(notification);
+                setTimeout(() => notification.remove(), 3000);
+            });
+        });
+
+        // Quick Assign buttons
+        const assignButtons = document.querySelectorAll('.group button');
+        assignButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const workerName = btn.closest('.group').querySelector('h4').innerText;
+                alert('Quick assigning ' + workerName + ' to Washing (Critical Understaffing)');
+            });
+        });
+    </script>
+</body></html>

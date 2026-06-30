@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skill Matrix | Industrial Logic</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed": "#002113",
+                    "on-error": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-highest": "#e0e3e5",
+                    "outline-variant": "#c5c6cd",
+                    "on-secondary-container": "#57657a",
+                    "on-primary": "#ffffff",
+                    "surface-dim": "#d8dadc",
+                    "surface-container-high": "#e6e8ea",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "surface-tint": "#545f73",
+                    "secondary-fixed": "#d5e3fc",
+                    "primary-container": "#1e293b",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "on-surface-variant": "#45474c",
+                    "surface-container-low": "#f2f4f6",
+                    "surface-container": "#eceef0",
+                    "tertiary-container": "#00301e",
+                    "inverse-surface": "#2d3133",
+                    "tertiary-fixed": "#6ffbbe",
+                    "inverse-primary": "#bcc7de",
+                    "primary-fixed-dim": "#bcc7de",
+                    "error-container": "#ffdad6",
+                    "surface-bright": "#f7f9fb",
+                    "on-primary-fixed": "#111c2d",
+                    "primary-fixed": "#d8e3fb",
+                    "on-surface": "#191c1e",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "on-primary-container": "#8590a6",
+                    "on-tertiary-container": "#00a472",
+                    "on-error-container": "#93000a",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "surface-variant": "#e0e3e5",
+                    "inverse-on-surface": "#eff1f3",
+                    "background": "#f7f9fb",
+                    "surface": "#f7f9fb",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "outline": "#75777d",
+                    "on-background": "#191c1e",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "secondary-container": "#d5e3fc",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "tertiary": "#00190e",
+                    "primary": "#091426",
+                    "secondary": "#515f74"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter-mobile": "12px",
+                    "sm": "8px",
+                    "xs": "4px",
+                    "margin-mobile": "16px",
+                    "base": "4px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "md": "16px"
+            },
+            "fontFamily": {
+                    "data-mono": ["JetBrains Mono"],
+                    "headline-lg": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "label-lg": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for industrial feel */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-50 flex justify-between items-center px-lg py-sm w-full bg-surface dark:bg-inverse-surface border-b border-outline-variant dark:border-outline">
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary">Industrial Logic</span>
+</div>
+<div class="hidden md:flex flex-1 max-w-md mx-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-primary transition-all text-body-md" placeholder="Search factory metrics..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional profile headshot of a factory plant manager, clean lighting, corporate industrial setting, high-end photography style, neutral tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuApQrliMpU-tiXfjzd-0FbsG1H524DJ5o5Ae38JVcrIzucLBCWal61RETSJIN7sqee3rc2rlP81_R5Z8RIyH9mGAG1pL9nus__lVvhgwYeeJxFbe1OAqPELiUbbYB9AtEOSTXdoGZDn-BEkCL5DzRpT9nDMjtIjC0gYvSAC0ziERIVRcKVvjT4WpdQggiYZuZGlOtU5f4FU_E9AbS6JcnI9YGbsf_CFtlvb6rSY4CZh2XgWZBnG3KdYzoiXhUzUitjOixhMSoiSQgs"/>
+</div>
+</div>
+</header>
+<div class="flex">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full flex flex-col pt-20 pb-lg z-40 bg-surface-container-low dark:bg-inverse-surface border-r border-outline-variant dark:border-outline w-64 hidden md:flex">
+<div class="px-lg py-md mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 bg-primary-container rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-white">factory</span>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-primary font-bold">Plant Manager</p>
+<p class="text-[10px] text-secondary uppercase tracking-wider">Sector A-12</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-md px-lg py-md cursor-pointer duration-200 text-secondary hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-lg text-label-lg">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md cursor-pointer duration-200 text-secondary hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined">factory</span>
+<span class="font-label-lg text-label-lg">Production Lines</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md cursor-pointer duration-200 text-secondary hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-lg text-label-lg">Associates</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md cursor-pointer duration-200 text-secondary hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined">precision_manufacturing</span>
+<span class="font-label-lg text-label-lg">Workstations</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md cursor-pointer duration-200 bg-tertiary-container text-on-tertiary-container border-r-4 border-on-tertiary-container" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-label-lg text-label-lg">Skills</span>
+</a>
+<a class="flex items-center gap-md px-lg py-md cursor-pointer duration-200 text-secondary hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="font-label-lg text-label-lg">Reports</span>
+</a>
+</nav>
+<div class="mt-auto px-lg pt-md border-t border-outline-variant">
+<div class="p-sm bg-surface-container rounded-lg">
+<p class="text-[11px] font-bold text-secondary-container-on uppercase mb-1">System Status</p>
+<div class="flex items-center gap-xs">
+<span class="w-2 h-2 bg-on-tertiary-container rounded-full animate-pulse"></span>
+<span class="text-[12px] font-medium text-on-surface">Operational</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 md:ml-64 p-lg min-h-[calc(100vh-64px)]">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md mb-xl">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary">Skill Matrix</h1>
+<p class="text-body-md text-secondary mt-xs">Manage and audit workforce competency levels and certifications.</p>
+</div>
+<div class="flex items-center gap-sm">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">filter_list</span>
+<input class="bg-white border border-outline-variant rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent text-body-md min-w-[280px]" placeholder="Filter skills..." type="text"/>
+</div>
+<button class="bg-primary text-white px-md py-2 rounded-lg font-bold flex items-center gap-xs active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                        New Entry
+                    </button>
+</div>
+</div>
+<!-- Dashboard Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+<!-- Left Column: Skill Table (Bento Style) -->
+<div class="lg:col-span-2 space-y-lg">
+<div class="bg-white border border-outline-variant rounded-lg shadow-sm overflow-hidden">
+<div class="px-lg py-md border-b border-surface-container flex justify-between items-center bg-surface-bright">
+<h2 class="font-headline-sm text-headline-sm text-primary">Global Skill Registry</h2>
+<span class="text-[12px] font-data-mono text-secondary px-2 py-1 bg-surface-container rounded">Showing 24 Total Skills</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low text-secondary border-b border-outline-variant">
+<tr>
+<th class="px-lg py-md font-label-md text-label-md uppercase tracking-wider">Skill Name</th>
+<th class="px-lg py-md font-label-md text-label-md uppercase tracking-wider">Category</th>
+<th class="px-lg py-md font-label-md text-label-md uppercase tracking-wider">Levels Available</th>
+<th class="px-lg py-md font-label-md text-label-md uppercase tracking-wider">Validity</th>
+<th class="px-lg py-md w-10"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="p-1.5 bg-blue-50 text-blue-700 rounded-lg">
+<span class="material-symbols-outlined text-[18px]">build</span>
+</div>
+<span class="font-headline-sm text-headline-sm">Hydraulic Press Ops</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">Mechanical</span>
+</td>
+<td class="px-lg py-md">
+<div class="flex flex-wrap gap-xs">
+<span class="px-2 py-1 bg-slate-100 text-slate-600 text-[10px] rounded font-bold border border-slate-200">TRAINEE</span>
+<span class="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] rounded font-bold border border-blue-100">OPERATOR</span>
+<span class="px-2 py-1 bg-emerald-50 text-emerald-600 text-[10px] rounded font-bold border border-emerald-100">CERTIFIED</span>
+</div>
+</td>
+<td class="px-lg py-md font-data-mono text-body-md">24 Months</td>
+<td class="px-lg py-md text-right">
+<button class="opacity-0 group-hover:opacity-100 p-1 hover:text-primary transition-opacity">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="p-1.5 bg-yellow-50 text-yellow-700 rounded-lg">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+</div>
+<span class="font-headline-sm text-headline-sm">Circuit Diagnosis</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-800">Electrical</span>
+</td>
+<td class="px-lg py-md">
+<div class="flex flex-wrap gap-xs">
+<span class="px-2 py-1 bg-emerald-50 text-emerald-600 text-[10px] rounded font-bold border border-emerald-100">CERTIFIED</span>
+<span class="px-2 py-1 bg-purple-50 text-purple-600 text-[10px] rounded font-bold border border-purple-100">EXPERT</span>
+</div>
+</td>
+<td class="px-lg py-md font-data-mono text-body-md">12 Months</td>
+<td class="px-lg py-md text-right">
+<button class="opacity-0 group-hover:opacity-100 p-1 hover:text-primary transition-opacity">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="p-1.5 bg-red-50 text-red-700 rounded-lg">
+<span class="material-symbols-outlined text-[18px]">health_and_safety</span>
+</div>
+<span class="font-headline-sm text-headline-sm">Chemical Handling</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-800">Safety</span>
+</td>
+<td class="px-lg py-md">
+<div class="flex flex-wrap gap-xs">
+<span class="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] rounded font-bold border border-blue-100">OPERATOR</span>
+<span class="px-2 py-1 bg-emerald-50 text-emerald-600 text-[10px] rounded font-bold border border-emerald-100">CERTIFIED</span>
+</div>
+</td>
+<td class="px-lg py-md font-data-mono text-body-md">36 Months</td>
+<td class="px-lg py-md text-right">
+<button class="opacity-0 group-hover:opacity-100 p-1 hover:text-primary transition-opacity">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="p-1.5 bg-emerald-50 text-emerald-700 rounded-lg">
+<span class="material-symbols-outlined text-[18px]">precision_manufacturing</span>
+</div>
+<span class="font-headline-sm text-headline-sm">PLC Programming</span>
+</div>
+</td>
+<td class="px-lg py-md">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-800">Automation</span>
+</td>
+<td class="px-lg py-md">
+<div class="flex flex-wrap gap-xs">
+<span class="px-2 py-1 bg-purple-50 text-purple-600 text-[10px] rounded font-bold border border-purple-100">EXPERT</span>
+</div>
+</td>
+<td class="px-lg py-md font-data-mono text-body-md">Lifetime</td>
+<td class="px-lg py-md text-right">
+<button class="opacity-0 group-hover:opacity-100 p-1 hover:text-primary transition-opacity">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-lg py-md bg-surface-container-low border-t border-outline-variant flex justify-between items-center">
+<button class="text-label-lg font-label-lg text-secondary hover:text-primary flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span> Previous
+                            </button>
+<div class="flex gap-2">
+<span class="w-8 h-8 flex items-center justify-center bg-primary text-white rounded font-bold text-sm">1</span>
+<span class="w-8 h-8 flex items-center justify-center hover:bg-surface-container rounded font-bold text-sm cursor-pointer">2</span>
+<span class="w-8 h-8 flex items-center justify-center hover:bg-surface-container rounded font-bold text-sm cursor-pointer">3</span>
+</div>
+<button class="text-label-lg font-label-lg text-secondary hover:text-primary flex items-center gap-xs">
+                                Next <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Right Column: Action Panel (Add/Edit) -->
+<div class="lg:col-span-1">
+<div class="sticky top-24 bg-white border border-outline-variant rounded-lg shadow-sm">
+<div class="px-lg py-md border-b border-surface-container bg-surface-bright flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">edit_note</span>
+<h2 class="font-headline-sm text-headline-sm text-primary">Skill Management</h2>
+</div>
+<form class="p-lg space-y-md">
+<div>
+<label class="block font-label-md text-label-md text-secondary uppercase mb-2">Skill Name</label>
+<input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary focus:border-transparent text-body-md" placeholder="e.g. Arc Welding" type="text"/>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-secondary uppercase mb-2">Category</label>
+<select class="w-full bg-white border border-outline-variant rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary focus:border-transparent text-body-md appearance-none">
+<option>Mechanical</option>
+<option>Electrical</option>
+<option>Safety</option>
+<option>Automation</option>
+</select>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-secondary uppercase mb-2">Validity Period (Months)</label>
+<div class="relative">
+<input class="w-full bg-white border border-outline-variant rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary focus:border-transparent text-body-md" type="number" value="12"/>
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-secondary font-label-md">MOS</span>
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-secondary uppercase mb-3">Allowed Proficiency Levels</label>
+<div class="grid grid-cols-2 gap-3">
+<label class="flex items-center gap-2 p-3 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors group">
+<input class="w-4 h-4 rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-body-sm font-semibold text-slate-600">Trainee</span>
+</label>
+<label class="flex items-center gap-2 p-3 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors">
+<input checked="" class="w-4 h-4 rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-body-sm font-semibold text-blue-700">Operator</span>
+</label>
+<label class="flex items-center gap-2 p-3 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors">
+<input checked="" class="w-4 h-4 rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-body-sm font-semibold text-emerald-700">Certified</span>
+</label>
+<label class="flex items-center gap-2 p-3 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low transition-colors">
+<input class="w-4 h-4 rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-body-sm font-semibold text-purple-700">Expert</span>
+</label>
+</div>
+</div>
+<div class="pt-lg flex flex-col gap-sm">
+<button class="w-full bg-primary text-white py-3 rounded-lg font-bold text-headline-sm hover:bg-slate-800 transition-colors shadow-sm active:scale-[0.98]" type="button">
+                                    Save Skill
+                                </button>
+<button class="w-full bg-white text-secondary py-3 rounded-lg font-bold text-headline-sm border border-outline-variant hover:bg-surface-container-low transition-colors" type="button">
+                                    Cancel
+                                </button>
+</div>
+</form>
+</div>
+<!-- Additional Context Card -->
+<div class="mt-lg p-lg bg-on-tertiary-fixed text-white rounded-lg relative overflow-hidden">
+<div class="relative z-10">
+<h3 class="font-headline-sm text-headline-sm mb-2">Audit Status</h3>
+<p class="text-body-sm opacity-80 mb-md">Last system-wide competency audit completed on 12 Oct 2023.</p>
+<div class="flex items-center gap-2">
+<div class="flex-1 bg-white/20 h-1 rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed-dim h-full w-[88%]"></div>
+</div>
+<span class="font-data-mono text-xs">88%</span>
+</div>
+</div>
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 text-[100px] opacity-10 rotate-12">fact_check</span>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Mobile Nav Bar (Shared Component Logic) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-surface border-t border-outline-variant z-50 flex justify-around items-center py-sm">
+<button class="flex flex-col items-center gap-xs text-secondary">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold">DASHBOARD</span>
+</button>
+<button class="flex flex-col items-center gap-xs text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<span class="text-[10px] font-bold">SKILLS</span>
+</button>
+<div class="-mt-8 bg-primary p-3 rounded-full shadow-lg text-white">
+<span class="material-symbols-outlined">add</span>
+</div>
+<button class="flex flex-col items-center gap-xs text-secondary">
+<span class="material-symbols-outlined">groups</span>
+<span class="text-[10px] font-bold">TEAM</span>
+</button>
+<button class="flex flex-col items-center gap-xs text-secondary">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold">MORE</span>
+</button>
+</nav>
+<script>
+        // Simple micro-interaction for form inputs
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('focus', () => {
+                el.parentElement.querySelector('label')?.classList.add('text-primary');
+            });
+            el.addEventListener('blur', () => {
+                el.parentElement.querySelector('label')?.classList.remove('text-primary');
+            });
+        });
+
+        // Search highlight logic (mock)
+        const searchInput = document.querySelector('input[placeholder="Filter skills..."]');
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(term) ? 'table-row' : 'none';
+            });
+        });
+    </script>
+</body></html>

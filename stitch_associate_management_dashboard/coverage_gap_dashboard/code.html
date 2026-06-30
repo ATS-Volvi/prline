@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Coverage Gap Analysis - PlantOps</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-dim": "#d8dadc",
+                    "primary-fixed": "#d8e3fb",
+                    "primary": "#091426",
+                    "outline": "#75777d",
+                    "on-background": "#191c1e",
+                    "on-primary-fixed": "#111c2d",
+                    "tertiary-container": "#00301e",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "on-tertiary-container": "#00a472",
+                    "primary-container": "#1e293b",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "on-primary-container": "#8590a6",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-secondary-container": "#57657a",
+                    "secondary-container": "#d5e3fc",
+                    "tertiary": "#00190e",
+                    "error": "#ba1a1a",
+                    "on-surface": "#191c1e",
+                    "on-error": "#ffffff",
+                    "surface-container": "#eceef0",
+                    "inverse-on-surface": "#eff1f3",
+                    "tertiary-fixed": "#6ffbbe",
+                    "secondary": "#515f74",
+                    "outline-variant": "#c5c6cd",
+                    "surface-variant": "#e0e3e5",
+                    "surface-tint": "#545f73",
+                    "on-primary": "#ffffff",
+                    "inverse-surface": "#2d3133",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "background": "#f7f9fb",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "primary-fixed-dim": "#bcc7de",
+                    "on-tertiary-fixed": "#002113",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "surface-container-low": "#f2f4f6",
+                    "on-secondary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed": "#d5e3fc",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "on-surface-variant": "#45474c",
+                    "surface": "#f7f9fb",
+                    "surface-bright": "#f7f9fb",
+                    "inverse-primary": "#bcc7de"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter-mobile": "12px",
+                    "xl": "32px",
+                    "base": "4px",
+                    "xs": "4px",
+                    "sm": "8px",
+                    "md": "16px",
+                    "margin-mobile": "16px",
+                    "lg": "24px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Inter"],
+                    "data-mono": ["JetBrains Mono"],
+                    "label-lg": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #f7f9fb;
+            color: #191c1e;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen overflow-hidden">
+<!-- SideNavBar -->
+<aside class="flex flex-col h-full py-6 bg-surface dark:bg-inverse-surface h-screen w-64 fixed left-0 top-0 border-r border-outline-variant dark:border-outline z-50">
+<div class="px-6 mb-8">
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary dark:text-primary-fixed">PlantOps</h1>
+<p class="text-on-surface-variant text-body-sm">Facility v2.4</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-lg text-label-lg">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-lg text-label-lg">Associates</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary-container dark:bg-primary-container text-on-secondary-container dark:text-on-primary-container border-r-4 border-primary dark:border-primary-fixed" href="#">
+<span class="material-symbols-outlined">precision_manufacturing</span>
+<span class="font-label-lg text-label-lg">Workstations</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-label-lg text-label-lg">Skills</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="font-label-lg text-label-lg">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">manage_accounts</span>
+<span class="font-label-lg text-label-lg">User Management</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-lg text-label-lg">Availability</span>
+</a>
+</nav>
+<div class="mt-auto px-6 pt-6 border-t border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-white font-bold">PM</div>
+<div>
+<p class="text-body-sm font-bold text-on-surface">Alex Miller</p>
+<p class="text-xs text-on-surface-variant">Plant Manager</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="flex-1 ml-64 min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="flex items-center justify-between px-6 z-40 fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-surface-container-lowest dark:bg-surface-dim border-b border-outline-variant dark:border-outline">
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-surface-container text-body-md rounded-lg border-none focus:ring-2 focus:ring-primary w-64 transition-all" placeholder="Search resources..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="hover:text-primary transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="hover:text-primary transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="h-8 w-[1px] bg-outline-variant"></div>
+<span class="font-headline-sm text-headline-sm text-primary font-bold">Workforce Manager</span>
+</div>
+</header>
+<!-- Canvas Content Area -->
+<div class="mt-16 p-8 flex-1 overflow-y-auto custom-scrollbar">
+<!-- Page Header -->
+<div class="flex items-center justify-between mb-8">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary">Coverage Gap Analysis</h2>
+<p class="text-on-surface-variant text-body-md">Real-time cross-certification and shift readiness monitoring.</p>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 bg-white border border-outline-variant text-on-surface font-bold rounded-lg hover:bg-surface-container-low transition-all">
+<span class="material-symbols-outlined text-[20px]">download</span>
+<span class="text-body-md">Export to Excel</span>
+</button>
+</div>
+<!-- Section 1: Workforce Readiness Overview -->
+<section class="mb-10">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-headline-sm text-headline-sm text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">bar_chart</span>
+                        Workforce Readiness Overview
+                    </h3>
+<span class="text-xs font-label-md text-on-surface-variant uppercase tracking-wider">Shift A • 06:00 - 14:00</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Line Cards -->
+<div class="bg-white border border-outline-variant rounded-xl p-6 space-y-6">
+<!-- Line A -->
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<div>
+<h4 class="font-body-lg font-bold text-primary">Assembly Line Alpha</h4>
+<p class="text-xs text-on-surface-variant">Electronic Component Integration</p>
+</div>
+<span class="font-data-mono text-data-mono text-on-surface">12 / 15 Certified</span>
+</div>
+<div class="h-4 w-full bg-surface-container rounded-full overflow-hidden flex">
+<div class="h-full bg-tertiary-fixed-dim" style="width: 80%;"></div>
+<div class="h-full bg-error/20" style="width: 20%;"></div>
+</div>
+<div class="flex justify-between text-[10px] uppercase font-bold tracking-widest">
+<span class="text-on-tertiary-container">80% Staffed</span>
+<span class="text-error">3 Person Gap</span>
+</div>
+</div>
+<!-- Line B -->
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<div>
+<h4 class="font-body-lg font-bold text-primary">Welding Station Charlie</h4>
+<p class="text-xs text-on-surface-variant">Robotic &amp; Manual Fusion</p>
+</div>
+<span class="font-data-mono text-data-mono text-on-surface">8 / 8 Certified</span>
+</div>
+<div class="h-4 w-full bg-surface-container rounded-full overflow-hidden flex">
+<div class="h-full bg-tertiary-fixed-dim" style="width: 100%;"></div>
+</div>
+<div class="flex justify-between text-[10px] uppercase font-bold tracking-widest">
+<span class="text-on-tertiary-container">100% Staffed</span>
+<span class="text-on-surface-variant">No Gaps</span>
+</div>
+</div>
+</div>
+<div class="bg-white border border-outline-variant rounded-xl p-6 space-y-6">
+<!-- Line C -->
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<div>
+<h4 class="font-body-lg font-bold text-primary">Packaging Line Bravo</h4>
+<p class="text-xs text-on-surface-variant">High-Speed Final Logistics</p>
+</div>
+<span class="font-data-mono text-data-mono text-on-surface">5 / 10 Certified</span>
+</div>
+<div class="h-4 w-full bg-surface-container rounded-full overflow-hidden flex">
+<div class="h-full bg-tertiary-fixed-dim" style="width: 50%;"></div>
+<div class="h-full bg-error/20" style="width: 50%;"></div>
+</div>
+<div class="flex justify-between text-[10px] uppercase font-bold tracking-widest">
+<span class="text-on-tertiary-container">50% Staffed</span>
+<span class="text-error">5 Person Gap</span>
+</div>
+</div>
+<!-- Line D -->
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<div>
+<h4 class="font-body-lg font-bold text-primary">Quality Control Lab</h4>
+<p class="text-xs text-on-surface-variant">Precision Inspection</p>
+</div>
+<span class="font-data-mono text-data-mono text-on-surface">3 / 4 Certified</span>
+</div>
+<div class="h-4 w-full bg-surface-container rounded-full overflow-hidden flex">
+<div class="h-full bg-tertiary-fixed-dim" style="width: 75%;"></div>
+<div class="h-full bg-error/20" style="width: 25%;"></div>
+</div>
+<div class="flex justify-between text-[10px] uppercase font-bold tracking-widest">
+<span class="text-on-tertiary-container">75% Staffed</span>
+<span class="text-error">1 Person Gap</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Detailed Gap Analysis Table -->
+<section class="mb-10">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-headline-sm text-headline-sm text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">table_chart</span>
+                        Detailed Gap Analysis
+                    </h3>
+<div class="flex gap-2">
+<span class="inline-flex items-center gap-1.5 px-2 py-1 rounded border border-outline-variant bg-white text-xs font-bold text-on-surface-variant">
+                            Filter: All Units
+                            <span class="material-symbols-outlined text-sm">expand_more</span>
+</span>
+</div>
+</div>
+<div class="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low border-b border-outline-variant">
+<tr>
+<th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Machine / Unit</th>
+<th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-center">Min Required</th>
+<th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-center">Certified Available</th>
+<th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-center">Gap Count</th>
+<th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
+<th class="px-4 py-4"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-surface-container-lowest transition-colors h-[56px]">
+<td class="px-6 py-3">
+<div class="flex flex-col">
+<span class="font-body-md font-bold text-primary">CNC-01 Milling</span>
+<span class="text-[10px] font-data-mono text-on-surface-variant uppercase">DEPT-FAB-001</span>
+</div>
+</td>
+<td class="px-6 py-3 text-center font-data-mono text-body-md">4</td>
+<td class="px-6 py-3 text-center font-data-mono text-body-md">3</td>
+<td class="px-6 py-3 text-center font-data-mono text-body-md text-error font-bold">-1</td>
+<td class="px-6 py-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                                        At Risk
+                                    </span>
+</td>
+<td class="px-4 py-3 text-right">
+<span class="material-symbols-outlined text-outline-variant cursor-pointer hover:text-primary">chevron_right</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors h-[56px]">
+<td class="px-6 py-3">
+<div class="flex flex-col">
+<span class="font-body-md font-bold text-primary">PK-400 Shrink Wrap</span>
+<span class="text-[10px] font-data-mono text-on-surface-variant uppercase">DEPT-LOG-040</span>
+</div>
+</td>
+<td class="px-6 py-3 text-center font-data-mono text-body-md">2</td>
+<td class="px-6 py-3 text-center font-data-mono text-body-md">2</td>
+<td class="px-6 py-3 text-center font-data-mono text-body-md text-on-tertiary-container font-bold">0</td>
+<td class="px-6 py-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                                        Fully Staffed
+                                    </span>
+</td>
+<td class="px-4 py-3 text-right">
+<span class="material-symbols-outlined text-outline-variant cursor-pointer hover:text-primary">chevron_right</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors h-[56px]">
+<td class="px-6 py-3">
+<div class="flex flex-col">
+<span class="font-body-md font-bold text-primary">Hydraulic Press XL</span>
+<span class="text-[10px] font-data-mono text-on-surface-variant uppercase">DEPT-FAB-012</span>
+</div>
+</td>
+<td class="px-6 py-3 text-center font-data-mono text-body-md">3</td>
+<td class="px-6 py-3 text-center font-data-mono text-body-md">1</td>
+<td class="px-6 py-3 text-center font-data-mono text-body-md text-error font-bold">-2</td>
+<td class="px-6 py-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800">
+                                        Critical Gap
+                                    </span>
+</td>
+<td class="px-4 py-3 text-right">
+<span class="material-symbols-outlined text-outline-variant cursor-pointer hover:text-primary">chevron_right</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors h-[56px]">
+<td class="px-6 py-3">
+<div class="flex flex-col">
+<span class="font-body-md font-bold text-primary">Laser Cutter 2000</span>
+<span class="text-[10px] font-data-mono text-on-surface-variant uppercase">DEPT-FAB-005</span>
+</div>
+</td>
+<td class="px-6 py-3 text-center font-data-mono text-body-md">2</td>
+<td class="px-6 py-3 text-center font-data-mono text-body-md">2</td>
+<td class="px-6 py-3 text-center font-data-mono text-body-md text-on-tertiary-container font-bold">0</td>
+<td class="px-6 py-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                                        Fully Staffed
+                                    </span>
+</td>
+<td class="px-4 py-3 text-right">
+<span class="material-symbols-outlined text-outline-variant cursor-pointer hover:text-primary">chevron_right</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest transition-colors h-[56px]">
+<td class="px-6 py-3">
+<div class="flex flex-col">
+<span class="font-body-md font-bold text-primary">Manual Assembly St. 4</span>
+<span class="text-[10px] font-data-mono text-on-surface-variant uppercase">DEPT-ASM-004</span>
+</div>
+</td>
+<td class="px-6 py-3 text-center font-data-mono text-body-md">6</td>
+<td class="px-6 py-3 text-center font-data-mono text-body-md">5</td>
+<td class="px-6 py-3 text-center font-data-mono text-body-md text-error font-bold">-1</td>
+<td class="px-6 py-3">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                                        At Risk
+                                    </span>
+</td>
+<td class="px-4 py-3 text-right">
+<span class="material-symbols-outlined text-outline-variant cursor-pointer hover:text-primary">chevron_right</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Bottom Action Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-primary p-6 rounded-xl text-white">
+<span class="material-symbols-outlined text-primary-fixed mb-2">person_add</span>
+<h4 class="font-headline-sm text-headline-sm mb-1">Staff Shortage?</h4>
+<p class="text-xs text-on-primary-container mb-4">Launch immediate broadcast to cross-certified associates for overtime coverage.</p>
+<button class="w-full py-2 bg-primary-fixed text-primary font-bold rounded text-body-sm hover:opacity-90 transition-opacity">Request Coverage</button>
+</div>
+<div class="bg-white border border-outline-variant p-6 rounded-xl">
+<span class="material-symbols-outlined text-tertiary-fixed-dim mb-2">school</span>
+<h4 class="font-headline-sm text-headline-sm text-primary mb-1">Certification Queue</h4>
+<p class="text-xs text-on-surface-variant mb-4">4 associates are 90% through certification for Hydraulic Press XL.</p>
+<button class="w-full py-2 bg-secondary-container text-on-secondary-container font-bold rounded text-body-sm hover:bg-surface-container-high transition-colors">View Trainees</button>
+</div>
+<div class="bg-white border border-outline-variant p-6 rounded-xl">
+<span class="material-symbols-outlined text-on-surface-variant mb-2">history</span>
+<h4 class="font-headline-sm text-headline-sm text-primary mb-1">Historical Gaps</h4>
+<p class="text-xs text-on-surface-variant mb-4">Trend analysis shows persistent Friday night shift gaps in Assembly.</p>
+<button class="w-full py-2 bg-surface-container text-on-surface-variant font-bold rounded text-body-sm hover:bg-surface-container-high transition-colors">See Trends</button>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB for quick action -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-[28px]">add</span>
+</button>
+<script>
+        // Sortable table logic (mock interaction)
+        document.querySelectorAll('th').forEach(th => {
+            th.addEventListener('click', () => {
+                const icon = th.querySelector('.material-symbols-outlined');
+                if(icon) {
+                   // would normally handle sorting here
+                }
+            });
+            th.style.cursor = 'pointer';
+        });
+
+        // Simple search filter interaction
+        const searchInput = document.querySelector('input[placeholder="Search resources..."]');
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+    </script>
+</body></html>

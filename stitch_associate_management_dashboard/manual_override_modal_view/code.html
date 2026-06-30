@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Manual Eligibility Override | Industrial Logic</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-container": "#00301e",
+                    "primary-fixed-dim": "#bcc7de",
+                    "on-primary": "#ffffff",
+                    "surface-bright": "#f7f9fb",
+                    "on-primary-container": "#8590a6",
+                    "inverse-on-surface": "#eff1f3",
+                    "tertiary-fixed": "#6ffbbe",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-surface-variant": "#45474c",
+                    "on-secondary": "#ffffff",
+                    "inverse-primary": "#bcc7de",
+                    "surface-variant": "#e0e3e5",
+                    "surface-container-high": "#e6e8ea",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-dim": "#d8dadc",
+                    "on-background": "#191c1e",
+                    "on-error-container": "#93000a",
+                    "tertiary": "#00190e",
+                    "inverse-surface": "#2d3133",
+                    "secondary": "#515f74",
+                    "surface": "#f7f9fb",
+                    "on-tertiary-container": "#00a472",
+                    "on-secondary-container": "#57657a",
+                    "on-primary-fixed": "#111c2d",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "outline": "#75777d",
+                    "on-tertiary": "#ffffff",
+                    "background": "#f7f9fb",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "on-tertiary-fixed": "#002113",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "error": "#ba1a1a",
+                    "surface-container": "#eceef0",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#d8e3fb",
+                    "secondary-container": "#d5e3fc",
+                    "surface-container-low": "#f2f4f6",
+                    "secondary-fixed": "#d5e3fc",
+                    "primary": "#091426",
+                    "on-surface": "#191c1e",
+                    "on-error": "#ffffff",
+                    "surface-tint": "#545f73",
+                    "primary-container": "#1e293b",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "outline-variant": "#c5c6cd"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "8px",
+                    "margin-mobile": "16px",
+                    "md": "16px",
+                    "base": "4px",
+                    "gutter-mobile": "12px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "xl": "32px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Inter"],
+                    "label-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "data-mono": ["JetBrains Mono"],
+                    "headline-sm": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "label-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            vertical-align: middle;
+        }
+        .form-input-focus:focus {
+            outline: none;
+            border-color: #1E293B;
+            ring: 2px solid #1E293B;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md overflow-hidden">
+<!-- Top Navigation Anchor (As specified in JSON) -->
+<header class="bg-surface border-b border-outline-variant w-full top-0 sticky z-50 flex justify-between items-center px-margin-mobile h-14">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary" data-icon="close">close</span>
+<span class="font-headline-md text-headline-md font-bold text-primary">Industrial Logic</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container transition-colors p-2 rounded-full cursor-pointer" data-icon="help">help</span>
+</div>
+</header>
+<main class="relative h-[calc(100vh-3.5rem)] w-full flex flex-row-reverse"><div class="fixed inset-0 bg-primary/60 z-50 flex items-center justify-center p-margin-mobile"><div class="w-full max-w-[600px] bg-surface-container-lowest rounded-xl shadow-xl flex flex-col overflow-hidden relative">
+<!-- Header Section -->
+<div class="p-lg border-b border-outline-variant bg-surface-bright">
+<div class="flex justify-between items-start mb-md">
+<h1 class="font-headline-md text-headline-md text-primary">Manual Eligibility Override</h1>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container p-1 rounded-full">close</button>
+</div>
+<div class="flex flex-row gap-xl">
+<div class="flex flex-col">
+<span class="text-label-md text-on-surface-variant uppercase tracking-wider">Machine</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Milling Center B</span>
+</div>
+<div class="flex flex-col">
+<span class="text-label-md text-on-surface-variant uppercase tracking-wider">Associate</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Marcus Holloway</span>
+</div>
+</div>
+</div>
+<!-- Warning Alert Box -->
+<div class="mx-lg mt-lg p-md bg-[#FFFBEB] border border-[#FDE68A] rounded-lg flex gap-md items-start">
+<span class="material-symbols-outlined text-[#D97706] mt-0.5" data-icon="warning" style="font-variation-settings: 'FILL' 1;">warning</span>
+<p class="font-body-md text-[#92400E] leading-relaxed">
+<strong class="font-bold">CRITICAL:</strong> This associate does not meet the standard eligibility requirements for this workstation. Manual override requires justification and will be logged.
+</p>
+</div>
+<!-- Form Content -->
+<form class="p-lg flex flex-col gap-lg">
+<!-- Reason Code Dropdown -->
+<div class="flex flex-col gap-base">
+<label class="font-label-lg text-label-lg text-primary" for="reason-code">Reason Code</label>
+<div class="relative">
+<select class="w-full h-11 px-md bg-white border border-outline-variant rounded-lg font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:border-primary appearance-none transition-all cursor-pointer" id="reason-code">
+<option disabled="" selected="" value="">Select Reason</option>
+<option>Emergency Labor Shortage</option>
+<option>Supervised Training Session</option>
+<option>Critical Production Deadline</option>
+<option>Interim Skill Certification</option>
+<option>Demonstrated Competency - Pending Update</option>
+</select>
+<div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Additional Notes Textarea -->
+<div class="flex flex-col gap-base">
+<label class="font-label-lg text-label-lg text-primary" for="notes">Additional Notes</label>
+<textarea class="w-full p-md bg-white border border-outline-variant rounded-lg font-body-md text-on-surface focus:ring-2 focus:ring-primary focus:border-primary placeholder:text-outline transition-all resize-none" id="notes" placeholder="Provide additional context for this override..." rows="3"></textarea>
+</div>
+<!-- Supervisor Info -->
+<div class="flex flex-col gap-base">
+<label class="font-label-lg text-label-lg text-primary">Supervisor Name</label>
+<div class="flex items-center gap-sm px-md h-11 bg-surface-container-low border border-outline-variant/30 rounded-lg">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]" data-icon="account_circle">account_circle</span>
+<span class="font-body-md text-on-surface-variant">John Smith (Auto-populated)</span>
+</div>
+</div>
+</form>
+<!-- Action Buttons -->
+<div class="p-lg bg-surface-container-low border-t border-outline-variant flex flex-row-reverse gap-md">
+<button class="flex-1 md:flex-none md:min-w-[180px] bg-[#D97706] hover:bg-[#B45309] active:bg-[#92400E] text-white font-bold h-12 px-lg rounded-lg transition-all shadow-sm flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined" data-icon="lock_open">lock_open</span>
+Confirm Override
+</button>
+<button class="flex-1 md:flex-none md:min-w-[120px] bg-transparent border border-outline text-primary hover:bg-surface-container-high font-bold h-12 px-lg rounded-lg transition-all flex items-center justify-center">
+Cancel
+</button>
+</div>
+</div></div><div class="absolute inset-0 bg-surface-container/20 z-0 overflow-hidden pointer-events-none">
+<div class="p-lg grid grid-cols-7 gap-px bg-outline-variant/30 h-full">
+<div class="bg-white h-full"></div><div class="bg-white h-full"></div><div class="bg-white h-full"></div><div class="bg-white h-full"></div><div class="bg-white h-full"></div><div class="bg-white h-full"></div><div class="bg-white h-full"></div>
+</div>
+</div>
+<!-- Subtle Animated Background for Professionalism -->
+<!-- Main Confirmation Container -->
+<!-- System Audit Log Indicator (Visual Flavor) -->
+<div class="fixed bottom-lg right-lg flex items-center gap-sm text-on-surface-variant opacity-60 pointer-events-none">
+<span class="material-symbols-outlined text-sm" data-icon="history">history</span>
+<span class="font-data-mono text-body-sm">EVENT_LOG_PRTCL_44921</span>
+</div>
+</main>
+<script>
+        // Simple micro-interaction for the primary button
+        const confirmBtn = document.querySelector('button:contains("Confirm")') || document.querySelector('.bg-\\[\\#D97706\\]');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('mousedown', () => {
+                confirmBtn.style.transform = 'scale(0.98)';
+            });
+            confirmBtn.addEventListener('mouseup', () => {
+                confirmBtn.style.transform = 'scale(1)';
+            });
+            confirmBtn.addEventListener('mouseleave', () => {
+                confirmBtn.style.transform = 'scale(1)';
+            });
+        }
+
+        // Mock interaction for select change visual feedback
+        const selectEl = document.getElementById('reason-code');
+        selectEl.addEventListener('change', () => {
+            selectEl.classList.add('border-primary');
+            setTimeout(() => {
+                selectEl.classList.remove('border-primary');
+            }, 1000);
+        });
+    </script>
+</body></html>

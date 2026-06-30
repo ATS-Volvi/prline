@@ -1,0 +1,557 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Availability Dashboard | Industrial Logic</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#4edea3",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "surface-dim": "#d8dadc",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "on-primary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "inverse-primary": "#bcc7de",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#e6e8ea",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "on-primary-container": "#8590a6",
+                    "surface-tint": "#545f73",
+                    "background": "#f7f9fb",
+                    "surface-container-highest": "#e0e3e5",
+                    "secondary-fixed": "#d5e3fc",
+                    "on-error-container": "#93000a",
+                    "secondary-container": "#d5e3fc",
+                    "on-background": "#191c1e",
+                    "tertiary-container": "#00301e",
+                    "surface-container": "#eceef0",
+                    "on-primary-fixed": "#111c2d",
+                    "outline-variant": "#c5c6cd",
+                    "on-tertiary-container": "#00a472",
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed": "#6ffbbe",
+                    "primary-container": "#1e293b",
+                    "primary": "#091426",
+                    "on-tertiary": "#ffffff",
+                    "secondary": "#515f74",
+                    "on-surface-variant": "#45474c",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "primary-fixed-dim": "#bcc7de",
+                    "on-surface": "#191c1e",
+                    "surface-variant": "#e0e3e5",
+                    "error-container": "#ffdad6",
+                    "surface-bright": "#f7f9fb",
+                    "inverse-surface": "#2d3133",
+                    "on-error": "#ffffff",
+                    "tertiary": "#00190e",
+                    "on-secondary-container": "#57657a",
+                    "on-tertiary-fixed": "#002113",
+                    "outline": "#75777d",
+                    "primary-fixed": "#d8e3fb",
+                    "surface": "#f7f9fb",
+                    "surface-container-low": "#f2f4f6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "xl": "32px",
+                    "md": "16px",
+                    "margin-mobile": "16px",
+                    "lg": "24px",
+                    "sm": "8px",
+                    "xs": "4px",
+                    "gutter-mobile": "12px"
+            },
+            "fontFamily": {
+                    "body-sm": ["Inter"],
+                    "label-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "data-mono": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for high-density tables */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .calendar-cell {
+            min-width: 120px;
+            height: 64px;
+        }
+        .frozen-column {
+            position: sticky;
+            left: 0;
+            z-index: 20;
+            background-color: inherit;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface flex min-h-screen">
+<!-- SIDEBAR NAVIGATION -->
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-surface-container-low dark:bg-primary border-r border-outline-variant dark:border-on-surface-variant py-md px-sm gap-xs z-[60]">
+<div class="flex items-center gap-md px-md mb-xl">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary">precision_manufacturing</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed-dim">Industrial Logic</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Workforce Management</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-outline hover:text-on-surface dark:hover:text-on-primary hover:bg-surface-container-high dark:hover:bg-secondary-fixed-dim transition-all rounded-lg scale-98 active:opacity-80" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-lg text-label-lg">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-outline hover:text-on-surface dark:hover:text-on-primary hover:bg-surface-container-high dark:hover:bg-secondary-fixed-dim transition-all rounded-lg scale-98 active:opacity-80" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-lg text-label-lg">Associates</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-outline hover:text-on-surface dark:hover:text-on-primary hover:bg-surface-container-high dark:hover:bg-secondary-fixed-dim transition-all rounded-lg scale-98 active:opacity-80" href="#">
+<span class="material-symbols-outlined">precision_manufacturing</span>
+<span class="font-label-lg text-label-lg">Workstations</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-outline hover:text-on-surface dark:hover:text-on-primary hover:bg-surface-container-high dark:hover:bg-secondary-fixed-dim transition-all rounded-lg scale-98 active:opacity-80" href="#">
+<span class="material-symbols-outlined">military_tech</span>
+<span class="font-label-lg text-label-lg">Skills</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-outline hover:text-on-surface dark:hover:text-on-primary hover:bg-surface-container-high dark:hover:bg-secondary-fixed-dim transition-all rounded-lg scale-98 active:opacity-80" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="font-label-lg text-label-lg">Reports</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-outline hover:text-on-surface dark:hover:text-on-primary hover:bg-surface-container-high dark:hover:bg-secondary-fixed-dim transition-all rounded-lg scale-98 active:opacity-80" href="#">
+<span class="material-symbols-outlined">manage_accounts</span>
+<span class="font-label-lg text-label-lg">User Management</span>
+</a>
+<!-- ACTIVE TAB -->
+<a class="flex items-center gap-md px-md py-sm bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-lg font-bold transition-all scale-98" href="#">
+<span class="material-symbols-outlined">event_available</span>
+<span class="font-label-lg text-label-lg">Availability</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-outline-variant pt-md">
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:text-error transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-lg text-label-lg">Logout</span>
+</a>
+</div>
+</aside>
+<!-- MAIN CONTENT AREA -->
+<main class="flex-1 md:ml-64 flex flex-col overflow-auto">
+<!-- TOP NAVIGATION -->
+<header class="flex justify-between items-center px-lg w-full sticky top-0 z-50 bg-surface dark:bg-primary h-16 border-b border-outline-variant dark:border-on-surface-variant">
+<div class="flex items-center gap-md">
+<h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">Availability &amp; Attendance</h1>
+<div class="hidden md:flex items-center ml-lg px-sm py-xs bg-surface-container rounded-lg border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant mr-xs">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-sm font-body-sm w-48" placeholder="Quick search associates..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-sm">
+<button class="p-xs text-on-surface-variant hover:bg-surface-container dark:hover:bg-primary-container transition-colors rounded-full cursor-pointer">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:bg-surface-container dark:hover:bg-primary-container transition-colors rounded-full cursor-pointer">
+<span class="material-symbols-outlined">help</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:bg-surface-container dark:hover:bg-primary-container transition-colors rounded-full cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="h-8 w-[1px] bg-outline-variant mx-sm"></div>
+<div class="flex items-center gap-sm">
+<img class="w-8 h-8 rounded-full border border-outline" data-alt="A close-up, professional headshot of a female industrial plant manager wearing a clean, modern navy blue uniform with a small ID badge. The lighting is soft and neutral, typical of a high-end corporate office within a factory setting. Background is slightly blurred, showing hint of glass walls and clean architectural lines." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAm9yvAIGpTZv3wUUhkKcBoSs9l-WmrVPwvdkjhoNAG8kup3NqQFfYat1-KHKxOycLEWXrjXC1jGKBfyZ_OE1McKl-c1qLeeen8I6g3KfBd9sGU7AfQSssooi2YBS-B84XDMAJbvOB1S0592OvPOSpfp6JPlqe2tWlIOrZ0wXSCoNVJ-DSkBnzgWaAHwcFomJztd-VyPjXqFoLlIaAe8NibPVjC5KmnHdOITGjtXzzBZYzdAtAqu0Hk7gDXvWUNpb96ZCqc4LyuNk">
+</div>
+</div>
+</header>
+<!-- DASHBOARD CANVAS -->
+<div class="p-lg flex-1 overflow-x-auto pr-xl pr-12 w-full">
+<!-- CONTROLS BAR -->
+<section class="mb-lg flex flex-wrap items-center justify-between gap-md p-md bg-white border border-outline-variant rounded-lg w-full">
+<div class="flex items-center gap-md">
+<div class="flex flex-col">
+<label class="font-label-md text-label-md text-on-surface-variant mb-xs">Production Line</label>
+<select class="bg-surface border border-outline-variant rounded-lg px-md py-xs text-body-md font-body-md focus:border-primary focus:ring-1 focus:ring-primary">
+<option>All Lines</option>
+<option>Assembly A1</option>
+<option>Quality Assurance B2</option>
+<option>Packaging C3</option>
+</select>
+</div>
+<div class="flex flex-col">
+<label class="font-label-md text-label-md text-on-surface-variant mb-xs">Shift</label>
+<select class="bg-surface border border-outline-variant rounded-lg px-md py-xs text-body-md font-body-md focus:border-primary focus:ring-1 focus:ring-primary">
+<option>All Shifts</option>
+<option>Shift A (06:00-14:00)</option>
+<option>Shift B (14:00-22:00)</option>
+<option>Shift C (22:00-06:00)</option>
+</select>
+</div>
+<div class="flex flex-col">
+<label class="font-label-md text-label-md text-on-surface-variant mb-xs">Week Commencing</label>
+<div class="flex items-center gap-xs">
+<button class="p-xs hover:bg-surface-container rounded transition-colors"><span class="material-symbols-outlined text-[20px]">chevron_left</span></button>
+<span class="font-body-md text-body-md bg-surface px-md py-xs rounded border border-outline-variant">May 22, 2024 - May 28, 2024</span>
+<button class="p-xs hover:bg-surface-container rounded transition-colors"><span class="material-symbols-outlined text-[20px]">chevron_right</span></button>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="flex items-center gap-sm px-md py-sm bg-primary text-on-primary font-label-lg text-label-lg rounded-lg hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                        Assign Shift
+                    </button>
+<button class="flex items-center gap-sm px-md py-sm bg-white border border-primary text-primary font-label-lg text-label-lg rounded-lg hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">download</span>
+                        Export PDF
+                    </button>
+</div>
+</section>
+<!-- LEGEND -->
+<div class="flex items-center gap-lg mb-md">
+<div class="flex items-center gap-sm">
+<span class="w-4 h-4 rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim"></span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Available/Assigned</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="w-4 h-4 rounded bg-amber-100 border border-amber-400"></span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Leave/Absence</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="w-4 h-4 rounded bg-surface-container-highest border border-outline-variant"></span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Off-day</span>
+</div>
+</div>
+<!-- WEEKLY CALENDAR GRID -->
+<div class="bg-white border border-outline-variant rounded-xl shadow-sm overflow-x-auto">
+<div class="overflow-x-auto">
+<table class="w-full border-collapse" style="min-width: 1200px;">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="frozen-column w-64 min-w-[256px] text-left px-md py-md font-label-lg text-label-lg text-primary border-r border-outline-variant">Associate Details</th>
+<th class="calendar-cell px-md py-md text-center font-label-lg text-label-lg text-on-surface-variant">Mon <span class="font-normal block text-body-sm opacity-60">22 May</span></th>
+<th class="calendar-cell px-md py-md text-center font-label-lg text-label-lg text-on-surface-variant">Tue <span class="font-normal block text-body-sm opacity-60">23 May</span></th>
+<th class="calendar-cell px-md py-md text-center font-label-lg text-label-lg text-on-surface-variant">Wed <span class="font-normal block text-body-sm opacity-60">24 May</span></th>
+<th class="calendar-cell px-md py-md text-center font-label-lg text-label-lg text-on-surface-variant">Thu <span class="font-normal block text-body-sm opacity-60">25 May</span></th>
+<th class="calendar-cell px-md py-md text-center font-label-lg text-label-lg text-on-surface-variant">Fri <span class="font-normal block text-body-sm opacity-60">26 May</span></th>
+<th class="calendar-cell px-md py-md text-center font-label-lg text-label-lg text-on-surface-variant">Sat <span class="font-normal block text-body-sm opacity-60">27 May</span></th>
+<th class="calendar-cell px-md py-md text-center font-label-lg text-label-lg text-on-surface-variant">Sun <span class="font-normal block text-body-sm opacity-60">28 May</span></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-background transition-colors group">
+<td class="frozen-column px-md py-md border-r border-outline-variant">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center font-bold text-primary">JD</div>
+<div>
+<p class="font-label-lg text-label-lg text-primary">John Doe</p>
+<p class="font-data-mono text-data-mono text-xs text-on-surface-variant">ID: 884-902</p>
+</div>
+</div>
+</td>
+<!-- Days -->
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim flex flex-col items-center justify-center">
+<span class="font-bold text-on-tertiary-fixed-variant">Shift A</span>
+<span class="text-[10px] uppercase font-bold text-on-tertiary-fixed-variant/60">06:00 - 14:00</span>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim flex flex-col items-center justify-center">
+<span class="font-bold text-on-tertiary-fixed-variant">Shift A</span>
+<span class="text-[10px] uppercase font-bold text-on-tertiary-fixed-variant/60">06:00 - 14:00</span>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim flex flex-col items-center justify-center">
+<span class="font-bold text-on-tertiary-fixed-variant">Shift A</span>
+<span class="text-[10px] uppercase font-bold text-on-tertiary-fixed-variant/60">06:00 - 14:00</span>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-amber-100 border border-amber-400 flex flex-col items-center justify-center">
+<span class="font-bold text-amber-800">Leave</span>
+<span class="text-[10px] uppercase font-bold text-amber-700/60 text-center">Annual Holiday</span>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim flex flex-col items-center justify-center">
+<span class="font-bold text-on-tertiary-fixed-variant">Shift A</span>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-surface-container-highest border border-outline-variant flex items-center justify-center">
+<span class="font-bold text-outline uppercase tracking-wider text-xs">Off</span>
+</div>
+</td>
+<td class="calendar-cell p-xs"><div class="h-full w-full rounded bg-surface-container-highest border border-outline-variant flex items-center justify-center"><span class="font-bold text-outline uppercase tracking-wider text-xs">Off</span></div></td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-background transition-colors group">
+<td class="frozen-column px-md py-md border-r border-outline-variant">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center font-bold text-on-primary">SA</div>
+<div>
+<p class="font-label-lg text-label-lg text-primary">Sarah Ahmed</p>
+<p class="font-data-mono text-data-mono text-xs text-on-surface-variant">ID: 112-455</p>
+</div>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim flex flex-col items-center justify-center">
+<span class="font-bold text-on-tertiary-fixed-variant">Shift B</span>
+<span class="text-[10px] uppercase font-bold text-on-tertiary-fixed-variant/60">14:00 - 22:00</span>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim flex flex-col items-center justify-center">
+<span class="font-bold text-on-tertiary-fixed-variant">Shift B</span>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim flex flex-col items-center justify-center">
+<span class="font-bold text-on-tertiary-fixed-variant">Shift B</span>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim flex flex-col items-center justify-center">
+<span class="font-bold text-on-tertiary-fixed-variant">Shift B</span>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim flex flex-col items-center justify-center">
+<span class="font-bold text-on-tertiary-fixed-variant">Shift B</span>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim flex flex-col items-center justify-center">
+<span class="font-bold text-on-tertiary-fixed-variant">Shift B</span>
+</div>
+</td>
+<td class="calendar-cell p-xs"><div class="h-full w-full rounded bg-surface-container-highest border border-outline-variant flex items-center justify-center"><span class="font-bold text-outline uppercase tracking-wider text-xs">Off</span></div></td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-background transition-colors group">
+<td class="frozen-column px-md py-md border-r border-outline-variant">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-tertiary-container flex items-center justify-center font-bold text-on-tertiary">ML</div>
+<div>
+<p class="font-label-lg text-label-lg text-primary">Mike Lawson</p>
+<p class="font-data-mono text-data-mono text-xs text-on-surface-variant">ID: 991-003</p>
+</div>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-surface-container-highest border border-outline-variant flex items-center justify-center">
+<span class="font-bold text-outline uppercase tracking-wider text-xs">Off</span>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-surface-container-highest border border-outline-variant flex items-center justify-center">
+<span class="font-bold text-outline uppercase tracking-wider text-xs">Off</span>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim flex flex-col items-center justify-center">
+<span class="font-bold text-on-tertiary-fixed-variant">Shift C</span>
+<span class="text-[10px] uppercase font-bold text-on-tertiary-fixed-variant/60">22:00 - 06:00</span>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim flex flex-col items-center justify-center">
+<span class="font-bold text-on-tertiary-fixed-variant">Shift C</span>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim flex flex-col items-center justify-center">
+<span class="font-bold text-on-tertiary-fixed-variant">Shift C</span>
+</div>
+</td>
+<td class="calendar-cell p-xs border-r border-outline-variant">
+<div class="h-full w-full rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim flex flex-col items-center justify-center">
+<span class="font-bold text-on-tertiary-fixed-variant">Shift C</span>
+</div>
+</td>
+<td class="calendar-cell p-xs"><div class="h-full w-full rounded bg-tertiary-fixed-dim/20 border border-tertiary-fixed-dim flex flex-col items-center justify-center"><span class="font-bold text-on-tertiary-fixed-variant">Shift C</span></div></td>
+</tr>
+</tbody>
+<!-- COVERAGE SUMMARY ROW -->
+<tfoot class="bg-primary text-on-primary sticky bottom-0 z-30">
+<tr>
+<td class="frozen-column bg-primary px-md py-md border-r border-primary-container">
+<div class="font-label-lg text-label-lg uppercase tracking-widest text-primary-fixed-dim">Daily Coverage</div>
+<p class="text-[10px] text-white/60">Total Active Headcount</p>
+</td>
+<td class="calendar-cell px-md py-xs border-r border-primary-container text-center">
+<div class="text-headline-sm font-data-mono">24</div>
+<div class="flex justify-between text-[10px] font-bold text-primary-fixed-dim uppercase">
+<span class="">A: 12</span> <span class="">B: 8</span> <span class="">C: 4</span>
+</div>
+</td>
+<td class="calendar-cell px-md py-xs border-r border-primary-container text-center">
+<div class="text-headline-sm font-data-mono">22</div>
+<div class="flex justify-between text-[10px] font-bold text-primary-fixed-dim uppercase">
+<span class="">A: 10</span> <span class="">B: 10</span> <span class="">C: 2</span>
+</div>
+</td>
+<td class="calendar-cell px-md py-xs border-r border-primary-container text-center">
+<div class="text-headline-sm font-data-mono">28</div>
+<div class="flex justify-between text-[10px] font-bold text-primary-fixed-dim uppercase">
+<span class="">A: 11</span> <span class="">B: 11</span> <span class="">C: 6</span>
+</div>
+</td>
+<td class="calendar-cell px-md py-xs border-r border-primary-container text-center">
+<div class="text-headline-sm font-data-mono">20</div>
+<div class="flex justify-between text-[10px] font-bold text-primary-fixed-dim uppercase">
+<span class="">A: 8</span> <span class="">B: 8</span> <span class="">C: 4</span>
+</div>
+</td>
+<td class="calendar-cell px-md py-xs border-r border-primary-container text-center">
+<div class="text-headline-sm font-data-mono">30</div>
+<div class="flex justify-between text-[10px] font-bold text-primary-fixed-dim uppercase">
+<span class="">A: 15</span> <span class="">B: 10</span> <span class="">C: 5</span>
+</div>
+</td>
+<td class="calendar-cell px-md py-xs border-r border-primary-container text-center">
+<div class="text-headline-sm font-data-mono">14</div>
+<div class="flex justify-between text-[10px] font-bold text-primary-fixed-dim uppercase">
+<span class="">A: 4</span> <span class="">B: 6</span> <span class="">C: 4</span>
+</div>
+</td>
+<td class="calendar-cell px-md py-xs text-center"><div class="text-headline-sm font-data-mono">10</div><div class="flex justify-between text-[10px] font-bold text-primary-fixed-dim uppercase"><span class="">A: 2</span> <span class="">B: 4</span> <span class="">C: 4</span></div></td>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
+<!-- ADDITIONAL METRICS / BENTO STYLE -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-lg mt-xl">
+<div class="bg-white border border-outline-variant p-md rounded-xl shadow-sm overflow-x-auto">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-headline-sm text-headline-sm text-primary">Attendance Pulse</h3>
+<span class="material-symbols-outlined text-tertiary-fixed-dim">trending_up</span>
+</div>
+<div class="flex items-end gap-md">
+<span class="text-[32px] font-bold text-primary">94.2%</span>
+<span class="text-body-sm text-tertiary-container font-bold mb-xs">+2.1% from prev. week</span>
+</div>
+<div class="mt-md w-full bg-surface-container rounded-full h-2">
+<div class="bg-tertiary-fixed-dim h-2 rounded-full" style="width: 94.2%"></div>
+</div>
+</div>
+<div class="bg-white border border-outline-variant p-md rounded-xl shadow-sm overflow-x-auto">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-headline-sm text-headline-sm text-primary">Open Shifts</h3>
+<span class="material-symbols-outlined text-error">warning</span>
+</div>
+<div class="flex items-end gap-md">
+<span class="text-[32px] font-bold text-error">04</span>
+<span class="text-body-sm text-on-surface-variant mb-xs">Critical coverage gaps</span>
+</div>
+<div class="mt-md flex gap-sm">
+<span class="px-sm py-xs bg-error-container text-on-error-container text-[10px] font-bold rounded">LINE A1 (2)</span>
+<span class="px-sm py-xs bg-error-container text-on-error-container text-[10px] font-bold rounded">LINE C3 (2)</span>
+</div>
+</div>
+<div class="bg-white border border-outline-variant p-md rounded-xl shadow-sm overflow-x-auto">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-headline-sm text-headline-sm text-primary">Upcoming Leave</h3>
+<span class="material-symbols-outlined text-secondary">calendar_month</span>
+</div>
+<div class="space-y-sm">
+<div class="flex items-center justify-between">
+<span class="text-body-md font-body-md text-on-surface">Mark Stevenson</span>
+<span class="text-body-sm text-on-surface-variant">Starts Tomorrow</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-body-md font-body-md text-on-surface">Alice Wong</span>
+<span class="text-body-sm text-on-surface-variant">In 3 Days</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- MOBILE NAVIGATION (Visible only on small screens) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-outline-variant flex items-center justify-around px-md z-[100]">
+<button class="flex flex-col items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold uppercase">Home</span>
+</button>
+<button class="flex flex-col items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined">groups</span>
+<span class="text-[10px] font-bold uppercase">Staff</span>
+</button>
+<button class="flex flex-col items-center gap-xs text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">event_available</span>
+<span class="text-[10px] font-bold uppercase">Availability</span>
+</button>
+<button class="flex flex-col items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold uppercase">Settings</span>
+</button>
+</nav>
+<script>
+        // Micro-interaction for table rows
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.classList.add('bg-surface-container-lowest');
+            });
+            row.addEventListener('mouseleave', () => {
+                row.classList.remove('bg-surface-container-lowest');
+            });
+        });
+
+        // Simple filter toggle effect (Simulation)
+        const filterSelects = document.querySelectorAll('select');
+        filterSelects.forEach(select => {
+            select.addEventListener('change', () => {
+                console.log('Refreshing grid for: ' + select.value);
+                // In a real app, this would trigger a data refresh
+            });
+        });
+    </script>
+
+
+</body></html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Workstation Master - Line Manager Pro</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Inter & JetBrains Mono -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "inverse-surface": "#2d3133",
+                "on-error": "#ffffff",
+                "secondary-container": "#d5e3fc",
+                "secondary": "#515f74",
+                "secondary-fixed": "#d5e3fc",
+                "on-secondary-container": "#57657a",
+                "surface-dim": "#d8dadc",
+                "on-tertiary-fixed-variant": "#005236",
+                "surface-container": "#eceef0",
+                "primary-container": "#1e293b",
+                "error-container": "#ffdad6",
+                "on-surface-variant": "#45474c",
+                "surface": "#f7f9fb",
+                "surface-container-high": "#e6e8ea",
+                "error": "#ba1a1a",
+                "inverse-primary": "#bcc7de",
+                "on-primary": "#ffffff",
+                "surface-container-lowest": "#ffffff",
+                "on-secondary": "#ffffff",
+                "tertiary-container": "#00301e",
+                "surface-variant": "#e0e3e5",
+                "background": "#f7f9fb",
+                "secondary-fixed-dim": "#b9c7df",
+                "primary-fixed": "#d8e3fb",
+                "surface-container-low": "#f2f4f6",
+                "inverse-on-surface": "#eff1f3",
+                "primary": "#091426",
+                "outline-variant": "#c5c6cd",
+                "on-tertiary-fixed": "#002113",
+                "surface-container-highest": "#e0e3e5",
+                "on-primary-fixed-variant": "#3c475a",
+                "surface-bright": "#f7f9fb",
+                "surface-tint": "#545f73",
+                "outline": "#75777d",
+                "on-tertiary": "#ffffff",
+                "on-secondary-fixed": "#0d1c2e",
+                "on-background": "#191c1e",
+                "on-tertiary-container": "#00a472",
+                "on-primary-container": "#8590a6",
+                "tertiary-fixed": "#6ffbbe",
+                "on-surface": "#191c1e",
+                "on-secondary-fixed-variant": "#3a485b",
+                "on-error-container": "#93000a",
+                "tertiary-fixed-dim": "#4edea3",
+                "tertiary": "#00190e",
+                "on-primary-fixed": "#111c2d",
+                "primary-fixed-dim": "#bcc7de"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "sm": "8px",
+                "xs": "4px",
+                "base": "4px",
+                "md": "16px",
+                "gutter-mobile": "12px",
+                "lg": "24px",
+                "xl": "32px",
+                "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                "body-sm": ["Inter"],
+                "label-lg": ["Inter"],
+                "label-md": ["Inter"],
+                "headline-sm": ["Inter"],
+                "headline-md": ["Inter"],
+                "data-mono": ["JetBrains Mono"],
+                "body-lg": ["Inter"],
+                "body-md": ["Inter"],
+                "headline-lg": ["Inter"]
+            },
+            "fontSize": {
+                "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for industrial feel */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .station-table-row:hover {
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- SIDE NAV BAR (Industrial Sidebar) -->
+<aside class="bg-primary text-on-primary font-label-lg text-label-lg h-screen w-64 fixed left-0 top-0 border-r border-outline flex flex-col py-lg z-50">
+<div class="px-lg mb-xl">
+<h1 class="font-headline-md text-headline-md font-bold text-on-primary">Line Manager Pro</h1>
+<p class="text-on-primary-container text-body-sm opacity-80">Production Unit A</p>
+</div>
+<nav class="flex-grow space-y-1">
+<!-- Dashboard -->
+<a class="flex items-center px-lg py-3 text-on-primary-container hover:bg-primary-container rounded-lg mx-2 my-1 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Associates -->
+<a class="flex items-center px-lg py-3 text-on-primary-container hover:bg-primary-container rounded-lg mx-2 my-1 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3">group</span>
+<span>Associates</span>
+</a>
+<!-- Workstations (ACTIVE) -->
+<a class="flex items-center px-lg py-3 bg-secondary-container text-on-secondary-container rounded-lg mx-2 my-1 scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mr-3">precision_manufacturing</span>
+<span>Workstations</span>
+</a>
+<!-- Reports -->
+<a class="flex items-center px-lg py-3 text-on-primary-container hover:bg-primary-container rounded-lg mx-2 my-1 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3">analytics</span>
+<span>Reports</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center px-lg py-3 text-on-primary-container hover:bg-primary-container rounded-lg mx-2 my-1 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="px-lg mt-auto pt-lg">
+<button class="w-full bg-on-primary text-primary font-bold py-3 px-md rounded-lg flex items-center justify-center gap-2 hover:bg-secondary-container transition-all active:scale-95">
+<span class="material-symbols-outlined">add</span>
+                New Asset
+            </button>
+<div class="mt-lg flex items-center gap-3 border-t border-outline-variant pt-lg">
+<img class="w-10 h-10 rounded-full border-2 border-outline-variant object-cover" data-alt="A professional portrait of a factory manager wearing a clean industrial uniform, looking confident and approachable. The lighting is soft and professional, with a clean architectural background of a modern smart-factory command center in soft blues and grays." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrahiFfHLxd1SdIzfU9yogQWs4mERyWpjUzjU_DJu4Vmhgua74WxTo5e6RKvXenN-QBeFL1immbxwF3VQlPr5WSDk4V-LQNEwWw7MiaaLdWmY8AjUewJLGXXCqeRjMu76tyCkcyrB39pLBRuX4Lojhd0Xe9Mi4k5v0QFYssW0RRByrc-Ajd9noOBn635V6Gqv0TwBLKMAEpdeRcKifnKRD8WnEF7y0oYkv58TMVm99ife3PoSh0gboEns8_oovqh2sp652RxKsLe4"/>
+<div class="overflow-hidden">
+<p class="font-label-lg truncate">Marcus Chen</p>
+<p class="text-body-sm opacity-70 truncate">Factory Manager</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- MAIN CONTENT AREA -->
+<main class="ml-64 min-h-screen">
+<!-- TOP NAV BAR -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-surface border-b border-outline flex items-center justify-between px-lg z-40">
+<div class="flex items-center gap-md w-1/2">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-body-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="Search workstations, assets, or IDs..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+</div>
+</header>
+<!-- CANVAS AREA -->
+<div class="pt-24 pb-xl px-lg max-w-[1400px] mx-auto">
+<!-- HEADER SECTION -->
+<section class="flex flex-col md:flex-row md:items-end justify-between gap-md mb-xl">
+<div>
+<nav class="flex items-center gap-2 text-on-surface-variant text-body-sm mb-2">
+<span>Assets</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-primary font-medium">Workstations</span>
+</nav>
+<h2 class="font-headline-lg text-headline-lg text-primary">Workstation Master</h2>
+</div>
+<div class="flex gap-md">
+<button class="flex items-center gap-2 px-md py-3 bg-surface-container-highest text-primary font-bold rounded-lg border border-outline-variant hover:bg-surface-variant transition-all active:scale-95">
+<span class="material-symbols-outlined">file_download</span>
+                        Export List
+                    </button>
+<button class="flex items-center gap-2 px-md py-3 bg-primary-container text-on-primary font-bold rounded-lg hover:shadow-sm transition-all active:scale-95">
+<span class="material-symbols-outlined">add</span>
+                        Add Workstation
+                    </button>
+</div>
+</section>
+<!-- KPI GRID (Bento Style) -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md mb-xl">
+<!-- Total -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="text-body-sm text-on-surface-variant font-medium">Total Workstations</span>
+<div class="p-2 bg-secondary-container text-on-secondary-container rounded-lg">
+<span class="material-symbols-outlined">precision_manufacturing</span>
+</div>
+</div>
+<div class="mt-4">
+<h3 class="text-headline-lg font-bold">42</h3>
+<p class="text-body-sm text-on-tertiary-container mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                            +2 from last month
+                        </p>
+</div>
+</div>
+<!-- Operating -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="text-body-sm text-on-surface-variant font-medium">Operating</span>
+<div class="p-2 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-lg">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+</div>
+<div class="mt-4">
+<h3 class="text-headline-lg font-bold">36</h3>
+<div class="w-full bg-surface-container h-1.5 rounded-full mt-2">
+<div class="bg-on-tertiary-container h-1.5 rounded-full" style="width: 85%"></div>
+</div>
+</div>
+</div>
+<!-- Maintenance -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="text-body-sm text-on-surface-variant font-medium">Maintenance</span>
+<div class="p-2 bg-secondary-fixed text-on-secondary-fixed-variant rounded-lg">
+<span class="material-symbols-outlined">build</span>
+</div>
+</div>
+<div class="mt-4">
+<h3 class="text-headline-lg font-bold">4</h3>
+<p class="text-body-sm text-on-secondary-container mt-1">Scheduled: 2 urgent</p>
+</div>
+</div>
+<!-- Offline -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="text-body-sm text-on-surface-variant font-medium">Offline/Critical</span>
+<div class="p-2 bg-error-container text-on-error-container rounded-lg">
+<span class="material-symbols-outlined">error</span>
+</div>
+</div>
+<div class="mt-4">
+<h3 class="text-headline-lg font-bold">2</h3>
+<p class="text-body-sm text-error mt-1 font-medium">Awaiting parts</p>
+</div>
+</div>
+</section>
+<!-- FILTERS & LIST -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+<!-- Filter Bar -->
+<div class="px-lg py-md border-b border-outline-variant flex flex-col md:flex-row md:items-center justify-between gap-md bg-surface-container-low">
+<div class="flex flex-wrap items-center gap-md">
+<div class="flex items-center gap-2 bg-surface px-md py-2 border border-outline-variant rounded-lg text-body-md">
+<span class="text-on-surface-variant">Floor Section:</span>
+<select class="bg-transparent border-none focus:ring-0 font-medium py-0 cursor-pointer">
+<option>All Sections</option>
+<option>North Wing</option>
+<option>South Assembly</option>
+<option>Packaging B</option>
+</select>
+</div>
+<div class="flex items-center gap-2 bg-surface px-md py-2 border border-outline-variant rounded-lg text-body-md">
+<span class="text-on-surface-variant">Status:</span>
+<select class="bg-transparent border-none focus:ring-0 font-medium py-0 cursor-pointer">
+<option>All Statuses</option>
+<option>Operating</option>
+<option>Maintenance</option>
+<option>Offline</option>
+<option>Idle</option>
+</select>
+</div>
+</div>
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors text-body-md font-medium">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                        Advanced Filters
+                    </button>
+</div>
+<!-- Table Content -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<tr>
+<th class="px-lg py-md border-b border-outline-variant">Station ID</th>
+<th class="px-lg py-md border-b border-outline-variant">Machine Name</th>
+<th class="px-lg py-md border-b border-outline-variant">Status</th><th class="px-lg py-md border-b border-outline-variant">Min. Skill</th>
+<th class="px-lg py-md border-b border-outline-variant">Assigned Associate</th>
+<th class="px-lg py-md border-b border-outline-variant">Current Efficiency</th>
+<th class="px-lg py-md border-b border-outline-variant text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="text-body-md divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="station-table-row transition-colors cursor-pointer"><td class="px-lg py-md font-data-mono text-primary font-bold">WS-A104</td><td class="px-lg py-md"><div class="flex flex-col"><span class="font-bold">CNC Router - Titan X</span><span class="text-body-sm text-on-surface-variant">North Wing / Sec 4</span></div></td><td class="px-lg py-md"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800"><span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>Operating</span></td><td class="px-lg py-md"><span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-surface-container-high text-on-surface-variant border border-outline-variant">Level 3</span></td><td class="px-lg py-md"><div class="flex items-center gap-2"><img class="w-8 h-8 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbc_cGvw3I3VETwv9EYexbba4y6RBuwX9t0Vm-ulQQmNqbKlc6jrwBvXoXyJiaZ6ZwDEYUUtOI4S14zMqxZ5QVPRkgRIa6PkZOQ0JxVg_oPUkA_MdzvW10Do2A9umW1CJ32NThcB22FV97Ja35FejJPFKFo9mId02L9OrJ1nkIY3abVjo_dV4Zcg82z-hArLISXr1H8RqTFttCt88jLev4OAK11USJ3rdIPJ_AqXstH5QyMKuS06KYgVZd-QfWMMVxdvqjfhyqlMM"/><span>Sarah Jenkins</span></div></td><td class="px-lg py-md"><div class="flex items-center gap-2"><div class="w-24 bg-surface-container-high h-2 rounded-full overflow-hidden"><div class="bg-on-tertiary-container h-full" style="width: 94%"></div></div><span class="font-data-mono font-bold">94%</span></div></td><td class="px-lg py-md text-right"><div class="flex justify-end gap-2"><button class="p-2 text-on-surface-variant hover:text-primary transition-colors" title="Edit"><span class="material-symbols-outlined text-[20px]">edit</span></button><button class="p-2 text-on-surface-variant hover:text-primary transition-colors" title="Details"><span class="material-symbols-outlined text-[20px]">visibility</span></button></div></td></tr>
+<!-- Row 2 -->
+<tr class="station-table-row transition-colors cursor-pointer"><td class="px-lg py-md font-data-mono text-primary font-bold">WS-B202</td><td class="px-lg py-md"><div class="flex flex-col"><span class="font-bold">Hydraulic Press - S600</span><span class="text-body-sm text-on-surface-variant">South Assembly / Sec 2</span></div></td><td class="px-lg py-md"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800"><span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5"></span>Maintenance</span></td><td class="px-lg py-md"><span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-surface-container-high text-on-surface-variant border border-outline-variant">Level 2</span></td><td class="px-lg py-md"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-bold text-[10px]">DA</div><span>David Arris</span></div></td><td class="px-lg py-md"><div class="flex items-center gap-2"><div class="w-24 bg-surface-container-high h-2 rounded-full overflow-hidden"><div class="bg-secondary h-full" style="width: 0%"></div></div><span class="font-data-mono font-bold">0%</span></div></td><td class="px-lg py-md text-right"><div class="flex justify-end gap-2"><button class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">edit</span></button><button class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">visibility</span></button></div></td></tr>
+<!-- Row 3 -->
+<tr class="station-table-row transition-colors cursor-pointer"><td class="px-lg py-md font-data-mono text-primary font-bold">WS-A112</td><td class="px-lg py-md"><div class="flex flex-col"><span class="font-bold">Laser Cutter - Precision 3</span><span class="text-body-sm text-on-surface-variant">North Wing / Sec 2</span></div></td><td class="px-lg py-md"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-error-container text-on-error-container"><span class="w-1.5 h-1.5 rounded-full bg-error mr-1.5"></span>Offline</span></td><td class="px-lg py-md"><span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-primary text-on-primary">Expert</span></td><td class="px-lg py-md"><span class="text-body-sm text-on-surface-variant italic">Unassigned</span></td><td class="px-lg py-md"><div class="flex items-center gap-2"><div class="w-24 bg-surface-container-high h-2 rounded-full overflow-hidden"><div class="bg-error h-full" style="width: 12%"></div></div><span class="font-data-mono font-bold text-error">12%</span></div></td><td class="px-lg py-md text-right"><div class="flex justify-end gap-2"><button class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">edit</span></button><button class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">visibility</span></button></div></td></tr>
+<!-- Row 4 -->
+<tr class="station-table-row transition-colors cursor-pointer"><td class="px-lg py-md font-data-mono text-primary font-bold">WS-C304</td><td class="px-lg py-md"><div class="flex flex-col"><span class="font-bold">Injection Molder V5</span><span class="text-body-sm text-on-surface-variant">Packaging B / Sec 1</span></div></td><td class="px-lg py-md"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-surface-container-high text-on-surface-variant"><span class="w-1.5 h-1.5 rounded-full bg-outline mr-1.5"></span>Idle</span></td><td class="px-lg py-md"><span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-surface-container-high text-on-surface-variant border border-outline-variant">Level 1</span></td><td class="px-lg py-md"><div class="flex items-center gap-2"><img class="w-8 h-8 rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQoDkCYyb0YfRjcq-FVypBNa6UcG8eOBU8vGxlcxRsMpouwfeme7ZV2P2cG92nz3s3fbTLcEpmzsrxAJo2TfiCLp65ftKwLs7dJ6BtOBJLhdS4ka8DMs6B5-G72vT0aeUCCZfpUMffN-ykHzTELyrCgQQ7dsyji4kOm1APPBSVKKg15fhLdivmuPeGuRvKTAU80Xwki32V6yFtFPVhCQ0eHL6QDYfcMtm5Y6QzLYQMa2W8xbR-wYY_Ndkzw4XriQx9KLWdEBwPluE"/><span>Tom Richards</span></div></td><td class="px-lg py-md"><div class="flex items-center gap-2"><div class="w-24 bg-surface-container-high h-2 rounded-full overflow-hidden"><div class="bg-on-tertiary-container h-full" style="width: 88%"></div></div><span class="font-data-mono font-bold">88%</span></div></td><td class="px-lg py-md text-right"><div class="flex justify-end gap-2"><button class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">edit</span></button><button class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">visibility</span></button></div></td></tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-lg py-md bg-surface-container-low border-t border-outline-variant flex items-center justify-between">
+<span class="text-body-sm text-on-surface-variant">Showing 4 of 42 Workstations</span>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-md border border-outline-variant hover:bg-surface transition-colors disabled:opacity-40" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="px-3 py-1 rounded-md bg-primary text-on-primary font-bold text-body-sm">1</button>
+<button class="px-3 py-1 rounded-md hover:bg-surface-container-high text-body-sm">2</button>
+<button class="px-3 py-1 rounded-md hover:bg-surface-container-high text-body-sm">3</button>
+<button class="p-2 rounded-md border border-outline-variant hover:bg-surface transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- FLOOR MAP PREVIEW (Decorative/Utility Section) -->
+<section class="mt-xl">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg">
+<div class="flex items-center justify-between mb-lg">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-primary">Live Floor Overview</h4>
+<p class="text-body-sm text-on-surface-variant">Real-time spatial distribution of workstation status</p>
+</div>
+<button class="text-primary font-bold text-body-sm flex items-center gap-1 hover:underline">
+                            Open Full Map
+                            <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</button>
+</div>
+<div class="relative w-full h-80 rounded-lg overflow-hidden bg-surface-container border border-outline-variant">
+<!-- Simulated Map with WebGL or Shaders could go here, for now a clean placeholder -->
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-full h-full bg-cover bg-center opacity-60" data-alt="A high-tech digital schematic of a factory floor layout. The map uses a minimalist blueprint style with thin white lines on a deep blue-gray background. Individual workstation blocks are highlighted in soft glowing greens, ambers, and reds indicating their real-time operational status. The style is clean, technical, and high-contrast." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAx9SGvJlhBxRGS99zL-GIrRyf21OnSRSgbmLmsMzrEQFsfBpPgHBuX8ZZUNxQCsyzJ2N2JcLdyYy1WM09AijebpLrYEtUbUKjrtx9QTUVUaGseU2EmzM9CkTA4djkf91CVq0gJXCVQqq9_vbLP2YFWoKUvbXFEuQyjNTbWbozEk_3zoMwC4NJPBH0aMC7GqgsxEygfk8BcHaeN9ooTTravSwvwfI_h_Sc0ktO2JBxHHsgO-DGHYzSQsNMl3WHlgBuMLF2ix-nAPs8')"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="bg-surface/90 backdrop-blur-sm p-lg rounded-xl border border-outline-variant shadow-lg text-center max-w-sm">
+<span class="material-symbols-outlined text-primary text-4xl mb-2">map</span>
+<h5 class="font-headline-sm mb-1">Interactive Spatial Data</h5>
+<p class="text-body-sm text-on-surface-variant mb-4">Zoom and hover over individual units to see instant performance metrics and machine health.</p>
+<button class="px-md py-2 bg-primary text-on-primary rounded-lg font-bold text-body-sm">Initialize Tracker</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<script>
+        // Simple micro-interactions
+        document.querySelectorAll('.station-table-row').forEach(row => {
+            row.addEventListener('click', () => {
+                // Potential navigation or expansion logic
+                console.log('Row clicked:', row.querySelector('.font-data-mono').innerText);
+            });
+        });
+
+        // Search Bar Focus Effect
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('ring-2', 'ring-primary');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('ring-2', 'ring-primary');
+        });
+    </script>
+</body></html>

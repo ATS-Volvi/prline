@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SnackPro Allocator - Shift Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#bec6e0",
+                        "surface-tint": "#565e74",
+                        "surface-container": "#f0edef",
+                        "on-tertiary-fixed": "#191c1e",
+                        "on-secondary-fixed": "#0d1c2f",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#b9c7e0",
+                        "surface-container-low": "#f6f3f5",
+                        "secondary-fixed": "#d5e3fd",
+                        "inverse-surface": "#303032",
+                        "primary-fixed": "#dae2fd",
+                        "on-primary-fixed": "#131b2e",
+                        "background": "#fcf8fa",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#3a485c",
+                        "surface-container-high": "#eae7e9",
+                        "outline": "#76777d",
+                        "outline-variant": "#c6c6cd",
+                        "surface-variant": "#e4e2e4",
+                        "error": "#ba1a1a",
+                        "on-secondary-container": "#57657b",
+                        "primary-container": "#131b2e",
+                        "on-tertiary-fixed-variant": "#444749",
+                        "tertiary": "#000000",
+                        "surface-bright": "#fcf8fa",
+                        "surface": "#fcf8fa",
+                        "primary": "#000000",
+                        "tertiary-container": "#191c1e",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#e4e2e4",
+                        "on-background": "#1b1b1d",
+                        "on-primary": "#ffffff",
+                        "primary-fixed-dim": "#bec6e0",
+                        "inverse-on-surface": "#f3f0f2",
+                        "on-surface": "#1b1b1d",
+                        "on-primary-container": "#7c839b",
+                        "secondary": "#515f74",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#c4c7c9",
+                        "surface-dim": "#dcd9db",
+                        "on-tertiary-container": "#818486",
+                        "tertiary-fixed": "#e0e3e5",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#d5e3fd",
+                        "on-surface-variant": "#45464d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "xs": "8px",
+                        "md": "16px",
+                        "touch-target": "44px",
+                        "edge-margin": "16px",
+                        "xl": "32px",
+                        "sm": "12px",
+                        "lg": "24px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "data-display": ["JetBrains Mono"],
+                        "headline-md": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "data-display": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #fcf8fa;
+            color: #1b1b1d;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c6c6cd;
+            border-radius: 10px;
+        }
+        .card-industrial {
+            border-top: 4px solid #000000;
+        }
+    </style>
+</head>
+<body class="flex h-screen w-full">
+<aside class="flex flex-col h-full w-72 bg-surface-container border-r border-outline-variant shadow-sm z-40">
+<div class="px-md py-lg flex flex-col gap-xs">
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-primary text-headline-md">factory</span>
+<span class="font-headline-md text-headline-md font-bold text-primary">SNACKPRO</span>
+</div>
+<div class="flex flex-col p-md bg-surface-container-low rounded-xl mb-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkHR_UFIxNhrj0Sg5mSiGsumAYxsOXTmv3PBLJbMgdK8DKGG6v4W4EfLiakHpz0CvdHTAfm2RXs97EBikNunQWqjglDhKKOFdbr1v0yTFu3UiAOFSvPpTlfRikjdPPXvyhmh3laPqdE5Vjj6lNGU1dIDU6cXdsYOCp7IKSmK14-RXMNz5x3RtytBFRBv8xOWO8_XRMsBYACQtT4oSC767c-vCavIN6MstWx24z_7H1qbtmEkf4zsEwFMyAtsJTxgl_azp99IKdq1eN"/>
+</div>
+<div>
+<div class="font-bold text-on-surface">R. Sharma</div>
+<div class="text-xs text-on-surface-variant">Floor Manager - Shift A</div>
+</div>
+</div>
+<div class="mt-sm text-[10px] font-label-caps text-on-tertiary-container uppercase tracking-widest">SnackPlant #102</div>
+</div>
+<nav class="flex flex-col gap-base">
+<a class="bg-primary-container text-on-primary-container font-bold rounded-full mx-xs px-md py-sm flex items-center gap-md transition-all duration-300" href="#">
+<span class="material-symbols-outlined">schedule</span>
+<span class="font-body-lg text-body-lg">Shift Management</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant mx-xs px-md py-sm flex items-center gap-md rounded-full transition-all duration-300" href="#">
+<span class="material-symbols-outlined">settings_input_component</span>
+<span class="font-body-lg text-body-lg">Line Configuration</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant mx-xs px-md py-sm flex items-center gap-md rounded-full transition-all duration-300" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-lg text-body-lg">System Settings</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant mx-xs px-md py-sm flex items-center gap-md rounded-full transition-all duration-300" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-body-lg text-body-lg">Support</span>
+</a>
+</nav>
+</div>
+</aside>
+<main class="flex-1 flex flex-col h-full overflow-hidden">
+<header class="flex justify-between items-center px-edge-margin h-touch-target w-full bg-surface sticky top-0 border-b border-outline-variant z-30">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary text-headline-md">factory</span>
+<h1 class="font-headline-md text-headline-md font-bold text-primary uppercase">Shift Allocation</h1>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden md:flex items-center gap-sm px-md py-xs bg-surface-container-high rounded-full border border-outline-variant">
+<span class="material-symbols-outlined text-sm">event</span>
+<span class="text-label-caps font-label-caps">OCT 24, 2023 | 06:00 - 14:00</span>
+</div>
+<button class="p-xs hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<div class="flex-1 flex overflow-hidden">
+<section class="w-80 h-full border-r border-outline-variant bg-surface-container-low p-md flex flex-col gap-lg custom-scrollbar overflow-y-auto">
+<div>
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-sm uppercase tracking-wider">Shift Selection</h3>
+<div class="grid grid-cols-1 gap-xs">
+<button class="flex items-center justify-between p-md bg-primary-container text-on-primary-container rounded-lg border-2 border-primary">
+<div class="flex flex-col items-start">
+<span class="font-bold">Shift A</span>
+<span class="text-xs opacity-80">06:00 - 14:00</span>
+</div>
+<span class="material-symbols-outlined">check_circle</span>
+</button>
+<button class="flex items-center justify-between p-md bg-white text-on-surface rounded-lg border border-outline-variant hover:bg-surface-variant transition-colors">
+<div class="flex flex-col items-start">
+<span class="font-bold">Shift B</span>
+<span class="text-xs text-on-surface-variant">14:00 - 22:00</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant">circle</span>
+</button>
+<button class="flex items-center justify-between p-md bg-white text-on-surface rounded-lg border border-outline-variant hover:bg-surface-variant transition-colors">
+<div class="flex flex-col items-start">
+<span class="font-bold">Shift C</span>
+<span class="text-xs text-on-surface-variant">22:00 - 06:00</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant">circle</span>
+</button>
+</div>
+</div>
+<div>
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-sm uppercase tracking-wider">Production Line</h3>
+<div class="flex flex-col gap-xs">
+<select class="w-full p-md bg-white border border-outline-variant rounded-lg font-body-lg focus:ring-2 focus:ring-primary focus:outline-none appearance-none">
+<option>Line 01 - Potato Chips (Classic)</option>
+<option>Line 02 - Tortilla Chips (Zesty)</option>
+<option>Line 03 - Pretzels (Salted)</option>
+<option>Line 04 - Extruded Snacks</option>
+</select>
+<div class="mt-md p-md bg-white rounded-lg border border-outline-variant">
+<div class="flex justify-between items-center mb-xs">
+<span class="text-xs font-bold text-on-surface-variant">Current Utilization</span>
+<span class="text-xs font-bold text-primary">82%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 82%"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-md border-t border-outline-variant">
+<button class="w-full py-md px-lg bg-primary text-on-primary rounded-lg font-bold flex items-center justify-center gap-md hover:scale-[1.02] active:scale-95 transition-all shadow-md group" id="autoAllocate">
+<span class="material-symbols-outlined group-hover:rotate-180 transition-transform duration-500">memory</span>
+                        AUTO-ALLOCATE RESOURCES
+                    </button>
+<p class="text-[10px] text-center mt-sm text-on-surface-variant font-label-caps italic">Optimization based on Skill Matrix v4.2</p>
+</div>
+</section>
+<section class="flex-1 h-full bg-slate-50 p-lg custom-scrollbar overflow-y-auto">
+<div class="mb-lg flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary">Active Workstations</h2>
+<p class="text-body-sm text-on-surface-variant">Monitoring Line 01 staffing levels and operational health.</p>
+</div>
+<div class="flex gap-sm">
+<div class="flex items-center gap-xs px-md py-xs bg-white rounded-lg border border-outline-variant">
+<div class="w-2 h-2 rounded-full bg-green-500"></div>
+<span class="text-xs font-bold">4 STAFFED</span>
+</div>
+<div class="flex items-center gap-xs px-md py-xs bg-white rounded-lg border border-outline-variant">
+<div class="w-2 h-2 rounded-full bg-amber-500"></div>
+<span class="text-xs font-bold">2 UNDERSTAFFED</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
+<div class="bg-white p-md card-industrial flex flex-col gap-md shadow-sm hover:shadow-md transition-shadow group">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[10px] font-label-caps text-on-surface-variant uppercase bg-surface-container px-sm py-0.5 rounded-full">Station 101</span>
+<h4 class="font-headline-md text-headline-md mt-xs">Slicing &amp; Washing</h4>
+</div>
+<span class="px-sm py-xs bg-green-100 text-green-800 text-[10px] font-bold rounded">ACTIVE</span>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Staffing Level</span>
+<span class="font-data-display">03 / 03</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-green-600 h-full w-full"></div>
+</div>
+</div>
+<div class="border-t border-outline-variant pt-md">
+<span class="text-[10px] font-label-caps text-on-surface-variant uppercase mb-xs block">Required Skills</span>
+<div class="flex flex-wrap gap-xs">
+<span class="px-xs py-1 bg-surface-variant text-[10px] rounded font-bold">BLADE_OPT</span>
+<span class="px-xs py-1 bg-surface-variant text-[10px] rounded font-bold">HYGIENE_L2</span>
+</div>
+</div>
+</div>
+<div class="bg-white p-md card-industrial flex flex-col gap-md shadow-sm border-2 border-primary ring-2 ring-primary/10 relative overflow-hidden">
+<div class="absolute top-0 right-0 bg-primary text-on-primary text-[10px] font-bold px-md py-1 uppercase rounded-bl">Focus</div>
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[10px] font-label-caps text-on-surface-variant uppercase bg-surface-container px-sm py-0.5 rounded-full">Station 102</span>
+<h4 class="font-headline-md text-headline-md mt-xs">High-Temp Frying</h4>
+</div>
+<span class="px-sm py-xs bg-amber-100 text-amber-800 text-[10px] font-bold rounded">CRITICAL</span>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Staffing Level</span>
+<span class="font-data-display text-amber-600">01 / 02</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-amber-500 h-full w-1/2"></div>
+</div>
+</div>
+<div class="border-t border-outline-variant pt-md">
+<span class="text-[10px] font-label-caps text-on-surface-variant uppercase mb-xs block">Required Skills</span>
+<div class="flex flex-wrap gap-xs">
+<span class="px-xs py-1 bg-primary text-white text-[10px] rounded font-bold">HEAT_SAFETY</span>
+<span class="px-xs py-1 bg-surface-variant text-[10px] rounded font-bold">OIL_MGMT</span>
+</div>
+</div>
+<button class="mt-xs text-xs font-bold text-primary flex items-center gap-xs hover:underline">
+<span class="material-symbols-outlined text-sm">person_add</span> ASSIGN NOW
+                        </button>
+</div>
+<div class="bg-white p-md card-industrial flex flex-col gap-md shadow-sm">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[10px] font-label-caps text-on-surface-variant uppercase bg-surface-container px-sm py-0.5 rounded-full">Station 103</span>
+<h4 class="font-headline-md text-headline-md mt-xs">Flavor Application</h4>
+</div>
+<span class="px-sm py-xs bg-green-100 text-green-800 text-[10px] font-bold rounded">ACTIVE</span>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Staffing Level</span>
+<span class="font-data-display">02 / 02</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-green-600 h-full w-full"></div>
+</div>
+</div>
+<div class="border-t border-outline-variant pt-md">
+<span class="text-[10px] font-label-caps text-on-surface-variant uppercase mb-xs block">Required Skills</span>
+<div class="flex flex-wrap gap-xs">
+<span class="px-xs py-1 bg-surface-variant text-[10px] rounded font-bold">SPICE_MIX</span>
+</div>
+</div>
+</div>
+<div class="bg-white p-md card-industrial flex flex-col gap-md shadow-sm opacity-90 grayscale-[0.5] hover:grayscale-0 transition-all">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[10px] font-label-caps text-on-surface-variant uppercase bg-surface-container px-sm py-0.5 rounded-full">Station 104</span>
+<h4 class="font-headline-md text-headline-md mt-xs">Auto-Bagging</h4>
+</div>
+<span class="px-sm py-xs bg-slate-100 text-slate-800 text-[10px] font-bold rounded">IDLE</span>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Staffing Level</span>
+<span class="font-data-display">00 / 04</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-slate-300 h-full w-0"></div>
+</div>
+</div>
+<div class="border-t border-outline-variant pt-md">
+<span class="text-[10px] font-label-caps text-on-surface-variant uppercase mb-xs block">Required Skills</span>
+<div class="flex flex-wrap gap-xs">
+<span class="px-xs py-1 bg-surface-variant text-[10px] rounded font-bold">MECH_OP</span>
+<span class="px-xs py-1 bg-surface-variant text-[10px] rounded font-bold">QA_L1</span>
+</div>
+</div>
+</div>
+<div class="bg-white p-md card-industrial flex flex-col gap-md shadow-sm border border-red-200">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[10px] font-label-caps text-on-surface-variant uppercase bg-surface-container px-sm py-0.5 rounded-full">Station 105</span>
+<h4 class="font-headline-md text-headline-md mt-xs">Quality Lab</h4>
+</div>
+<span class="px-sm py-xs bg-red-100 text-red-800 text-[10px] font-bold rounded">HALTED</span>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Staffing Level</span>
+<span class="font-data-display text-red-600">00 / 01</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-red-500 h-full w-0"></div>
+</div>
+</div>
+<div class="border-t border-outline-variant pt-md">
+<span class="text-[10px] font-label-caps text-on-surface-variant uppercase mb-xs block">Required Skills</span>
+<div class="flex flex-wrap gap-xs">
+<span class="px-xs py-1 bg-red-50 text-red-800 border border-red-200 text-[10px] rounded font-bold">CHEM_CERT</span>
+</div>
+</div>
+<p class="text-[10px] text-red-600 font-bold mt-xs">IMMEDIATE ATTENTION REQUIRED: Sample backlog &gt; 20min</p>
+</div>
+<button class="bg-slate-100/50 p-md border-2 border-dashed border-outline-variant flex flex-col items-center justify-center gap-sm text-on-surface-variant hover:bg-slate-200/50 hover:text-primary transition-all rounded-lg group">
+<span class="material-symbols-outlined text-headline-lg group-hover:scale-110 transition-transform">add_circle</span>
+<span class="font-bold uppercase tracking-widest text-[10px]">Configure New Station</span>
+</button>
+</div>
+<div class="mt-xl p-lg bg-surface-container rounded-xl border border-outline-variant">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-headline-md text-headline-md">Available Workforce Pool</h3>
+<a class="text-primary font-bold text-sm flex items-center gap-xs" href="#">VIEW FULL POOL <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+</div>
+<div class="flex gap-md overflow-x-auto pb-sm custom-scrollbar">
+<div class="flex-shrink-0 w-48 bg-white p-sm rounded border border-outline-variant flex flex-col gap-xs">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtrU_UwkW2pw87-bV7tTdWdk1Rr9YIy9wj-lRBtKFaGqjzWcWq1bq9HE_Cx5mrOVt0TPFIDVC9iQryTcSvlT3xYVpp8Dc1cWGFvWDO4nFrs8DsRSijBGZqcMRoc8YLUiZN3ylwp0nfB9vKjxo59aflDaJ-Og6T70IpPNeoZsllaXMTnlU8RGwtG0dk55i-2h-L9WKhIkvVG5ywTSX1BtmspGOpMJhaXRYR0Zh-bl1A5Aw5sZgNXZT5zitgYvnBVh4sPbuemxmoEOrG"/>
+</div>
+<div class="text-xs font-bold">A. Chen</div>
+</div>
+<div class="flex gap-xs">
+<span class="text-[9px] bg-green-100 px-1 rounded">SLICING</span>
+<span class="text-[9px] bg-blue-100 px-1 rounded">QA_L1</span>
+</div>
+</div>
+<div class="flex-shrink-0 w-48 bg-white p-sm rounded border border-outline-variant flex flex-col gap-xs">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbcF05ger0D-xzkKBEfD5Xwy4cmLFcpCaeplByh-IywbFD3C9NQN0MGk8eT6LG9ZTziHcecG8eGUxIxC0opJiH88Enub8faqbKGssTpG1Jg5Krt-0-Bhxz3lpXuxGr30xxzS8Hd2vz6JcT4TWZLZeig_mHobUK5rSnQwlee6NECcb4kUJrG9zEmRv_Du_H7mqisjVlJKbHLa0-S3RMvgatg9pg-GgKjf5VOEojxkea5Ir9swVMQnMkcoP1ZgoLGtkQO8wE6aeEc4fN"/>
+</div>
+<div class="text-xs font-bold">S. Miller</div>
+</div>
+<div class="flex gap-xs">
+<span class="text-[9px] bg-amber-100 px-1 rounded">HEAT_SAFE</span>
+<span class="text-[9px] bg-slate-100 px-1 rounded">PACK_OPT</span>
+</div>
+</div>
+<div class="flex-shrink-0 w-48 bg-white p-sm rounded border border-outline-variant flex flex-col gap-xs">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMiM-8buCgl7JM3ByHZtbUWIs8FjgnZVR90Q-TbQd8-dZ6dJl4QshbtzVCRn2BytoQrQXfHZkULmeLGPzYOtDrG5nd8xQFfVd0cH1bYbB_URYEF9GxJGzIwBEZ7SbgrxntkG0ZLY48aoIlgFkXGUq-jWdWlBlkoaK24ON69HIUgG4dyAmAibc_B2i_uH_OGOJQ6I7W0DpWLtzrw7szPeM0epzdSrjEGXGxf6-zilRwLjxdxkGe9VgeYpW0DboITehpP-iFPBrbkCvi"/>
+</div>
+<div class="text-xs font-bold">D. Petrova</div>
+</div>
+<div class="flex gap-xs">
+<span class="text-[9px] bg-red-100 px-1 rounded">CHEM_CERT</span>
+<span class="text-[9px] bg-green-100 px-1 rounded">HYGIENE</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300" id="allocationModal">
+<div class="bg-white w-96 p-lg rounded-xl shadow-2xl flex flex-col items-center text-center gap-md scale-95 transition-transform duration-300" id="modalContent">
+<div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-4xl">check_circle</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md">Allocation Optimized</h3>
+<p class="text-body-sm text-on-surface-variant mt-xs">Workforce has been redistributed across Line 01 workstations based on current throughput demands and skill levels.</p>
+</div>
+<button class="w-full py-md bg-primary text-on-primary font-bold rounded-lg" onclick="closeModal()">DISMISS</button>
+</div>
+</div>
+<script>
+        const btn = document.getElementById('autoAllocate');
+        const modal = document.getElementById('allocationModal');
+        const content = document.getElementById('modalContent');
+        btn.addEventListener('click', () => {
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> OPTIMIZING...';
+            btn.classList.add('opacity-70');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+                btn.innerHTML = '<span class="material-symbols-outlined">memory</span> AUTO-ALLOCATE RESOURCES';
+                btn.classList.remove('opacity-70');
+            }, 1200);
+        });
+        function closeModal() {
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            content.classList.add('scale-95');
+            content.classList.remove('scale-100');
+        }
+        document.querySelectorAll('.card-industrial').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+                card.style.transition = 'transform 0.2s ease-out';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body></html>

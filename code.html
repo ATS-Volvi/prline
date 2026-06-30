@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Industrial Nexus - Shift Allocation</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Inter & JetBrains Mono -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-container": "#7c839b",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#000000",
+                    "surface-dim": "#dcd9db",
+                    "on-error-container": "#93000a",
+                    "inverse-primary": "#bec6e0",
+                    "background": "#fcf8fa",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#565e74",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed": "#131b2e",
+                    "primary": "#000000",
+                    "on-secondary-fixed-variant": "#45464c",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-fixed": "#271902",
+                    "inverse-on-surface": "#f3f0f2",
+                    "secondary-fixed": "#e2e2e9",
+                    "secondary": "#5d5e64",
+                    "on-secondary-fixed": "#1a1b21",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e4e2e3",
+                    "on-surface-variant": "#45464d",
+                    "inverse-surface": "#303032",
+                    "secondary-container": "#dfdfe6",
+                    "outline-variant": "#c6c6cd",
+                    "secondary-fixed-dim": "#c6c6cd",
+                    "tertiary-fixed": "#fbdeb6",
+                    "on-tertiary-fixed-variant": "#564426",
+                    "primary-fixed-dim": "#bec6e0",
+                    "on-secondary-container": "#616268",
+                    "on-primary-fixed-variant": "#3f465b",
+                    "surface-bright": "#fcf8fa",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed-dim": "#dec39c",
+                    "surface-container": "#f0edef",
+                    "primary-container": "#131b2e",
+                    "on-background": "#1b1b1d",
+                    "tertiary-container": "#271902",
+                    "surface-container-low": "#f6f3f5",
+                    "outline": "#76777d",
+                    "on-tertiary-container": "#97805e",
+                    "primary-fixed": "#dae2fc",
+                    "on-surface": "#1b1b1d",
+                    "surface-container-highest": "#e4e2e3",
+                    "surface": "#fcf8fa",
+                    "surface-container-high": "#eae7e9",
+                    "on-error": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "margin-desktop": "32px",
+                    "gutter": "16px",
+                    "touch-target-min": "48px",
+                    "base-unit": "4px"
+            },
+            "fontFamily": {
+                    "label-caps": ["JetBrains Mono"],
+                    "body-md": ["Inter"],
+                    "data-mono-md": ["JetBrains Mono"],
+                    "headline-lg": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "data-mono-lg": ["JetBrains Mono"],
+                    "headline-md": ["Inter"]
+            },
+            "fontSize": {
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "data-mono-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "data-mono-lg": ["18px", {"lineHeight": "24px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .status-bar-active { border-top: 4px solid #1a1b21; }
+        .status-bar-critical { border-top: 4px solid #ba1a1a; }
+        .status-bar-warning { border-top: 4px solid #97805e; }
+        .status-bar-neutral { border-top: 4px solid #c6c6cd; }
+        
+        body {
+            background-color: #fcf8fa;
+            color: #1b1b1d;
+        }
+
+        /* Custom scrollbar for data lists */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f0edef;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c6c6cd;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md selection:bg-primary selection:text-white">
+<div class="flex h-screen overflow-hidden">
+<!-- SideNavBar - JSON Command Execution -->
+<aside class="flex flex-col h-full h-screen w-64 border-r border-outline-variant bg-surface-container-lowest shrink-0">
+<!-- Header Section -->
+<div class="p-6 border-b border-outline-variant">
+<div class="font-headline-md text-headline-md text-primary font-bold mb-1">Plant Ops</div>
+<div class="font-label-caps text-label-caps text-on-surface-variant">Zone 4 - Morning Shift</div>
+<!-- Profile Snippet -->
+<div class="mt-8 flex items-center gap-3 p-3 bg-surface-container-low rounded">
+<img class="w-10 h-10 rounded-full border border-outline-variant" data-alt="A professional headshot of a floor manager named R. Sharma in a clean, high-tech industrial environment. He is wearing a minimalist dark navy uniform with a subtle ID badge. The lighting is bright and industrial, emphasizing a clean and high-efficiency atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdgJNACyT_CWwq_Gk3iuVS92due0LKPya-WGA-i8hJezbLXHIbSSgaqAiE9jFCILMbJLRHkU-9ztYRluhVrrHFICR7BGLMengv2pLiAeSPLSIO-H_pkmel5pdMoHxmvyx0iHojUCAXXY8esSQ4dKcLXZGr0QvPRtAgq0HSRrbzJSTjNh-9pURuUUo78Vf8VLEL0quupTsh13jqWlak_S4EOXEzgsGfFQSgK97F7vrEn9JnRbSDcrn_ZxHtwuc982ituyVcJs-KpA"/>
+<div class="overflow-hidden">
+<p class="font-body-md font-bold truncate">R. Sharma</p>
+<p class="font-label-caps text-[10px] text-on-surface-variant truncate">Floor Manager • #102</p>
+</div>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex-1 py-4 overflow-y-auto">
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-6 py-3 transition-colors text-secondary hover:text-primary hover:bg-surface-container-low" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-caps text-label-caps">Dashboard</span>
+</a>
+<!-- Shift Allocation (ACTIVE) -->
+<a class="flex items-center gap-3 px-6 py-3 transition-colors text-primary font-bold border-l-4 border-primary bg-secondary-container" href="#">
+<span class="material-symbols-outlined" data-icon="group_add">group_add</span>
+<span class="font-label-caps text-label-caps">Shift Allocation</span>
+</a>
+<!-- Skill Matrix -->
+<a class="flex items-center gap-3 px-6 py-3 transition-colors text-secondary hover:text-primary hover:bg-surface-container-low" href="#">
+<span class="material-symbols-outlined" data-icon="military_tech">military_tech</span>
+<span class="font-label-caps text-label-caps">Skill Matrix</span>
+</a>
+<!-- Asset Monitor -->
+<a class="flex items-center gap-3 px-6 py-3 transition-colors text-secondary hover:text-primary hover:bg-surface-container-low" href="#">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+<span class="font-label-caps text-label-caps">Asset Monitor</span>
+</a>
+<!-- Logs -->
+<a class="flex items-center gap-3 px-6 py-3 transition-colors text-secondary hover:text-primary hover:bg-surface-container-low" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span class="font-label-caps text-label-caps">Logs</span>
+</a>
+</nav>
+<!-- Footer Section -->
+<div class="mt-auto p-4 border-t border-outline-variant">
+<div class="flex items-center justify-between mb-4">
+<span class="font-label-caps text-[10px] text-secondary">System Status: Nominal</span>
+<div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+</div>
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-2 py-2 text-secondary hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="settings">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-2 py-2 text-secondary hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="help">help</span>
+<span class="font-label-caps text-label-caps">Support</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- TopAppBar - JSON Command Execution -->
+<header class="flex justify-between items-center px-margin-desktop w-full sticky top-0 z-50 h-16 border-b border-outline-variant bg-surface">
+<div class="flex items-center gap-8">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">Industrial Nexus</h1>
+<nav class="hidden lg:flex gap-6">
+<a class="font-data-mono-md text-data-mono-md text-on-surface-variant hover:text-primary transition-colors" href="#">Zone A</a>
+<a class="font-data-mono-md text-data-mono-md text-primary font-bold border-b-2 border-primary pb-1" href="#">Sector 4</a>
+<a class="font-data-mono-md text-data-mono-md text-on-surface-variant hover:text-primary transition-colors" href="#">Main Line</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden xl:flex items-center gap-2 px-3 py-1 bg-surface-container rounded border border-outline-variant">
+<span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+<span class="font-data-mono-md text-data-mono-md">06:00 - 14:00</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Dashboard Body -->
+<div class="flex-1 overflow-y-auto p-margin-desktop space-y-gutter custom-scrollbar">
+<!-- KPI Header Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter">
+<!-- Efficiency Card -->
+<div class="bg-surface-container-lowest border border-outline-variant p-base-unit flex flex-col justify-between h-32 status-bar-active">
+<div class="p-3">
+<span class="font-label-caps text-label-caps text-secondary block mb-1">LINE EFFICIENCY</span>
+<div class="flex items-baseline gap-2">
+<span class="font-data-mono-lg text-[28px] font-bold">94%</span>
+<span class="text-emerald-600 text-sm font-bold">▲ 2.1%</span>
+</div>
+</div>
+<div class="h-1 bg-surface-container w-full">
+<div class="h-full bg-emerald-500 w-[94%]"></div>
+</div>
+</div>
+<!-- Open Slots Card -->
+<div class="bg-surface-container-lowest border border-outline-variant p-base-unit flex flex-col justify-between h-32 status-bar-critical">
+<div class="p-3">
+<span class="font-label-caps text-label-caps text-secondary block mb-1">OPEN SLOTS</span>
+<div class="flex items-baseline gap-2">
+<span class="font-data-mono-lg text-[28px] font-bold text-error">03</span>
+<span class="text-on-surface-variant text-sm">Critical Allocation</span>
+</div>
+</div>
+<div class="h-1 bg-surface-container w-full">
+<div class="h-full bg-error w-[75%]"></div>
+</div>
+</div>
+<!-- Active Alerts Card -->
+<div class="bg-surface-container-lowest border border-outline-variant p-base-unit flex flex-col justify-between h-32 status-bar-warning">
+<div class="p-3">
+<span class="font-label-caps text-label-caps text-secondary block mb-1">ACTIVE ALERTS</span>
+<div class="flex items-baseline gap-2">
+<span class="font-data-mono-lg text-[28px] font-bold text-on-tertiary-container">01</span>
+<span class="text-on-surface-variant text-sm">Sensor Mismatch</span>
+</div>
+</div>
+<div class="h-1 bg-surface-container w-full">
+<div class="h-full bg-tertiary-container w-[20%]"></div>
+</div>
+</div>
+<!-- Active Lines Card -->
+<div class="bg-surface-container-lowest border border-outline-variant p-base-unit flex flex-col justify-between h-32 status-bar-neutral">
+<div class="p-3">
+<span class="font-label-caps text-label-caps text-secondary block mb-1">ACTIVE LINES</span>
+<div class="flex items-baseline gap-2">
+<span class="font-data-mono-lg text-[28px] font-bold">12</span>
+<span class="text-on-surface-variant text-sm">/ 14 Total</span>
+</div>
+</div>
+<div class="h-1 bg-surface-container w-full">
+<div class="h-full bg-primary w-[85%]"></div>
+</div>
+</div>
+</div>
+<!-- Main Grid Section -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Left: Shift Selection & Line Stats -->
+<div class="col-span-12 xl:col-span-3 space-y-gutter">
+<div class="bg-surface-container-lowest border border-outline-variant p-5">
+<h2 class="font-label-caps text-label-caps text-primary border-b border-outline-variant pb-3 mb-4">SHIFT SELECTION</h2>
+<div class="space-y-2">
+<label class="flex items-center justify-between p-3 border-2 border-primary bg-secondary-container cursor-pointer">
+<div>
+<p class="font-bold">Shift A</p>
+<p class="font-data-mono-md text-xs">06:00 - 14:00</p>
+</div>
+<span class="material-symbols-outlined text-primary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</label>
+<label class="flex items-center justify-between p-3 border border-outline-variant hover:border-primary transition-colors cursor-pointer bg-white">
+<div>
+<p class="font-bold">Shift B</p>
+<p class="font-data-mono-md text-xs text-secondary">14:00 - 22:00</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="radio_button_unchecked">radio_button_unchecked</span>
+</label>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-5">
+<h2 class="font-label-caps text-label-caps text-primary border-b border-outline-variant pb-3 mb-4">PRODUCTION LINE</h2>
+<div class="relative mb-6">
+<select class="w-full h-12 border border-outline-variant bg-white px-4 font-body-md focus:border-primary focus:ring-0 appearance-none">
+<option>Line 01 - Potato Chips (Classic)</option>
+<option>Line 02 - Corn Tortillas</option>
+<option>Line 03 - Kettle Cooked</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-3 pointer-events-none" data-icon="expand_more">expand_more</span>
+</div>
+<div class="pt-4 border-t border-outline-variant">
+<div class="flex justify-between items-end mb-2">
+<span class="font-label-caps text-[10px] text-secondary">CURRENT UTILIZATION</span>
+<span class="font-data-mono-md font-bold">82%</span>
+</div>
+<div class="h-2 bg-surface-container w-full rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[82%]"></div>
+</div>
+</div>
+</div>
+<button class="w-full bg-primary text-white h-14 flex items-center justify-center gap-3 hover:bg-opacity-90 transition-all font-label-caps">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+                            AUTO-ALLOCATE RESOURCES
+                        </button>
+<p class="text-[10px] text-center italic text-secondary">Optimization based on Skill Matrix v4.2</p>
+</div>
+<!-- Right: Active Workstations Bento Grid -->
+<div class="col-span-12 xl:col-span-9">
+<div class="flex items-end justify-between mb-6">
+<div>
+<h2 class="font-headline-md text-headline-md font-bold">Active Workstations</h2>
+<p class="text-secondary">Monitoring Line 01 staffing levels and operational health.</p>
+</div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded">
+<div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+<span class="font-data-mono-md text-xs font-bold">4 STAFFED</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 rounded">
+<div class="w-2 h-2 rounded-full bg-amber-500"></div>
+<span class="font-data-mono-md text-xs font-bold">2 UNDERSTAFFED</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Station 101 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-6 relative flex flex-col status-bar-active min-h-[320px]">
+<div class="flex justify-between items-start mb-4">
+<span class="px-2 py-1 bg-surface-container text-secondary font-data-mono-md text-[10px]">STATION 101</span>
+<span class="font-label-caps text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-1">ACTIVE</span>
+</div>
+<h3 class="font-headline-md font-bold mb-4">Slicing &amp; Washing</h3>
+<div class="mt-auto">
+<div class="flex justify-between items-end mb-1">
+<span class="text-secondary text-xs">Staffing Level</span>
+<span class="font-data-mono-md font-bold">03 / 03</span>
+</div>
+<div class="h-1 bg-surface-container mb-4"><div class="h-full bg-emerald-500 w-full"></div></div>
+<div class="space-y-3">
+<p class="font-label-caps text-[10px] text-secondary">REQUIRED SKILLS</p>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-1 bg-surface-container text-[10px] font-data-mono-md border border-outline-variant">BLADE_OPT</span>
+<span class="px-2 py-1 bg-surface-container text-[10px] font-data-mono-md border border-outline-variant">HYGIENE_L2</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Station 102 - CRITICAL -->
+<div class="bg-surface-container-lowest border border-outline-variant p-6 relative flex flex-col status-bar-critical min-h-[320px] ring-2 ring-error/10">
+<div class="flex justify-between items-start mb-4">
+<span class="px-2 py-1 bg-surface-container text-secondary font-data-mono-md text-[10px]">STATION 102</span>
+<span class="font-label-caps text-[10px] text-white font-bold bg-error px-2 py-1">FOCUS REQUIRED</span>
+</div>
+<h3 class="font-headline-md font-bold mb-4">High-Temp Frying</h3>
+<div class="mt-auto">
+<div class="flex justify-between items-end mb-1">
+<span class="text-error text-xs font-bold">Staffing Level</span>
+<span class="font-data-mono-md font-bold text-error">01 / 02</span>
+</div>
+<div class="h-1 bg-surface-container mb-4"><div class="h-full bg-error w-[50%]"></div></div>
+<div class="space-y-3">
+<p class="font-label-caps text-[10px] text-secondary">REQUIRED SKILLS</p>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-1 bg-primary text-white text-[10px] font-data-mono-md">HEAT_SAFETY</span>
+<span class="px-2 py-1 bg-surface-container text-[10px] font-data-mono-md border border-outline-variant">OIL_MGMT</span>
+</div>
+</div>
+<button class="w-full mt-6 flex items-center justify-center gap-2 text-primary font-bold hover:underline">
+<span class="material-symbols-outlined text-sm" data-icon="person_add">person_add</span>
+                                        ASSIGN NOW
+                                    </button>
+</div>
+</div>
+<!-- Station 103 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-6 relative flex flex-col status-bar-active min-h-[320px]">
+<div class="flex justify-between items-start mb-4">
+<span class="px-2 py-1 bg-surface-container text-secondary font-data-mono-md text-[10px]">STATION 103</span>
+<span class="font-label-caps text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-1">ACTIVE</span>
+</div>
+<h3 class="font-headline-md font-bold mb-4">Flavor Application</h3>
+<div class="mt-auto">
+<div class="flex justify-between items-end mb-1">
+<span class="text-secondary text-xs">Staffing Level</span>
+<span class="font-data-mono-md font-bold">02 / 02</span>
+</div>
+<div class="h-1 bg-surface-container mb-4"><div class="h-full bg-emerald-500 w-full"></div></div>
+<div class="space-y-3">
+<p class="font-label-caps text-[10px] text-secondary">REQUIRED SKILLS</p>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-1 bg-surface-container text-[10px] font-data-mono-md border border-outline-variant">SPICE_MIX</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Station 104 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-6 relative flex flex-col status-bar-neutral min-h-[320px]">
+<div class="flex justify-between items-start mb-4">
+<span class="px-2 py-1 bg-surface-container text-secondary font-data-mono-md text-[10px]">STATION 104</span>
+<span class="font-label-caps text-[10px] text-secondary font-bold bg-surface-container px-2 py-1">IDLE</span>
+</div>
+<h3 class="font-headline-md font-bold mb-4">Auto-Bagging</h3>
+<div class="mt-auto">
+<div class="flex justify-between items-end mb-1">
+<span class="text-secondary text-xs">Staffing Level</span>
+<span class="font-data-mono-md font-bold text-secondary">00 / 04</span>
+</div>
+<div class="h-1 bg-surface-container mb-4"></div>
+<div class="space-y-3">
+<p class="font-label-caps text-[10px] text-secondary">REQUIRED SKILLS</p>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-1 bg-surface-container text-[10px] font-data-mono-md border border-outline-variant">MECH_OP</span>
+<span class="px-2 py-1 bg-surface-container text-[10px] font-data-mono-md border border-outline-variant">QA_L1</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Station 105 - HALTED -->
+<div class="bg-surface-container-lowest border border-outline-variant p-6 relative flex flex-col status-bar-critical min-h-[320px] bg-red-50/20">
+<div class="flex justify-between items-start mb-4">
+<span class="px-2 py-1 bg-surface-container text-secondary font-data-mono-md text-[10px]">STATION 105</span>
+<span class="font-label-caps text-[10px] text-white font-bold bg-error px-2 py-1">HALTED</span>
+</div>
+<h3 class="font-headline-md font-bold mb-4">Quality Lab</h3>
+<div class="mt-auto">
+<div class="p-3 bg-error/5 border-l-2 border-error mb-4">
+<p class="text-[10px] font-bold text-error leading-tight">IMMEDIATE ATTENTION REQUIRED: Sample backlog &gt; 20min</p>
+</div>
+<div class="flex justify-between items-end mb-1">
+<span class="text-error text-xs font-bold">Staffing Level</span>
+<span class="font-data-mono-md font-bold text-error">00 / 01</span>
+</div>
+<div class="h-1 bg-surface-container mb-4"></div>
+<div class="space-y-3">
+<p class="font-label-caps text-[10px] text-secondary">REQUIRED SKILLS</p>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-1 bg-red-100 text-error border border-error/20 text-[10px] font-data-mono-md">CHEM_CERT</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Configure New -->
+<div class="border-2 border-dashed border-outline-variant flex flex-col items-center justify-center min-h-[320px] group hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="w-12 h-12 rounded-full border-2 border-outline-variant flex items-center justify-center group-hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary" data-icon="add">add</span>
+</div>
+<p class="mt-4 font-label-caps text-label-caps text-secondary group-hover:text-primary">CONFIGURE NEW STATION</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Workforce Pool Section -->
+<section class="mt-8 bg-surface-container-lowest border border-outline-variant">
+<div class="px-6 py-4 border-b border-outline-variant flex items-center justify-between">
+<h2 class="font-headline-md text-lg font-bold">Available Workforce Pool</h2>
+<button class="flex items-center gap-2 text-primary font-bold hover:underline font-label-caps">
+                            VIEW FULL POOL
+                            <span class="material-symbols-outlined" data-icon="trending_flat">trending_flat</span>
+</button>
+</div>
+<div class="p-6 flex gap-gutter overflow-x-auto custom-scrollbar pb-8">
+<!-- Operator 1 -->
+<div class="flex-shrink-0 w-64 border border-outline-variant bg-white p-4">
+<div class="flex items-center gap-3 mb-4">
+<img class="w-12 h-12 rounded bg-surface-container object-cover" data-alt="A close-up portrait of a manufacturing worker named A. Chen, wearing safety glasses and a clean-room head covering. She has a focused, professional expression. The background is a slightly blurred industrial setting with soft, clean-white lighting and high-contrast navy accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAydgxGZ1cRjLaaM6nvDCZsKmCjSrcMrbQjRhaCwVaqVJOZFJmdiSMiyiwvJflUMbw1iQptEe_bMHRVATb_gA6FYOJO-aLsE74_QXj4_Kl2FTk7yY_PWzEXQZRaWym7kCQAV-XrBil1UHCD2aiLZXTKTEEZaQKu5mh-LnmJqq1skul-35kvreKpqH6JIvr1jcPc8_6L0AwmQqZzzPD7M1wcAgWduaGVaA4IVwpw9QkniAF5GhpXd6C1fN8SXz-vIaxh1PTeeISjmA"/>
+<div>
+<p class="font-bold">A. Chen</p>
+<p class="text-[10px] text-emerald-600 font-bold">AVAILABLE</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-1">
+<span class="px-1.5 py-0.5 bg-surface-container text-[9px] font-data-mono-md">SLICING</span>
+<span class="px-1.5 py-0.5 bg-surface-container text-[9px] font-data-mono-md">QA_L1</span>
+</div>
+<button class="w-full mt-4 h-10 border border-primary text-primary font-bold text-xs hover:bg-primary hover:text-white transition-all">ASSIGN</button>
+</div>
+<!-- Operator 2 -->
+<div class="flex-shrink-0 w-64 border border-outline-variant bg-white p-4">
+<div class="flex items-center gap-3 mb-4">
+<img class="w-12 h-12 rounded bg-surface-container object-cover" data-alt="A portrait of S. Miller, a male factory operator in his 30s. He is wearing a dark navy utility vest and a white thermal shirt. He has a friendly but serious demeanor. The lighting is crisp and utilitarian, characteristic of a high-tech food production facility." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCM01CfWTqPmpeXCrePxa0bTcQuUzJvGmprl1k8tVanu5W8M-bTfITWtcfm0VUJzpF51hrvmbMr7ggggEdcVA07m3gbd_xcH3Ls1MYXqZF059l0XuIi6SdBVoejGzGjIQdKqNpJqheF1Nx3tDLHVpPxclS4Qj-mk3O1Z87262o-OcaDDS6PgE-an4DvGppsKcYd_H7XTm4gbpXEk3Rl9bwQF_karlJ6OqS3VX33gqXyrCiw9BQVefqaeI6Zf7TlWNbial3X7MQpxQ"/>
+<div>
+<p class="font-bold">S. Miller</p>
+<p class="text-[10px] text-emerald-600 font-bold">AVAILABLE</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-1">
+<span class="px-1.5 py-0.5 bg-primary text-white text-[9px] font-data-mono-md">HEAT_SAFE</span>
+<span class="px-1.5 py-0.5 bg-surface-container text-[9px] font-data-mono-md">PACK_OPT</span>
+</div>
+<button class="w-full mt-4 h-10 border border-primary text-primary font-bold text-xs hover:bg-primary hover:text-white transition-all">ASSIGN</button>
+</div>
+<!-- Operator 3 -->
+<div class="flex-shrink-0 w-64 border border-outline-variant bg-white p-4">
+<div class="flex items-center gap-3 mb-4">
+<img class="w-12 h-12 rounded bg-surface-container object-cover" data-alt="A portrait of D. Petrova, a female quality control specialist. She is wearing a professional white laboratory coat and holding a digital tablet. Her expression is meticulous and focused. The background is a clean, white-toned laboratory with steel surfaces and subtle navy blue accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGMrzqPoWSlXgUo_aZmTB7avgP4_VJr-J6ZfvpBnnpxtKmi4xkgUpVgEE7TbywVtwRZGJN2wHD92zEIiI0q64Np0E93skIyCpx8Dts-AwDHyKd6UvX8kt9dBPtUZXiF8XfXGrdb4tvnW9hB1WfixyAzHIDAGE900jrR3l-Ic-5cyQDKuo5SIXXxexlD0skYbXLKZq6EHrUahDoBgvNHQKVd1eoGt7J2oyAYg9QhvtyA_nau8QT4CEMY7DUwDg1lLWr8NaYMgyqrw"/>
+<div>
+<p class="font-bold">D. Petrova</p>
+<p class="text-[10px] text-emerald-600 font-bold">AVAILABLE</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-1">
+<span class="px-1.5 py-0.5 bg-error text-white text-[9px] font-data-mono-md">CHEM_CERT</span>
+<span class="px-1.5 py-0.5 bg-surface-container text-[9px] font-data-mono-md">HYGIENE</span>
+</div>
+<button class="w-full mt-4 h-10 border border-primary text-primary font-bold text-xs hover:bg-primary hover:text-white transition-all">ASSIGN</button>
+</div>
+<!-- Operator 4 -->
+<div class="flex-shrink-0 w-64 border border-outline-variant bg-white p-4">
+<div class="flex items-center gap-3 mb-4">
+<img class="w-12 h-12 rounded bg-surface-container object-cover" data-alt="A portrait of J. Lopez, a maintenance engineer wearing a dark navy jumpsuit and holding a specialized wrench tool. He looks competent and ready for technical tasks. The lighting is even and bright, highlighting a professional and efficient workspace environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPV6KAAxW0j9_nsu8DxmwF7Hat2-gwqU3Kl01yly04A3JD32RemFHHXFWGCmbwK_GxGqbrW4FdGE2Z4EOYkRLVXWl2uc0pNrxbsQ4IiUO6M-f9UVklvAhTP-8aMvyh4ew8agXXKWhQT0O-So0ikaVAXwE4yH87SHEFiSl1LadUy4IDv2YM2PhFkg9u3_ED8SqMJcLLGDdetqrCoeIZjKiBKgV9i_i7D_YpxYWM5df7RpJlYbbbuyWl2y0XaVpHP8b-os7L7dE8ZQ"/>
+<div>
+<p class="font-bold">J. Lopez</p>
+<p class="text-[10px] text-amber-600 font-bold">ON BREAK (10M)</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-1">
+<span class="px-1.5 py-0.5 bg-surface-container text-[9px] font-data-mono-md">MECH_OP</span>
+<span class="px-1.5 py-0.5 bg-surface-container text-[9px] font-data-mono-md">ELEC_L3</span>
+</div>
+<button class="w-full mt-4 h-10 border border-outline-variant text-outline font-bold text-xs cursor-not-allowed" disabled="">ASSIGN</button>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+<!-- Micro-interaction Script -->
+<script>
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (!this.classList.contains('bg-secondary-container')) {
+                    // Logic to handle navigation could go here
+                    console.log('Navigating to:', this.innerText.trim());
+                }
+            });
+        });
+
+        // Simple mock for "Auto-Allocate" pulse
+        const autoAllocBtn = document.querySelector('button.bg-primary');
+        autoAllocBtn.addEventListener('click', () => {
+            autoAllocBtn.innerHTML = '<span class="material-symbols-outlined animate-spin" data-icon="sync">sync</span> OPTIMIZING...';
+            setTimeout(() => {
+                autoAllocBtn.innerHTML = '<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span> ALLOCATION SYNCED';
+                setTimeout(() => {
+                    autoAllocBtn.innerHTML = '<span class="material-symbols-outlined" data-icon="bolt">bolt</span> AUTO-ALLOCATE RESOURCES';
+                }, 2000);
+            }, 1500);
+        });
+    </script>
+</body></html>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Line Manager Pro - Associates Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline-variant": "#c5c6cd",
+                    "on-surface-variant": "#45474c",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "tertiary-fixed": "#6ffbbe",
+                    "surface": "#f7f9fb",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "surface-container-low": "#f2f4f6",
+                    "secondary-fixed": "#d5e3fc",
+                    "outline": "#75777d",
+                    "inverse-primary": "#bcc7de",
+                    "primary-container": "#1e293b",
+                    "error": "#ba1a1a",
+                    "on-primary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "primary-fixed": "#d8e3fb",
+                    "surface-dim": "#d8dadc",
+                    "surface-bright": "#f7f9fb",
+                    "background": "#f7f9fb",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "on-primary-fixed": "#111c2d",
+                    "inverse-on-surface": "#eff1f3",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "on-error-container": "#93000a",
+                    "surface-variant": "#e0e3e5",
+                    "tertiary-container": "#00301e",
+                    "surface-tint": "#545f73",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "on-primary-container": "#8590a6",
+                    "secondary": "#515f74",
+                    "surface-container": "#eceef0",
+                    "on-secondary": "#ffffff",
+                    "secondary-container": "#d5e3fc",
+                    "primary-fixed-dim": "#bcc7de",
+                    "primary": "#091426",
+                    "on-background": "#191c1e",
+                    "inverse-surface": "#2d3133",
+                    "tertiary": "#00190e",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "on-tertiary-container": "#00a472",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary": "#ffffff",
+                    "on-surface": "#191c1e",
+                    "on-secondary-container": "#57657a",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-tertiary-fixed": "#002113"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "gutter-mobile": "12px",
+                    "sm": "8px",
+                    "md": "16px",
+                    "base": "4px",
+                    "margin-mobile": "16px",
+                    "lg": "24px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "data-mono": ["JetBrains Mono"],
+                    "label-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "headline-sm": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* Admin Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #10b981; /* Emerald Green */
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-hidden">
+<!-- Side Navigation Bar -->
+<aside class="fixed left-0 top-0 h-screen w-64 bg-primary text-on-primary border-r border-outline-variant flex flex-col h-full py-lg px-md z-50">
+<div class="mb-xl px-sm">
+<h1 class="font-headline-md text-headline-md text-on-primary font-bold">Line Manager Pro</h1>
+<p class="font-body-sm text-on-primary-container mt-xs opacity-80">Plant 04 - Sector B</p>
+</div>
+<nav class="flex-grow space-y-1">
+<a class="flex items-center space-x-md px-md py-sm rounded-lg transition-colors duration-200 text-on-primary-container hover:text-white hover:bg-primary-container cursor-pointer active:scale-95 group" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-lg text-label-lg">Dashboard</span>
+</a>
+<!-- Active Tab: Associates -->
+<a class="flex items-center space-x-md px-md py-sm rounded-lg bg-on-primary-fixed-variant text-white font-bold cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-lg text-label-lg">Associates</span>
+</a>
+<a class="flex items-center space-x-md px-md py-sm rounded-lg transition-colors duration-200 text-on-primary-container hover:text-white hover:bg-primary-container cursor-pointer active:scale-95 group" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+<span class="font-label-lg text-label-lg">Reports</span>
+</a>
+<a class="flex items-center space-x-md px-md py-sm rounded-lg transition-colors duration-200 text-on-primary-container hover:text-white hover:bg-primary-container cursor-pointer active:scale-95 group" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-lg text-label-lg">Settings</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-outline-variant pt-lg">
+<div class="flex items-center space-x-md px-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a factory manager in a clean warehouse environment, wearing a blue button-down shirt and a neutral expression. The background is a soft-focus industrial setting with high-end steel equipment and cool lighting. The aesthetic is modern and corporate." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDC9RUtxwLggE_mEtZ0O_btSZkheJ4Dr8M6YoaBL_3BAdWbLmoSX4gZIfdSxmWKDY-E0u3xohw-xJB-QOvPBwu_GJnp2FKGn6u7zEZs0XacGQ0fQ297N_KdR9CPydv5L5N4wQHZnUWNLKgXpBMUSOslDj7XPr0tZ-5K2ZsGNhqeOwWthT9rOZEolmcrO-FDoNLotuWs0khiEqgmWDCNid3-n3nq536t00XdEvjMQ70iIV0PWuarwMWqIPbX2Fi1bW4g4UWn0YVzoVE"/>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-white">Alex Volkov</p>
+<p class="font-body-sm text-on-primary-container">Factory Manager</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex flex-col h-screen">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 right-0 left-64 h-16 bg-surface border-b border-outline-variant flex items-center justify-between px-lg z-40">
+<div class="flex items-center w-1/3">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-body-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" placeholder="Search associates, stations, or skills..." type="text"/>
+</div>
+</div>
+<div class="flex items-center space-x-lg">
+<button class="relative p-2 text-on-surface-variant hover:text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant"></div>
+<button class="flex items-center space-x-sm text-on-surface-variant hover:text-error transition-colors cursor-pointer">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Sign Out</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Canvas -->
+<div class="mt-16 p-lg flex-grow overflow-y-auto custom-scrollbar">
+<!-- Dashboard Header -->
+<div class="flex items-center justify-between mb-xl">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary">Team Directory</h2>
+<p class="font-body-md text-on-surface-variant">Manage plant staff assignments and shift availability.</p>
+</div>
+<button class="flex items-center space-x-sm bg-primary text-on-primary px-lg py-md rounded-lg font-label-lg text-label-lg shadow-sm hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'wght' 600;">add</span>
+<span>Add Associate</span>
+</button>
+</div>
+<!-- Summary Section -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-md mb-xl">
+<!-- Active Staff Card -->
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-lg flex items-center justify-between">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Active Staff</p>
+<div class="flex items-baseline space-x-xs mt-xs">
+<span class="font-headline-md text-headline-md text-primary">124</span>
+<span class="font-body-sm text-on-surface-variant">/ 140</span>
+</div>
+</div>
+<div class="w-12 h-12 bg-primary-fixed rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+</div>
+</div>
+<!-- Shift Status Card -->
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-lg flex items-center justify-between">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Shift Status</p>
+<div class="flex items-center space-x-sm mt-xs">
+<span class="w-3 h-3 bg-tertiary-fixed-dim rounded-full animate-pulse"></span>
+<span class="font-headline-sm text-headline-sm text-on-tertiary-fixed-variant">Optimal</span>
+</div>
+</div>
+<div class="w-12 h-12 bg-tertiary-fixed rounded-full flex items-center justify-center text-on-tertiary-fixed-variant">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</div>
+</div>
+<!-- Open Stations Card -->
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-lg flex items-center justify-between">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Open Stations</p>
+<div class="flex items-baseline space-x-xs mt-xs">
+<span class="font-headline-md text-headline-md text-primary">06</span>
+</div>
+</div>
+<div class="w-12 h-12 bg-secondary-fixed rounded-full flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="precision_manufacturing">precision_manufacturing</span>
+</div>
+</div>
+<!-- Safety Score Card -->
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-lg flex items-center justify-between">
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Safety Score</p>
+<div class="flex items-baseline space-x-xs mt-xs">
+<span class="font-headline-md text-headline-md text-primary">98.4%</span>
+</div>
+</div>
+<div class="w-12 h-12 bg-error-container rounded-full flex items-center justify-center text-error">
+<span class="material-symbols-outlined" data-icon="health_and_safety">health_and_safety</span>
+</div>
+</div>
+</section>
+<!-- Associate Table/Grid Section -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+<!-- Filter Bar -->
+<div class="px-lg py-md border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
+<div class="flex items-center space-x-md">
+<span class="font-label-lg text-label-lg text-primary">Filter:</span>
+<div class="flex space-x-sm">
+<button class="px-md py-base border border-outline-variant rounded-full text-label-md bg-white hover:bg-surface transition-colors">All</button>
+<button class="px-md py-base border border-outline-variant rounded-full text-label-md bg-white hover:bg-surface transition-colors">Welding</button>
+<button class="px-md py-base border border-outline-variant rounded-full text-label-md bg-white hover:bg-surface transition-colors">Assembly</button>
+</div>
+</div>
+<div class="flex items-center space-x-sm text-on-surface-variant">
+<span class="font-body-sm">Showing 1-12 of 124</span>
+<div class="flex border border-outline-variant rounded-md overflow-hidden">
+<button class="p-1 hover:bg-surface transition-colors"><span class="material-symbols-outlined">chevron_left</span></button>
+<button class="p-1 hover:bg-surface transition-colors"><span class="material-symbols-outlined">chevron_right</span></button>
+</div>
+</div>
+</div>
+<!-- Table Header -->
+<div class="grid grid-cols-[2fr_1.5fr_1.5fr_1fr_0.5fr] gap-md px-lg py-sm bg-surface-container-low border-b border-outline-variant">
+<span class="font-label-md text-on-surface-variant uppercase">Associate</span>
+<span class="font-label-md text-on-surface-variant uppercase">Skill Category</span>
+<span class="font-label-md text-on-surface-variant uppercase">Assignment</span>
+<span class="font-label-md text-on-surface-variant uppercase text-center">Status</span>
+<span class="font-label-md text-on-surface-variant uppercase text-right">Actions</span>
+</div>
+<!-- Table Body -->
+<div class="divide-y divide-outline-variant">
+<!-- Associate Row 1 -->
+<div class="grid grid-cols-[2fr_1.5fr_1.5fr_1fr_0.5fr] gap-md px-lg py-md items-center hover:bg-surface-container transition-colors">
+<div class="flex items-center space-x-md">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed border border-outline-variant flex items-center justify-center text-secondary font-bold">MC</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-primary">Marcus Chen</h4>
+<p class="font-body-sm text-on-surface-variant">ID: 884-219</p>
+</div>
+</div>
+<div>
+<span class="px-md py-base bg-primary-container text-on-primary-fixed rounded-full text-label-md font-semibold">WELDING</span>
+</div>
+<div>
+<div class="flex items-center space-x-sm">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">precision_manufacturing</span>
+<span class="font-body-md">Line A-14</span>
+</div>
+</div>
+<div class="flex justify-center">
+<label class="toggle-switch">
+<input checked="" type="checkbox"/>
+<span class="slider"></span>
+</label>
+</div>
+<div class="flex justify-end relative">
+<button class="p-2 hover:bg-surface rounded-full transition-colors"><span class="material-symbols-outlined">more_vert</span></button>
+<div class="absolute right-0 top-full mt-2 w-56 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm z-50 overflow-hidden py-2">
+<button class="w-full flex items-center space-x-md px-md py-2 hover:bg-surface-container transition-colors text-left">
+<span class="material-symbols-outlined text-on-surface-variant">account_circle</span>
+<span class="font-label-md text-on-surface">View Profile</span>
+</button>
+<button class="w-full flex items-center space-x-md px-md py-2 hover:bg-surface-container transition-colors text-left">
+<span class="material-symbols-outlined text-on-surface-variant">psychology</span>
+<span class="font-label-md text-on-surface">Edit Skills</span>
+</button>
+<button class="w-full flex items-center space-x-md px-md py-2 hover:bg-surface-container transition-colors text-left">
+<span class="material-symbols-outlined text-on-surface-variant">precision_manufacturing</span>
+<span class="font-label-md text-on-surface">Assign Station</span>
+</button>
+<button class="w-full flex items-center space-x-md px-md py-2 hover:bg-surface-container transition-colors text-left">
+<span class="material-symbols-outlined text-on-surface-variant">event_available</span>
+<span class="font-label-md text-on-surface">Manage Availability</span>
+</button>
+<div class="my-1 border-t border-outline-variant"></div>
+<button class="w-full flex items-center space-x-md px-md py-2 hover:bg-error-container transition-colors text-left text-error">
+<span class="material-symbols-outlined">person_off</span>
+<span class="font-label-md">Deactivate</span>
+</button>
+</div></div>
+</div>
+<!-- Associate Row 2 -->
+<div class="grid grid-cols-[2fr_1.5fr_1.5fr_1fr_0.5fr] gap-md px-lg py-md items-center hover:bg-surface-container transition-colors">
+<div class="flex items-center space-x-md">
+<div class="w-10 h-10 rounded-full bg-surface-container border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait of a Hispanic woman in her late 30s, Elena Rodriguez, wearing an industrial safety vest and a white hard hat. She is smiling confidently in a brightly lit electronics assembly plant. The photography uses a clean, corporate style with focus on her face and soft industrial machinery in the background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB150VAQ5G4egN8W1G5ukBevr5XGg9Isdm_duDFJzjc3Zilo25G5h_gYBCB2KsLRecXcRJDw9M3KhifHWC9yb7ZIJJ_v_RvGXc4UiV0CE5z_D7HAURYZsoBjS6jKJNXNdskVthdpMsIphziiAXFm5uUeYuoY40om1-jsxhVjntAu6q1dBNLvC4I0kauioq_cBOKt2q-6kLsIQiThT8U22lOxFs3DTbnNgmwLcDd_OkEchRJyx5WSvJYusrVQ6HvGFmNKOsDpXyxquo"/>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-primary">Elena Rodriguez</h4>
+<p class="font-body-sm text-on-surface-variant">ID: 412-553</p>
+</div>
+</div>
+<div>
+<span class="px-md py-base bg-secondary-container text-on-secondary-container rounded-full text-label-md font-semibold">ASSEMBLY</span>
+</div>
+<div>
+<div class="flex items-center space-x-sm">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">precision_manufacturing</span>
+<span class="font-body-md">Line B-02</span>
+</div>
+</div>
+<div class="flex justify-center">
+<label class="toggle-switch">
+<input checked="" type="checkbox"/>
+<span class="slider"></span>
+</label>
+</div>
+<div class="flex justify-end">
+<button class="p-2 hover:bg-surface rounded-full transition-colors"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+</div>
+<!-- Associate Row 3 -->
+<div class="grid grid-cols-[2fr_1.5fr_1.5fr_1fr_0.5fr] gap-md px-lg py-md items-center hover:bg-surface-container transition-colors">
+<div class="flex items-center space-x-md">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed border border-outline-variant flex items-center justify-center text-on-tertiary-fixed-variant font-bold">JT</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-primary">Jordan Taylor</h4>
+<p class="font-body-sm text-on-surface-variant">ID: 772-104</p>
+</div>
+</div>
+<div>
+<span class="px-md py-base bg-on-tertiary-fixed-variant text-tertiary-fixed rounded-full text-label-md font-semibold">QUALITY CONTROL</span>
+</div>
+<div>
+<div class="flex items-center space-x-sm">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">fact_check</span>
+<span class="font-body-md">Station Q-01</span>
+</div>
+</div>
+<div class="flex justify-center">
+<label class="toggle-switch">
+<input type="checkbox"/>
+<span class="slider"></span>
+</label>
+</div>
+<div class="flex justify-end">
+<button class="p-2 hover:bg-surface rounded-full transition-colors"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+</div>
+<!-- Associate Row 4 -->
+<div class="grid grid-cols-[2fr_1.5fr_1.5fr_1fr_0.5fr] gap-md px-lg py-md items-center hover:bg-surface-container transition-colors">
+<div class="flex items-center space-x-md">
+<div class="w-10 h-10 rounded-full bg-surface-container border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait of a focused engineer, Kenji Sato, working on complex industrial machinery. He has short black hair and is wearing protective goggles and a professional slate-colored work jacket. The scene is illuminated with sharp, overhead fluorescent lighting characteristic of a high-tech manufacturing floor." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7h6MVCuKBgqEOMHmpPqryeyQZNEKjilZHWkmCkmMejfu1CX2HtIJAOaBcQwRBwGSnuGnYCDB0uBTTbWdwkJptj2zxv66EU-SZ69csCv9ZU5Dxms8Y10ogrtVQ6Z22ynYSUT-OSgZsamRysuRDil1cMXwOQR0WgL_2bO7to7ZgfjpJ0V7MDdkgAWmKMH9kK8bv1WNiXEMOq2sp0xf-Aze2ADqhuUFQO9owl1vI--h6bW7wcXX2-x5Sj4exOBzCxsOUdQURAcuMCik"/>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-primary">Kenji Sato</h4>
+<p class="font-body-sm text-on-surface-variant">ID: 902-887</p>
+</div>
+</div>
+<div>
+<span class="px-md py-base bg-error-container text-on-error-container rounded-full text-label-md font-semibold">MAINTENANCE</span>
+</div>
+<div>
+<div class="flex items-center space-x-sm">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">build</span>
+<span class="font-body-md">Facility Wide</span>
+</div>
+</div>
+<div class="flex justify-center">
+<label class="toggle-switch">
+<input checked="" type="checkbox"/>
+<span class="slider"></span>
+</label>
+</div>
+<div class="flex justify-end">
+<button class="p-2 hover:bg-surface rounded-full transition-colors"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+</div>
+<!-- Associate Row 5 -->
+<div class="grid grid-cols-[2fr_1.5fr_1.5fr_1fr_0.5fr] gap-md px-lg py-md items-center hover:bg-surface-container transition-colors">
+<div class="flex items-center space-x-md">
+<div class="w-10 h-10 rounded-full bg-primary-fixed border border-outline-variant flex items-center justify-center text-primary font-bold">SM</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-primary">Sarah Miller</h4>
+<p class="font-body-sm text-on-surface-variant">ID: 115-309</p>
+</div>
+</div>
+<div>
+<span class="px-md py-base bg-primary-container text-on-primary-fixed rounded-full text-label-md font-semibold">WELDING</span>
+</div>
+<div>
+<div class="flex items-center space-x-sm">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">precision_manufacturing</span>
+<span class="font-body-md">Line A-12</span>
+</div>
+</div>
+<div class="flex justify-center">
+<label class="toggle-switch">
+<input checked="" type="checkbox"/>
+<span class="slider"></span>
+</label>
+</div>
+<div class="flex justify-end">
+<button class="p-2 hover:bg-surface rounded-full transition-colors"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Pagination (Simplified) -->
+<div class="mt-lg flex items-center justify-center">
+<nav class="flex items-center space-x-sm">
+<button class="w-8 h-8 rounded border border-outline-variant flex items-center justify-center bg-primary text-on-primary font-label-md">1</button>
+<button class="w-8 h-8 rounded border border-outline-variant flex items-center justify-center bg-white hover:bg-surface transition-colors font-label-md">2</button>
+<button class="w-8 h-8 rounded border border-outline-variant flex items-center justify-center bg-white hover:bg-surface transition-colors font-label-md">3</button>
+<span class="px-sm">...</span>
+<button class="w-8 h-8 rounded border border-outline-variant flex items-center justify-center bg-white hover:bg-surface transition-colors font-label-md">11</button>
+</nav>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interaction for toggles and buttons
+        document.querySelectorAll('.toggle-switch input').forEach(toggle => {
+            toggle.addEventListener('change', (e) => {
+                const row = e.target.closest('.grid');
+                if(!e.target.checked) {
+                    row.classList.add('opacity-75');
+                } else {
+                    row.classList.remove('opacity-75');
+                }
+            });
+        });
+
+        // Hover effect for navigation
+        const navItems = document.querySelectorAll('nav a');
+        navItems.forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                if(!item.classList.contains('bg-on-primary-fixed-variant')) {
+                    item.querySelector('.material-symbols-outlined').style.fontVariationSettings = "'FILL' 1";
+                }
+            });
+            item.addEventListener('mouseleave', () => {
+                if(!item.classList.contains('bg-on-primary-fixed-variant')) {
+                    item.querySelector('.material-symbols-outlined').style.fontVariationSettings = "'FILL' 0";
+                }
+            });
+        });
+    </script>
+</body></html>
