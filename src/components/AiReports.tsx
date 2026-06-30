@@ -20,6 +20,8 @@ import {
   Radar,
   ComposedChart
 } from 'recharts';
+import { generateRecommendations } from '../utils/recommendations';
+import ExportToolbar from './shared/ExportToolbar';
 
 export const AiReports: React.FC = () => {
   const { logout } = useApp();
@@ -739,6 +741,18 @@ export const AiReports: React.FC = () => {
         };
       }
 
+      // Compute dynamic recommendations & forecast based on current live context
+      const dynamicRecs = generateRecommendations({
+        associates: allAssociates,
+        associateSkills,
+        workstations,
+        productionLines,
+        shifts,
+        allocations,
+        leaveRecords,
+        skills,
+      }).slice(0, 3);
+
       setMessages(prev => [...prev, {
         sender: 'copilot',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -746,7 +760,8 @@ export const AiReports: React.FC = () => {
         lineName,
         kpis,
         insights,
-        chartData
+        chartData,
+        recommendations: dynamicRecs
       }]);
       setIsTyping(false);
     }, 800);
@@ -754,26 +769,26 @@ export const AiReports: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex-1 h-full flex flex-col justify-center items-center bg-[#0b1329] gap-3">
-        <span className="material-symbols-outlined text-3xl text-teal-400 animate-spin">sync</span>
-        <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">Syncing live Postgres data...</span>
+      <div className="flex-1 h-full flex flex-col justify-center items-center bg-background gap-3">
+        <span className="material-symbols-outlined text-3xl text-primary animate-spin">sync</span>
+        <span className="text-xs font-mono font-bold text-secondary uppercase tracking-wider">Syncing live Postgres data...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex-1 h-full flex flex-col justify-center items-center bg-[#0b1329] gap-4 p-8 text-center">
-        <div className="w-12 h-12 rounded-full bg-rose-950 border border-rose-500/30 flex items-center justify-center text-rose-500">
+      <div className="flex-1 h-full flex flex-col justify-center items-center bg-background gap-4 p-8 text-center">
+        <div className="w-12 h-12 rounded-full bg-error-container border border-outline-variant flex items-center justify-center text-red-500">
           <span className="material-symbols-outlined text-2xl">report</span>
         </div>
         <div>
-          <h3 className="font-bold text-white text-sm">Database Sync Error</h3>
-          <p className="text-xs text-slate-400 mt-1 max-w-sm">{error}</p>
+          <h3 className="font-bold text-slate-800 text-sm">Database Sync Error</h3>
+          <p className="text-xs text-secondary mt-1 max-w-sm">{error}</p>
         </div>
         <button
           onClick={fetchReportData}
-          className="py-2 px-4 bg-teal-500 text-slate-900 font-mono text-[10px] font-bold rounded-lg cursor-pointer shadow-md hover:bg-teal-400 transition-all"
+          className="py-2 px-4 bg-primary text-white font-mono text-[10px] font-bold rounded-lg cursor-pointer shadow-md hover:bg-primary/90 transition-all"
         >
           RETRY DATABASE SYNC
         </button>
@@ -782,26 +797,26 @@ export const AiReports: React.FC = () => {
   }
 
   return (
-    <div className="flex-1 h-full flex flex-col overflow-y-auto bg-[#0b1329] print:bg-white select-none">
+    <div className="flex-1 h-full flex flex-col overflow-y-auto bg-background print:bg-surface-container-lowest select-none">
       
-      {/* Stick controls bar */}
-      <section className="sticky top-0 bg-[#0f172a]/95 backdrop-blur-md border-b border-slate-800 p-4 flex flex-wrap items-center justify-between gap-4 z-20 shadow-sm print:hidden">
-        <div className="flex items-center gap-3">
-          <span className="material-symbols-outlined text-teal-400 text-2xl">insights</span>
+      {/* Sticky controls bar */}
+      <header className="sticky top-0 bg-surface-container-lowest border-b border-outline-variant px-6 h-16 flex flex-wrap items-center justify-between gap-4 z-20 shadow-sm print:hidden">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary text-xl font-bold">insights</span>
           <div>
-            <h1 className="text-sm font-bold text-white font-sans tracking-tight">AI Operations Control Center</h1>
-            <p className="text-[10px] text-slate-400">Predictive analytics, safety auditing, and roster copilot</p>
+            <h1 className="text-sm font-bold text-primary font-sans tracking-tight">AI Analytics Dashboard</h1>
+            <p className="text-[10px] text-secondary">Predictive analytics, safety auditing and roster copilot</p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 text-xs">
           {/* Range Selector */}
           <div className="flex flex-col">
-            <span className="font-mono text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-1">DATE RANGE</span>
+            <span className="font-mono text-[9px] text-secondary font-bold uppercase tracking-wider mb-1">DATE RANGE</span>
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value as any)}
-              className="py-1 px-3 border border-slate-700 bg-slate-900 text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-400 font-bold cursor-pointer"
+              className="py-1 px-3 border border-outline-variant bg-surface-container-lowest text-slate-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-bold cursor-pointer text-xs"
             >
               <option value="7">Last 7 Days</option>
               <option value="14">Last 14 Days</option>
@@ -811,11 +826,11 @@ export const AiReports: React.FC = () => {
 
           {/* Line Selector */}
           <div className="flex flex-col">
-            <span className="font-mono text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-1">PRODUCTION LINE</span>
+            <span className="font-mono text-[9px] text-secondary font-bold uppercase tracking-wider mb-1">PRODUCTION LINE</span>
             <select
               value={selectedLine}
               onChange={(e) => setSelectedLine(e.target.value)}
-              className="py-1 px-3 border border-slate-700 bg-slate-900 text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-400 font-bold cursor-pointer"
+              className="py-1 px-3 border border-outline-variant bg-surface-container-lowest text-slate-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-bold cursor-pointer text-xs"
             >
               <option value="ALL">All Lines</option>
               {(reportData?.productionLines || []).map((l: any) => (
@@ -828,31 +843,31 @@ export const AiReports: React.FC = () => {
             <button
               onClick={handleRegenerate}
               disabled={isRegenerating}
-              className="py-2 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold font-mono tracking-wider text-[10px] cursor-pointer flex items-center gap-1.5 transition-all shadow-sm rounded-lg"
+              className="py-2 px-3 bg-surface-container-low hover:bg-surface-container border border-outline-variant text-secondary font-bold font-mono tracking-wider text-[10px] cursor-pointer flex items-center gap-1.5 transition-all shadow-sm rounded-lg"
             >
               <span className={`material-symbols-outlined text-xs ${isRegenerating ? 'animate-spin' : ''}`}>sync</span>
-              {isRegenerating ? 'REGENERATING...' : 'REFRESH DATA'}
+              {isRegenerating ? 'REFRESHING...' : 'REFRESH DATA'}
             </button>
 
             <button
               onClick={() => window.print()}
-              className="py-2 px-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold font-mono tracking-wider text-[10px] rounded-lg cursor-pointer flex items-center gap-1.5 transition-all shadow-md"
+              className="py-2 px-3.5 bg-primary hover:bg-primary/90 text-white font-bold font-mono tracking-wider text-[10px] rounded-lg cursor-pointer flex items-center gap-1.5 transition-all shadow-sm"
             >
               <span className="material-symbols-outlined text-xs">picture_as_pdf</span>
               EXPORT TO PDF
             </button>
           </div>
         </div>
-      </section>
+      </header>
 
       {/* Tabs Navigation Bar */}
-      <div className="bg-[#0f172a] border-b border-slate-800 px-8 py-2 shrink-0 flex gap-4 print:hidden">
+      <div className="bg-surface-container-lowest border-b border-outline-variant px-6 py-2 shrink-0 flex gap-2 print:hidden">
         <button
           onClick={() => setActiveReportTab('analytics')}
-          className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 border cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 border cursor-pointer ${
             activeReportTab === 'analytics'
-              ? 'bg-teal-500 text-slate-950 border-teal-500 shadow-sm'
-              : 'bg-slate-905 text-slate-400 hover:bg-slate-800 border-slate-800'
+              ? 'bg-primary text-white border-primary shadow-sm'
+              : 'bg-surface-container-lowest text-secondary hover:bg-surface-container-low border-outline-variant'
           }`}
         >
           <span className="material-symbols-outlined text-sm">analytics</span>
@@ -860,10 +875,10 @@ export const AiReports: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveReportTab('copilot')}
-          className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 border cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 border cursor-pointer ${
             activeReportTab === 'copilot'
-              ? 'bg-teal-500 text-slate-950 border-teal-500 shadow-sm'
-              : 'bg-slate-905 text-slate-400 hover:bg-slate-800 border-slate-800'
+              ? 'bg-primary text-white border-primary shadow-sm'
+              : 'bg-surface-container-lowest text-secondary hover:bg-surface-container-low border-outline-variant'
           }`}
         >
           <span className="material-symbols-outlined text-sm">smart_toy</span>
@@ -879,20 +894,20 @@ export const AiReports: React.FC = () => {
 
       {/* Report Canvas Grid */}
       {activeReportTab === 'analytics' ? (
-        <div className="p-6 md:p-8 grid grid-cols-1 xl:grid-cols-2 gap-6 print:grid-cols-1 print:gap-10">
+        <div className="p-6 md:p-8 grid grid-cols-1 xl:grid-cols-2 gap-6 print:grid-cols-1 print:gap-10 bg-surface-container-low/40">
           
           {/* Chart 1: Heatmap */}
-          <div className="bg-slate-900 border-l-4 border-l-[#14b8a6] border border-slate-800 p-5 rounded-lg shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all print:shadow-none print:border-l-2 print:border-slate-800">
+          <div className="bg-surface-container-lowest border-l-4 border-l-[#14b8a6] border border-outline-variant p-5 rounded-xl shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all print:shadow-none">
             <div>
-              <h3 className="font-semibold text-white text-xs tracking-tight">Certification Coverage Matrix</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5">Roster skill matrix mapping operator qualifications (Teal=Valid, Amber=Expiring, Rose=Expired, Slate=None)</p>
+              <h3 className="font-semibold text-slate-800 text-xs tracking-tight">Certification Coverage Matrix</h3>
+              <p className="text-[10px] text-secondary mt-0.5">Roster skill matrix mapping operator qualifications (Teal=Valid, Rose=Expired, Slate=None)</p>
             </div>
             <div className="h-[320px] overflow-y-auto pr-1">
               <div className="grid gap-1" style={{ gridTemplateColumns: `120px repeat(${(reportData?.skills || []).length}, minmax(36px, 1fr))` }}>
                 {/* Header Row */}
-                <div className="font-mono text-[9px] font-bold text-slate-500">OPERATOR</div>
+                <div className="font-mono text-[9px] font-bold text-secondary">OPERATOR</div>
                 {(reportData?.skills || []).map((sk: any) => (
-                  <div key={sk.id} className="font-mono text-[8px] font-bold text-slate-400 truncate text-center" title={sk.name}>
+                  <div key={sk.id} className="font-mono text-[8px] font-bold text-secondary truncate text-center" title={sk.name}>
                     {sk.id.replace('_OPT', '').replace('_MGMT', '').replace('_CERT', '').substring(0, 5)}
                   </div>
                 ))}
@@ -917,10 +932,10 @@ export const AiReports: React.FC = () => {
                   return row;
                 })).map((row: any, i: number) => (
                   <React.Fragment key={i}>
-                    <div className="font-sans text-[10px] font-bold text-slate-300 truncate pr-1 flex items-center">{row.name}</div>
+                    <div className="font-sans text-[10px] font-bold text-slate-700 truncate pr-1 flex items-center">{row.name}</div>
                     {(reportData?.skills || []).map((sk: any) => {
                       const cell = row[sk.id];
-                      let cellColor = 'bg-slate-800 border-slate-700/50';
+                      let cellColor = 'bg-surface-container-high border-outline/50';
                       if (cell.status === 'valid') cellColor = 'bg-[#14b8a6] border-[#0d9488]/30 hover:scale-105';
                       if (cell.status === 'expired') cellColor = 'bg-rose-500 border-rose-600/30 hover:scale-105';
 
@@ -936,23 +951,23 @@ export const AiReports: React.FC = () => {
                 ))}
               </div>
             </div>
-            <div className="text-[10px] text-slate-400 italic mt-auto leading-relaxed border-t border-slate-800 pt-3">
+            <div className="text-[10px] text-secondary italic mt-auto leading-relaxed border-t border-outline-variant pt-3">
               {computed?.coverageGapPercentage}% of active associates have at least one expired certification. Proactive scheduling of renewal certifications is advised.
             </div>
           </div>
 
           {/* Chart 2: Skill Level Distribution */}
-          <div className="bg-slate-900 border-l-4 border-l-[#8b5cf6] border border-slate-800 p-5 rounded-lg shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all print:shadow-none print:border-l-2 print:border-slate-800">
+          <div className="bg-surface-container-lowest border-l-4 border-l-[#8b5cf6] border border-outline-variant p-5 rounded-xl shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all">
             <div>
-              <h3 className="font-semibold text-white text-xs tracking-tight">Skill Level Distribution</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5">Quantity of operators grouped by skill code and certification proficiency tiers</p>
+              <h3 className="font-semibold text-slate-800 text-xs tracking-tight">Skill Level Distribution</h3>
+              <p className="text-[10px] text-secondary mt-0.5">Quantity of operators grouped by skill code and certification proficiency tiers</p>
             </div>
             <div className="h-[260px] w-full font-mono text-[10px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={computed?.skillDistribution} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 9 }} />
-                  <YAxis stroke="#64748b" tick={{ fontSize: 9 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="name" stroke="#94a3b8" tick={{ fontSize: 9 }} />
+                  <YAxis stroke="#94a3b8" tick={{ fontSize: 9 }} />
                   <Tooltip content={<CustomChartTooltip />} />
                   <Legend iconSize={8} wrapperStyle={{ fontSize: 9, paddingTop: 10 }} />
                   <Bar dataKey="Trainee" stackId="a" fill="#475569" />
@@ -962,16 +977,16 @@ export const AiReports: React.FC = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="text-[10px] text-slate-400 italic mt-auto leading-relaxed border-t border-slate-800 pt-3">
+            <div className="text-[10px] text-secondary italic mt-auto leading-relaxed border-t border-outline-variant pt-3">
               Highest concentration of experts found in key machinery skill roles, offering redundant line coverage templates.
             </div>
           </div>
 
           {/* Chart 3: Expiry Timeline */}
-          <div className="bg-slate-900 border-l-4 border-l-[#f59e0b] border border-slate-800 p-5 rounded-lg shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all print:shadow-none print:border-l-2 print:border-slate-800">
+          <div className="bg-surface-container-lowest border-l-4 border-l-[#f59e0b] border border-outline-variant p-5 rounded-xl shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all">
             <div>
-              <h3 className="font-semibold text-white text-xs tracking-tight">Certification Expiration Timeline</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5">Projected volume of skill certification renewals falling due over the next 12 months</p>
+              <h3 className="font-semibold text-slate-800 text-xs tracking-tight">Certification Expiration Timeline</h3>
+              <p className="text-[10px] text-secondary mt-0.5">Projected volume of skill certification renewals falling due over the next 12 months</p>
             </div>
             <div className="h-[260px] w-full font-mono text-[10px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -984,67 +999,67 @@ export const AiReports: React.FC = () => {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-            <div className="text-[10px] text-slate-400 italic mt-auto leading-relaxed border-t border-slate-800 pt-3">
+            <div className="text-[10px] text-secondary italic mt-auto leading-relaxed border-t border-outline-variant pt-3">
               Recommend scheduling refresher certifications 30 days prior to expiry peaks to maintain uninterrupted line operations.
             </div>
           </div>
 
           {/* Chart 4: Shift Allocation Fill Rate */}
-          <div className="bg-slate-900 border-l-4 border-l-[#14b8a6] border border-slate-800 p-5 rounded-lg shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all print:shadow-none print:border-l-2 print:border-slate-800">
+          <div className="bg-surface-container-lowest border-l-4 border-l-[#14b8a6] border border-outline-variant p-5 rounded-xl shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all">
             <div>
-              <h3 className="font-semibold text-white text-xs tracking-tight">Shift Roster Fill Rate Trend</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5">Manpower compliance percentage tracks allocated staff counts against total line station requirements</p>
+              <h3 className="font-semibold text-slate-800 text-xs tracking-tight">Shift Roster Fill Rate Trend</h3>
+              <p className="text-[10px] text-secondary mt-0.5">Manpower compliance percentage tracks allocated staff counts against total line station requirements</p>
             </div>
             <div className="h-[260px] w-full font-mono text-[10px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={computed?.fillRateByDate} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 9 }} />
-                  <YAxis stroke="#64748b" tick={{ fontSize: 9 }} domain={[0, 100]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="name" stroke="#94a3b8" tick={{ fontSize: 9 }} />
+                  <YAxis stroke="#94a3b8" tick={{ fontSize: 9 }} domain={[0, 100]} />
                   <Tooltip content={<CustomChartTooltip />} />
                   <Line type="monotone" dataKey="Fill Rate %" stroke="#14b8a6" strokeWidth={1.5} activeDot={{ r: 4 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
-            <div className="text-[10px] text-slate-400 italic mt-auto leading-relaxed border-t border-slate-800 pt-3">
+            <div className="text-[10px] text-secondary italic mt-auto leading-relaxed border-t border-outline-variant pt-3">
               Roster trends indicate stable average shift load levels. Minimal coverage exceptions noted during weekend rosters.
             </div>
           </div>
 
           {/* Chart 5: Associate Deployment Frequency */}
-          <div className="bg-slate-900 border-l-4 border-l-[#3b82f6] border border-slate-800 p-5 rounded-lg shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all print:shadow-none print:border-l-2 print:border-slate-800">
+          <div className="bg-surface-container-lowest border-l-4 border-l-[#3b82f6] border border-outline-variant p-5 rounded-xl shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all">
             <div>
-              <h3 className="font-semibold text-white text-xs tracking-tight">Operator Deployment Frequency</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5">Top 10 operators ranked by total shift assignments registered across the active period</p>
+              <h3 className="font-semibold text-slate-800 text-xs tracking-tight">Operator Deployment Frequency</h3>
+              <p className="text-[10px] text-secondary mt-0.5">Top 10 operators ranked by total shift assignments registered across the active period</p>
             </div>
             <div className="h-[260px] w-full font-mono text-[10px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart layout="vertical" data={computed?.deploymentFreq} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis type="number" stroke="#64748b" tick={{ fontSize: 9 }} />
-                  <YAxis type="category" dataKey="name" stroke="#64748b" tick={{ fontSize: 9 }} width={80} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis type="number" stroke="#94a3b8" tick={{ fontSize: 9 }} />
+                  <YAxis type="category" dataKey="name" stroke="#94a3b8" tick={{ fontSize: 9 }} width={80} />
                   <Tooltip content={<CustomChartTooltip />} />
                   <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} name="Deployments" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="text-[10px] text-slate-400 italic mt-auto leading-relaxed border-t border-slate-800 pt-3">
+            <div className="text-[10px] text-secondary italic mt-auto leading-relaxed border-t border-outline-variant pt-3">
               Top deployed operators represent potential workload balance outliers. Balance roster schedules to mitigate fatigue warnings.
             </div>
           </div>
 
           {/* Chart 6: Override Rate by Supervisor */}
-          <div className="bg-slate-900 border-l-4 border-l-[#f43f5e] border border-slate-800 p-5 rounded-lg shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all print:shadow-none print:border-l-2 print:border-slate-800">
+          <div className="bg-surface-container-lowest border-l-4 border-l-[#f43f5e] border border-outline-variant p-5 rounded-xl shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all">
             <div>
-              <h3 className="font-semibold text-white text-xs tracking-tight">Roster Override Volume</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5">Audits standard allocations versus compliant skill safety override mappings by manager account</p>
+              <h3 className="font-semibold text-slate-800 text-xs tracking-tight">Roster Override Volume</h3>
+              <p className="text-[10px] text-secondary mt-0.5">Audits standard allocations versus compliant skill safety override mappings by manager account</p>
             </div>
             <div className="h-[260px] w-full font-mono text-[10px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={computed?.overrideRateByUser} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 9 }} />
-                  <YAxis stroke="#64748b" tick={{ fontSize: 9 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="name" stroke="#94a3b8" tick={{ fontSize: 9 }} />
+                  <YAxis stroke="#94a3b8" tick={{ fontSize: 9 }} />
                   <Tooltip content={<CustomChartTooltip />} />
                   <Legend iconSize={8} wrapperStyle={{ fontSize: 9, paddingTop: 10 }} />
                   <Bar dataKey="Standard" fill="#14b8a6" name="Standard Allocations" />
@@ -1052,23 +1067,23 @@ export const AiReports: React.FC = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="text-[10px] text-slate-400 italic mt-auto leading-relaxed border-t border-slate-800 pt-3">
+            <div className="text-[10px] text-secondary italic mt-auto leading-relaxed border-t border-outline-variant pt-3">
               High override rates warrant review of standard skill matrix parameters and eligible operators registry.
             </div>
           </div>
 
           {/* Chart 7: Workstation Coverage Risk Score */}
-          <div className="bg-slate-900 border-l-4 border-l-[#8b5cf6] border border-slate-800 p-5 rounded-lg shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all print:shadow-none print:border-l-2 print:border-slate-800">
+          <div className="bg-surface-container-lowest border-l-4 border-l-[#8b5cf6] border border-outline-variant p-5 rounded-xl shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all">
             <div>
-              <h3 className="font-semibold text-white text-xs tracking-tight">Workstation Coverage Risk Profile</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5">Radar composite capability audit metrics evaluating roster parameters per production line</p>
+              <h3 className="font-semibold text-slate-800 text-xs tracking-tight">Workstation Coverage Risk Profile</h3>
+              <p className="text-[10px] text-secondary mt-0.5">Radar composite capability audit metrics evaluating roster parameters per production line</p>
             </div>
             <div className="h-[260px] w-full font-mono text-[10px]">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={computed?.lineRadar}>
                   <PolarGrid stroke="#e2e8f0" />
-                  <PolarAngleAxis dataKey="subject" stroke="#64748b" tick={{ fontSize: 8 }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#64748b" tick={{ fontSize: 7 }} />
+                  <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fontSize: 8 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#94a3b8" tick={{ fontSize: 7 }} />
                   {(reportData?.productionLines || []).map((line: any, i: number) => {
                     const colors = ['#14b8a6', '#8b5cf6', '#3b82f6', '#f59e0b'];
                     const color = colors[i % colors.length];
@@ -1088,23 +1103,23 @@ export const AiReports: React.FC = () => {
                 </RadarChart>
               </ResponsiveContainer>
             </div>
-            <div className="text-[10px] text-slate-400 italic mt-auto leading-relaxed border-t border-slate-800 pt-3">
+            <div className="text-[10px] text-secondary italic mt-auto leading-relaxed border-t border-outline-variant pt-3">
               Roster coverage metrics represent composite plant-floor redundancy ratios per line setup.
             </div>
           </div>
 
           {/* Chart 8: Predictive Staffing Demand Forecast */}
-          <div className="bg-slate-900 border-l-4 border-l-[#10b981] border border-slate-800 p-5 rounded-lg shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all print:shadow-none print:border-l-2 print:border-slate-800">
+          <div className="bg-surface-container-lowest border-l-4 border-l-[#10b981] border border-outline-variant p-5 rounded-xl shadow-sm flex flex-col gap-4 animate-fade-in hover:shadow-md transition-all">
             <div>
-              <h3 className="font-semibold text-white text-xs tracking-tight">Predictive Staffing Demand Forecast</h3>
-              <p className="text-[10px] text-slate-400 mt-0.5">14-day forward-looking projection evaluating active qualified workforce levels against workstation counts</p>
+              <h3 className="font-semibold text-slate-800 text-xs tracking-tight">Predictive Staffing Demand Forecast</h3>
+              <p className="text-[10px] text-secondary mt-0.5">14-day forward-looking projection evaluating active qualified workforce levels against workstation counts</p>
             </div>
             <div className="h-[260px] w-full font-mono text-[10px]">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={computed?.forecast} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 8 }} />
-                  <YAxis stroke="#64748b" tick={{ fontSize: 9 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="name" stroke="#94a3b8" tick={{ fontSize: 8 }} />
+                  <YAxis stroke="#94a3b8" tick={{ fontSize: 9 }} />
                   <Tooltip content={<CustomChartTooltip />} />
                   <Legend iconSize={8} wrapperStyle={{ fontSize: 9, paddingTop: 10 }} />
                   <Bar dataKey="Available" fill="#14b8a6" name="Projected Available Staff" />
@@ -1112,7 +1127,7 @@ export const AiReports: React.FC = () => {
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
-            <div className="text-[10px] text-slate-400 italic mt-auto leading-relaxed border-t border-slate-100 pt-3">
+            <div className="text-[10px] text-secondary italic mt-auto leading-relaxed border-t border-outline-variant pt-3">
               Manpower availability forecasts indicate stable operations buffer levels.
             </div>
           </div>
@@ -1121,26 +1136,26 @@ export const AiReports: React.FC = () => {
       ) : (
         /* Isolated Palantir Foundry-Style Roster Control Center Tab */
         <section className="p-6 md:p-8 flex-1 flex flex-col overflow-hidden animate-fade-in w-full min-h-[500px]">
-          <div className="bg-[#0f172a] border border-slate-800 rounded-2xl flex-1 flex flex-col overflow-hidden shadow-2xl">
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl flex-1 flex flex-col overflow-hidden shadow-sm">
             
             {/* Control panel header */}
-            <div className="bg-[#020617] text-white px-6 py-4 flex justify-between items-center border-b border-slate-800">
+            <div className="bg-primary text-white px-6 py-4 flex justify-between items-center border-b border-primary/20 rounded-t-2xl">
               <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-teal-400 text-xl">psychology</span>
+                <span className="material-symbols-outlined text-white/80 text-xl">psychology</span>
                 <div>
-                  <h3 className="font-bold text-xs tracking-tight text-white uppercase">Operations Control Panel</h3>
-                  <p className="text-[9px] text-slate-400 font-mono">Live PostgreSQL database state context integration active</p>
+                  <h3 className="font-bold text-xs tracking-tight text-white uppercase">PlantOps AI Copilot</h3>
+                  <p className="text-[9px] text-white/60 font-mono">Live PostgreSQL database context active</p>
                 </div>
               </div>
-              <span className="text-[9px] font-mono bg-emerald-500/20 px-2.5 py-0.5 rounded text-emerald-300 border border-emerald-500/30">Foundry Node Online</span>
+              <span className="text-[9px] font-mono bg-emerald-400/20 px-2.5 py-0.5 rounded text-emerald-200 border border-emerald-300/30">● Online</span>
             </div>
 
             {/* Chat output & interactive cards */}
-            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 custom-scrollbar bg-slate-950/20">
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 custom-scrollbar bg-surface-container-low">
               {messages.map((m, idx) => (
                 <div key={idx} className="flex flex-col gap-3">
                   {m.sender === 'user' ? (
-                    <div className="self-end bg-slate-800 border border-slate-700 text-white rounded-2xl px-4 py-2.5 text-xs max-w-[70%]">
+                    <div className="self-end bg-primary text-white rounded-2xl px-4 py-2.5 text-xs max-w-[70%] shadow-sm">
                       {m.text}
                     </div>
                   ) : (
@@ -1148,54 +1163,51 @@ export const AiReports: React.FC = () => {
                       
                       {/* Enterprise Header Card */}
                       {m.isDashboardResponse && (
-                        <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-xl p-5 shadow-lg flex flex-col gap-5">
-                          <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <div id={`copilot-card-${idx}`} className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-sm flex flex-col gap-5">
+                          <div className="flex justify-between items-center border-b border-outline-variant pb-3">
                             <div>
-                              <h4 className="text-xs font-bold text-slate-400 font-mono tracking-wider uppercase">Executive Analytics Report</h4>
-                              <h3 className="text-sm font-bold text-white mt-0.5">{m.lineName || 'ALL LINES'}</h3>
+                              <h4 className="text-xs font-bold text-secondary font-mono tracking-wider uppercase">Executive Analytics Report</h4>
+                              <h3 className="text-sm font-bold text-primary mt-0.5">{m.lineName || 'ALL LINES'}</h3>
                             </div>
-                            <div className="text-right text-[10px] font-mono text-slate-400">
-                              <div>Status: <span className="text-emerald-400 font-bold">🟢 Healthy</span></div>
-                              <div className="mt-0.5">Confidence: <span className="text-teal-400 font-bold">96%</span></div>
+                            <div className="text-right text-[10px] font-mono text-secondary">
+                              <div>Status: <span className="text-emerald-600 font-bold">🟢 Healthy</span></div>
+                              <div className="mt-0.5">Confidence: <span className="text-primary font-bold">96%</span></div>
                             </div>
                           </div>
 
                           {/* KPI Card grid */}
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="bg-slate-950/40 border border-slate-800 p-3.5 rounded-lg flex flex-col">
-                              <span className="text-[9px] text-slate-400 uppercase font-mono">Today's Output</span>
-                              <span className="text-sm font-bold text-white mt-1">{m.kpis?.output?.value || '14,582 Units'}</span>
-                              <span className="text-[9px] text-emerald-400 font-bold mt-1">{m.kpis?.output?.trend || '▲ +3.2%'}</span>
+                            <div className="bg-surface-container-low border border-outline-variant p-3.5 rounded-lg flex flex-col">
+                              <span className="text-[9px] text-secondary uppercase font-mono">Today's Metric</span>
+                              <span className="text-sm font-bold text-primary mt-1">{m.kpis?.output?.value || '—'}</span>
+                              <span className="text-[9px] font-bold mt-1 text-slate-500">{m.kpis?.output?.trend || ''}</span>
                             </div>
-
-                            <div className="bg-slate-950/40 border border-slate-800 p-3.5 rounded-lg flex flex-col">
-                              <span className="text-[9px] text-slate-400 uppercase font-mono">Machine Util</span>
-                              <span className="text-sm font-bold text-white mt-1">{m.kpis?.utilization?.value || '96%'}</span>
-                              <span className="text-[9px] text-emerald-400 font-bold mt-1">{m.kpis?.utilization?.trend || '▲ +1.8%'}</span>
+                            <div className="bg-surface-container-low border border-outline-variant p-3.5 rounded-lg flex flex-col">
+                              <span className="text-[9px] text-secondary uppercase font-mono">Utilization</span>
+                              <span className="text-sm font-bold text-primary mt-1">{m.kpis?.utilization?.value || '—'}</span>
+                              <span className="text-[9px] font-bold mt-1 text-slate-500">{m.kpis?.utilization?.trend || ''}</span>
                             </div>
-
-                            <div className="bg-slate-950/40 border border-slate-800 p-3.5 rounded-lg flex flex-col">
-                              <span className="text-[9px] text-slate-400 uppercase font-mono">Downtime Logs</span>
-                              <span className="text-sm font-bold text-white mt-1">{m.kpis?.downtime?.value || '12 min'}</span>
-                              <span className="text-[9px] text-emerald-400 font-bold mt-1">{m.kpis?.downtime?.trend || '▼ -45%'}</span>
+                            <div className="bg-surface-container-low border border-outline-variant p-3.5 rounded-lg flex flex-col">
+                              <span className="text-[9px] text-secondary uppercase font-mono">Status Indicator</span>
+                              <span className="text-sm font-bold text-primary mt-1">{m.kpis?.downtime?.value || '—'}</span>
+                              <span className="text-[9px] font-bold mt-1 text-slate-500">{m.kpis?.downtime?.trend || ''}</span>
                             </div>
-
-                            <div className="bg-slate-950/40 border border-slate-800 p-3.5 rounded-lg flex flex-col">
-                              <span className="text-[9px] text-slate-400 uppercase font-mono">Shift Operators</span>
-                              <span className="text-sm font-bold text-white mt-1">{m.kpis?.operators?.value || '18 Active'}</span>
-                              <span className="text-[9px] text-slate-500 font-bold mt-1">{m.kpis?.operators?.trend || 'Nominal'}</span>
+                            <div className="bg-surface-container-low border border-outline-variant p-3.5 rounded-lg flex flex-col">
+                              <span className="text-[9px] text-secondary uppercase font-mono">Operators</span>
+                              <span className="text-sm font-bold text-primary mt-1">{m.kpis?.operators?.value || '—'}</span>
+                              <span className="text-[9px] font-bold mt-1 text-slate-500">{m.kpis?.operators?.trend || ''}</span>
                             </div>
                           </div>
 
-                          {/* Collapsible Executive Summary Section */}
-                          <div className="border-t border-slate-800 pt-3">
-                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 font-mono">AI Executive Insights</h4>
+                          {/* AI Insights Section */}
+                          <div className="border-t border-outline-variant pt-3">
+                            <h4 className="text-[10px] font-bold text-secondary uppercase tracking-wider mb-2 font-mono">AI Executive Insights</h4>
                             <div className="flex flex-col gap-2">
                               {(m.insights || []).map((ins: any, i: number) => (
                                 <div key={i} className={`p-2.5 rounded-lg border text-xs flex gap-2.5 items-start ${
-                                  ins.type === 'critical' ? 'bg-rose-950/30 border-rose-900 text-rose-200' :
-                                  ins.type === 'warning' ? 'bg-amber-950/30 border-amber-900 text-amber-200' :
-                                  'bg-emerald-950/30 border-emerald-900/40 text-emerald-200'
+                                  ins.type === 'critical' ? 'bg-error-container border-outline-variant text-on-error-container' :
+                                  ins.type === 'warning' ? 'bg-secondary-container border-outline-variant text-on-secondary-container' :
+                                  'bg-tertiary-fixed-dim/20 border-outline-variant text-on-tertiary-fixed-variant'
                                 }`}>
                                   <span className="material-symbols-outlined text-sm mt-0.5">
                                     {ins.type === 'critical' ? 'error' : ins.type === 'warning' ? 'warning' : 'check_circle'}
@@ -1208,15 +1220,15 @@ export const AiReports: React.FC = () => {
 
                           {/* Dynamic Chart — unique per question intent */}
                           {m.chartData && (
-                            <div className="border-t border-slate-800 pt-3">
-                              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 font-mono">{m.chartData.title}</h4>
+                            <div className="border-t border-outline-variant pt-3">
+                              <h4 className="text-[10px] font-bold text-secondary uppercase tracking-wider mb-3 font-mono">{m.chartData.title}</h4>
                               <div className="h-[220px] w-full">
                                 <ResponsiveContainer width="100%" height="100%">
                                   {m.chartData.type === 'barH' ? (
                                     <BarChart layout="vertical" data={m.chartData.data} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
-                                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                                      <XAxis type="number" stroke="#64748b" tick={{ fontSize: 9 }} />
-                                      <YAxis type="category" dataKey={m.chartData.xKey} stroke="#64748b" tick={{ fontSize: 9 }} width={80} />
+                                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                      <XAxis type="number" stroke="#94a3b8" tick={{ fontSize: 9 }} />
+                                      <YAxis type="category" dataKey={m.chartData.xKey} stroke="#94a3b8" tick={{ fontSize: 9 }} width={80} />
                                       <Tooltip content={<CustomChartTooltip />} />
                                       <Legend iconSize={8} wrapperStyle={{ fontSize: 9 }} />
                                       {m.chartData.bars.map((b: any) => (
@@ -1225,9 +1237,9 @@ export const AiReports: React.FC = () => {
                                     </BarChart>
                                   ) : m.chartData.type === 'composed' ? (
                                     <ComposedChart data={m.chartData.data} margin={{ top: 4, right: 16, left: -20, bottom: 0 }}>
-                                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                                      <XAxis dataKey={m.chartData.xKey} stroke="#64748b" tick={{ fontSize: 8 }} />
-                                      <YAxis stroke="#64748b" tick={{ fontSize: 9 }} />
+                                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                      <XAxis dataKey={m.chartData.xKey} stroke="#94a3b8" tick={{ fontSize: 8 }} />
+                                      <YAxis stroke="#94a3b8" tick={{ fontSize: 9 }} />
                                       <Tooltip content={<CustomChartTooltip />} />
                                       <Legend iconSize={8} wrapperStyle={{ fontSize: 9 }} />
                                       {(m.chartData.bars || []).map((b: any) => (
@@ -1239,9 +1251,9 @@ export const AiReports: React.FC = () => {
                                     </ComposedChart>
                                   ) : (
                                     <BarChart data={m.chartData.data} margin={{ top: 4, right: 16, left: -20, bottom: 0 }}>
-                                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                                      <XAxis dataKey={m.chartData.xKey} stroke="#64748b" tick={{ fontSize: 9 }} />
-                                      <YAxis stroke="#64748b" tick={{ fontSize: 9 }} domain={m.chartData.domain || [0, 'auto']} />
+                                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                      <XAxis dataKey={m.chartData.xKey} stroke="#94a3b8" tick={{ fontSize: 9 }} />
+                                      <YAxis stroke="#94a3b8" tick={{ fontSize: 9 }} domain={m.chartData.domain || [0, 'auto']} />
                                       <Tooltip content={<CustomChartTooltip />} />
                                       <Legend iconSize={8} wrapperStyle={{ fontSize: 9 }} />
                                       {m.chartData.bars.map((b: any) => (
@@ -1254,49 +1266,82 @@ export const AiReports: React.FC = () => {
                             </div>
                           )}
 
+                          {/* AI Recommendations panel */}
+                          {m.recommendations && m.recommendations.length > 0 && (
+                            <div className="border-t border-outline-variant pt-3">
+                              <h4 className="text-[10px] font-bold text-secondary uppercase tracking-wider mb-2 font-mono">AI Action Recommendations</h4>
+                              <div className="flex flex-col gap-1.5">
+                                {m.recommendations.map((rec: any, index: number) => {
+                                  const color = rec.priority === 'critical' ? 'text-red-600 bg-error-container border-outline-variant' :
+                                                rec.priority === 'high' ? 'text-amber-600 bg-secondary-container border-outline-variant' : 'text-blue-600 bg-secondary-container border-blue-200';
+                                  return (
+                                    <div key={index} className={`p-2 rounded-lg border text-[11px] flex gap-2 items-start ${color}`}>
+                                      <span className="material-symbols-outlined text-xs mt-0.5">lightbulb</span>
+                                      <div>
+                                        <p className="font-bold">{rec.title}</p>
+                                        <p className="text-[10px] opacity-90 mt-0.5">{rec.message}</p>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
                           {/* Machine Breakdown Health Panel */}
-                          <div className="border-t border-slate-800 pt-3">
-                            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 font-mono">Machine Health Registry Status</h4>
+                          <div className="border-t border-outline-variant pt-3">
+                            <h4 className="text-[10px] font-bold text-secondary uppercase tracking-wider mb-3 font-mono">Machine Health Registry Status</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              <div className="bg-slate-950/30 border border-slate-800 p-3 rounded-lg flex flex-col gap-2">
+                              <div className="bg-surface-container-low border border-outline-variant p-3 rounded-lg flex flex-col gap-2">
                                 <div className="flex justify-between items-center text-xs">
-                                  <span className="font-bold text-white">Slicing & Washing Drum A</span>
-                                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-900/30">98% OEE</span>
+                                  <span className="font-bold text-slate-800">Slicing & Washing Drum A</span>
+                                  <span className="text-[10px] font-mono text-emerald-600 bg-tertiary-fixed-dim/20 px-1.5 py-0.5 rounded border border-outline-variant">98% OEE</span>
                                 </div>
-                                <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                  <div className="bg-emerald-400 h-full" style={{ width: '98%' }}></div>
+                                <div className="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+                                  <div className="bg-emerald-500 h-full" style={{ width: '98%' }}></div>
                                 </div>
                               </div>
-
-                              <div className="bg-slate-950/30 border border-slate-800 p-3 rounded-lg flex flex-col gap-2">
+                              <div className="bg-surface-container-low border border-outline-variant p-3 rounded-lg flex flex-col gap-2">
                                 <div className="flex justify-between items-center text-xs">
-                                  <span className="font-bold text-white">High-Temp Fryer unit B</span>
-                                  <span className="text-[10px] font-mono text-amber-400 bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-900/30">84% OEE</span>
+                                  <span className="font-bold text-slate-800">High-Temp Fryer Unit B</span>
+                                  <span className="text-[10px] font-mono text-amber-600 bg-secondary-container px-1.5 py-0.5 rounded border border-outline-variant">84% OEE</span>
                                 </div>
-                                <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                  <div className="bg-amber-400 h-full" style={{ width: '84%' }}></div>
+                                <div className="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+                                  <div className="bg-amber-500 h-full" style={{ width: '84%' }}></div>
                                 </div>
                               </div>
                             </div>
                           </div>
 
                           {/* Report actions bar */}
-                          <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-800 justify-end">
-                            <button className="py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono rounded cursor-pointer transition-all border border-slate-700">
-                              DOWNLOAD CSV
+                          <div className="flex flex-wrap gap-2 pt-2 border-t border-outline-variant items-center justify-between">
+                            <button
+                              onClick={() => {
+                                const speech = new SpeechSynthesisUtterance(
+                                  `Executive summary for ${m.lineName || 'All Lines'}. ` +
+                                  (m.insights || []).map((ins: any) => ins.message).join('. ')
+                                );
+                                window.speechSynthesis.cancel();
+                                window.speechSynthesis.speak(speech);
+                              }}
+                              className="py-1.5 px-3 bg-surface-container-low hover:bg-surface-container text-primary text-[10px] font-mono rounded cursor-pointer transition-all border border-outline-variant flex items-center gap-1.5"
+                            >
+                              <span className="material-symbols-outlined text-xs">volume_up</span>
+                              Read Report
                             </button>
-                            <button className="py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono rounded cursor-pointer transition-all border border-slate-700">
-                              EXPORT EXCEL
-                            </button>
-                            <button onClick={() => window.print()} className="py-1.5 px-3 bg-teal-500 hover:bg-teal-400 text-slate-950 text-[10px] font-mono font-bold rounded cursor-pointer transition-all">
-                              PRINT REPORT
-                            </button>
+                            <ExportToolbar
+                              elementId={`copilot-card-${idx}`}
+                              reportTitle={`Executive Analytics Report — ${m.lineName || 'ALL LINES'}`}
+                              filename="AI_Executive_Report"
+                              csvRows={m.chartData?.data}
+                              jsonData={m}
+                            />
                           </div>
 
                         </div>
                       )}
                       {m.text && (
-                        <div className="bg-slate-900 border border-slate-800 text-slate-200 rounded-2xl px-4 py-3.5 text-xs max-w-[85%]">
+                        <div className="bg-surface-container-lowest border border-outline-variant text-slate-700 rounded-2xl px-4 py-3.5 text-xs max-w-[85%] shadow-sm">
                           {m.text}
                         </div>
                       )}
@@ -1305,35 +1350,35 @@ export const AiReports: React.FC = () => {
                 </div>
               ))}
               {isTyping && (
-                <div className="self-start text-[10px] text-slate-400 font-mono animate-pulse flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-ping"></span>
-                  Processing control parameters...
+                <div className="self-start text-[10px] text-secondary font-mono animate-pulse flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+                  Analysing data...
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Voice and input controls footer */}
-            <div className="p-4 border-t border-slate-800 bg-[#020617] flex gap-3 items-center">
+            {/* Input footer */}
+            <div className="p-4 border-t border-outline-variant bg-surface-container-low flex gap-3 items-center">
               <div className="flex-1 relative flex items-center">
                 <input
                   type="text"
                   value={chatInput}
                   onChange={e => setChatInput(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') handleSendMessage(chatInput); }}
-                  placeholder={isListening ? "Listening... Speak now!" : "Ask control room: 'downtime report', 'efficiency matrix', 'staffing gaps'..."}
-                  className={`w-full border rounded-xl pl-4 pr-10 py-3 text-xs font-mono bg-slate-950 text-white focus:outline-none focus:ring-1 transition-all ${
+                  placeholder={isListening ? "Listening... Speak now!" : "Ask: 'expired certifications', 'who is on leave', 'shift coverage'..."}
+                  className={`w-full border rounded-xl pl-4 pr-10 py-3 text-xs font-mono bg-surface-container-lowest text-slate-800 focus:outline-none focus:ring-1 transition-all ${
                     isListening
-                      ? 'border-rose-500 focus:border-rose-400 focus:ring-rose-400 bg-rose-950/20'
-                      : 'border-slate-800 focus:border-teal-400 focus:ring-teal-400'
+                      ? 'border-red-400 focus:border-red-400 focus:ring-red-400 bg-error-container'
+                      : 'border-outline-variant focus:border-primary focus:ring-primary'
                   }`}
                 />
                 <button
                   onClick={toggleListening}
                   className={`absolute right-3 p-1 rounded-full cursor-pointer flex items-center justify-center transition-all ${
                     isListening
-                      ? 'text-rose-400 bg-rose-950 hover:bg-rose-900 animate-pulse'
-                      : 'text-slate-500 hover:text-teal-400 hover:bg-slate-900'
+                      ? 'text-red-500 bg-error-container hover:bg-red-100 animate-pulse'
+                      : 'text-secondary hover:text-primary hover:bg-surface-container'
                   }`}
                   title={isListening ? "Stop listening" : "Start voice input"}
                 >
@@ -1344,9 +1389,9 @@ export const AiReports: React.FC = () => {
               </div>
               <button
                 onClick={() => handleSendMessage(chatInput)}
-                className="px-6 py-3 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs rounded-xl cursor-pointer transition-all shadow-md"
+                className="px-6 py-3 bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-xl cursor-pointer transition-all shadow-sm"
               >
-                Execute
+                Send
               </button>
             </div>
           </div>

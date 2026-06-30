@@ -1,0 +1,488 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Associate Profile - Marcus Chen | IndustrialOps</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-surface": "#191c1e",
+                    "outline": "#75777d",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "surface-container-low": "#f2f4f6",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "tertiary-container": "#00301e",
+                    "secondary-container": "#d5e3fc",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "inverse-surface": "#2d3133",
+                    "secondary": "#515f74",
+                    "on-primary-container": "#8590a6",
+                    "surface-variant": "#e0e3e5",
+                    "surface": "#f7f9fb",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "surface-bright": "#f7f9fb",
+                    "inverse-on-surface": "#eff1f3",
+                    "primary-fixed-dim": "#bcc7de",
+                    "on-tertiary-container": "#00a472",
+                    "primary-container": "#1e293b",
+                    "error": "#ba1a1a",
+                    "error-container": "#ffdad6",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-surface-variant": "#45474c",
+                    "surface-dim": "#d8dadc",
+                    "tertiary-fixed": "#6ffbbe",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "on-background": "#191c1e",
+                    "outline-variant": "#c5c6cd",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "on-error": "#ffffff",
+                    "background": "#f7f9fb",
+                    "on-error-container": "#93000a",
+                    "inverse-primary": "#bcc7de",
+                    "primary": "#091426",
+                    "on-tertiary": "#ffffff",
+                    "surface-container": "#eceef0",
+                    "surface-tint": "#545f73",
+                    "surface-container-high": "#e6e8ea",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#111c2d",
+                    "on-primary": "#ffffff",
+                    "tertiary": "#00190e",
+                    "secondary-fixed": "#d5e3fc",
+                    "on-tertiary-fixed": "#002113",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-container": "#57657a",
+                    "primary-fixed": "#d8e3fb"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter-mobile": "12px",
+                    "margin-mobile": "16px",
+                    "lg": "24px",
+                    "xs": "4px",
+                    "md": "16px",
+                    "xl": "32px",
+                    "sm": "8px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Inter"],
+                    "data-mono": ["JetBrains Mono"],
+                    "label-lg": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "body-md": ["Inter"],
+                    "label-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-sm": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { background-color: #f7f9fb; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .tab-active {
+            border-bottom: 2px solid #091426;
+            color: #091426;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c5c6cd; border-radius: 10px; }
+    </style>
+</head>
+<body class="font-body-md text-on-surface">
+<div class="flex h-screen overflow-hidden">
+<!-- Side Navigation (Authority: SideNavBar JSON) -->
+<aside class="hidden md:flex flex-col h-screen w-64 border-r border-outline-variant bg-surface flex-shrink-0">
+<div class="p-lg">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">IndustrialOps</span>
+<p class="text-body-sm text-on-surface-variant opacity-70">Facility Alpha-1</p>
+</div>
+<nav class="flex flex-col gap-1 mt-4 flex-grow">
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg px-4 py-3 mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-lg text-label-lg">Dashboard</span>
+</a>
+<!-- ACTIVE TAB: Associates -->
+<a class="flex items-center gap-3 bg-secondary-container text-on-secondary-container rounded-lg px-4 py-3 mx-2" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+<span class="font-label-lg text-label-lg">Associates</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg px-4 py-3 mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined">factory</span>
+<span class="font-label-lg text-label-lg">Production Lines</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-high rounded-lg px-4 py-3 mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="font-label-lg text-label-lg">Reports</span>
+</a>
+</nav>
+<div class="p-4 border-t border-outline-variant">
+<div class="flex items-center gap-3 p-2">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<p class="font-label-lg text-label-lg">Admin User</p>
+<p class="text-body-sm opacity-60">System Admin</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-grow overflow-y-auto flex flex-col bg-surface-container-lowest">
+<!-- Top App Bar (Authority: TopNavBar JSON) -->
+<header class="flex justify-between items-center px-lg w-full h-16 sticky top-0 z-40 bg-surface-container-lowest border-b border-outline-variant">
+<div class="flex items-center gap-4">
+<button class="md:hidden p-2 rounded-full hover:bg-surface-container">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="flex items-center gap-2">
+<span class="text-on-surface-variant">Associates</span>
+<span class="material-symbols-outlined text-body-sm">chevron_right</span>
+<span class="font-bold text-primary">Marcus Chen</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-surface-container rounded-full border-none text-body-md focus:ring-2 focus:ring-primary w-64" placeholder="Global Search..." type="text">
+</div>
+<button class="p-2 rounded-full hover:bg-surface-container transition-all relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</header>
+<!-- Page Content -->
+<div class="p-6 md:p-10 max-w-7xl mx-auto w-full space-y-8 pb-24">
+<!-- Profile Header Card -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+<div class="flex items-center gap-6">
+<div class="relative group">
+<div class="w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden border-2 border-outline-variant">
+<img alt="Marcus Chen Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfI-JZyjb1pQwgoRAtI8MGXNX2TkA8IMEQGilu9TafNco6H0681KiHavWtbDCOinqxPmMVNW7cH2PGWBix5r5qN2C9dtJepLRZ5jQe-w5EM4EAd4HpvXjXE2ZjUfZ8L0JYCnIpFNelIEATQDAcZpx-hcSk2br-2DUV4G-gnc11DusyAddAz185_iYFO8pJdibyEO4J1XRizRZ5LQl04mYp3jucUv_Ldv1I8ajvM3NZ3OargpKyQvu6reWcSh6mOS_F6lv4y82etqE">
+</div>
+<div class="absolute -bottom-2 -right-2 bg-tertiary-fixed text-on-tertiary-fixed-variant p-1.5 rounded-lg border-2 border-surface shadow-sm">
+<span class="material-symbols-outlined text-[20px]">verified</span>
+</div>
+</div>
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary">Marcus Chen</h1>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+<span class="font-data-mono text-data-mono bg-surface-container px-2 py-0.5 rounded text-on-surface-variant">EMP-884</span>
+<span class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">badge</span>
+<span class="font-label-lg">Line Supervisor</span>
+</span>
+<span class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+<span class="font-label-lg text-label-lg">Line B - Food Processing</span>
+</span>
+</div>
+<div class="mt-4 flex gap-2">
+<div class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-body-sm font-semibold border border-emerald-100 flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                    On Duty
+                                </div>
+<div class="px-3 py-1 rounded-full bg-primary-container/10 text-primary-container text-body-sm font-semibold border border-primary-container/20">
+                                    8.5 Years Tenure
+                                </div>
+</div>
+</div>
+</div>
+<div class="flex gap-3 w-full md:w-auto">
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-outline-variant rounded-lg font-bold text-on-surface hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">ios_share</span>
+                            Export Report
+                        </button>
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-primary-container text-white rounded-lg font-bold hover:bg-primary transition-all active:scale-95 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+                            Edit Profile
+                        </button>
+</div>
+</section>
+<!-- Tabs Navigation -->
+<nav class="border-b border-outline-variant">
+<div class="flex gap-8 overflow-x-auto custom-scrollbar">
+<button class="pb-4 font-label-lg text-label-lg tab-active whitespace-nowrap">Skills Matrix</button>
+<button class="pb-4 font-label-lg text-label-lg text-on-surface-variant opacity-60 hover:opacity-100 whitespace-nowrap transition-opacity">Certifications</button>
+<button class="pb-4 font-label-lg text-label-lg text-on-surface-variant opacity-60 hover:opacity-100 whitespace-nowrap transition-opacity">Training History</button>
+<button class="pb-4 font-label-lg text-label-lg text-on-surface-variant opacity-60 hover:opacity-100 whitespace-nowrap transition-opacity">Performance Logs</button>
+</div>
+</nav>
+<!-- Skills Matrix Content (Bento Grid) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Skill Card 1: Seasoning Operations -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:border-primary transition-all group flex flex-col justify-between h-full">
+<div>
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-tertiary-container/10 rounded-lg text-on-tertiary-container">
+<span class="material-symbols-outlined">restaurant</span>
+</div>
+<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Expert</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-1 group-hover:text-primary transition-colors">Seasoning Operations</h3>
+<p class="text-body-sm text-on-surface-variant opacity-70 mb-4">Precision calibration of seasoning dispensers and flavor profile management.</p>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between text-body-sm font-semibold">
+<span class="">Proficiency</span>
+<span class="font-data-mono">98%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-on-tertiary-container rounded-full" style="width: 98%"></div>
+</div>
+<div class="flex justify-between items-center text-body-sm pt-2">
+<span class="text-on-surface-variant">Last Assessed:</span>
+<span class="font-data-mono text-[13px]">Oct 12, 2023</span>
+</div>
+</div>
+</div>
+<!-- Skill Card 2: Frying Unit Maintenance -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:border-primary transition-all group flex flex-col justify-between h-full">
+<div>
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-error-container/20 rounded-lg text-error">
+<span class="material-symbols-outlined">build</span>
+</div>
+<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Certified</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-1 group-hover:text-primary transition-colors">Frying Unit Maintenance</h3>
+<p class="text-body-sm text-on-surface-variant opacity-70 mb-4">Level 2 preventative maintenance for high-temp oil circulation systems.</p>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between text-body-sm font-semibold">
+<span class="">Proficiency</span>
+<span class="font-data-mono">82%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 82%"></div>
+</div>
+<div class="flex justify-between items-center text-body-sm pt-2">
+<span class="text-on-surface-variant">Last Assessed:</span>
+<span class="font-data-mono text-[13px]">Jan 05, 2024</span>
+</div>
+</div>
+</div>
+<!-- Skill Card 3: QC Audit -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:border-primary transition-all group flex flex-col justify-between h-full">
+<div>
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-secondary-container/30 rounded-lg text-on-secondary-container">
+<span class="material-symbols-outlined">rule</span>
+</div>
+<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Professional</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-1 group-hover:text-primary transition-colors">QC Audit</h3>
+<p class="text-body-sm text-on-surface-variant opacity-70 mb-4">Internal auditing for food safety standards and packaging integrity.</p>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between text-body-sm font-semibold">
+<span class="">Proficiency</span>
+<span class="font-data-mono">92%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 92%"></div>
+</div>
+<div class="flex justify-between items-center text-body-sm pt-2">
+<span class="text-on-surface-variant">Last Assessed:</span>
+<span class="font-data-mono text-[13px]">Nov 28, 2023</span>
+</div>
+</div>
+</div>
+<!-- Secondary Metric Card: Attendance & Safety -->
+<div class="md:col-span-2 bg-surface-container border border-outline-variant rounded-xl p-6 flex flex-col md:flex-row gap-8 items-center">
+<div class="flex-grow w-full space-y-4">
+<h4 class="font-label-lg text-label-lg text-primary-container flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+                                Operational Reliability
+                            </h4>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+<div>
+<p class="text-body-sm text-on-surface-variant">Attendance</p>
+<p class="font-headline-md text-headline-md">99.2%</p>
+</div>
+<div>
+<p class="text-body-sm text-on-surface-variant">Safety Incidents</p>
+<p class="font-headline-md text-headline-md">0</p>
+</div>
+<div>
+<p class="text-body-sm text-on-surface-variant">OT Hours</p>
+<p class="font-headline-md text-headline-md">142h</p>
+</div>
+<div>
+<p class="text-body-sm text-on-surface-variant">Productivity</p>
+<p class="font-headline-md text-headline-md text-on-tertiary-container">+4.2%</p>
+</div>
+</div>
+</div>
+<div class="w-full md:w-48 aspect-square rounded-full border-[12px] border-surface-container-highest flex flex-col items-center justify-center relative overflow-hidden">
+<div class="absolute inset-0 border-[12px] border-primary border-r-transparent border-b-transparent -rotate-45"></div>
+<span class="text-headline-lg font-bold">96</span>
+<span class="text-body-sm opacity-60">Composite Score</span>
+</div>
+</div>
+<!-- Add Skill Action -->
+<button class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center text-on-surface-variant opacity-50 hover:opacity-100 hover:border-primary hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined text-[48px] mb-2">add_circle</span>
+<p class="font-label-lg">Assign New Competency</p>
+</button>
+</div>
+<!-- Certifications List (Hybrid View) -->
+<section class="space-y-4">
+<div class="flex justify-between items-center">
+<h2 class="font-headline-md text-headline-md">Active Licenses</h2>
+<button class="text-primary font-label-lg flex items-center gap-1 hover:underline">
+                            View All <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+</button>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container border-b border-outline-variant">
+<tr>
+<th class="px-6 py-4 font-label-lg text-label-lg">Certificate Name</th>
+<th class="px-6 py-4 font-label-lg text-label-lg">ID</th>
+<th class="px-6 py-4 font-label-lg text-label-lg">Issue Date</th>
+<th class="px-6 py-4 font-label-lg text-label-lg">Expiry</th>
+<th class="px-6 py-4 font-label-lg text-label-lg">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-surface transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-tertiary-container">workspace_premium</span>
+<span class="font-bold">OSHA Food Safety Master</span>
+</div>
+</td>
+<td class="px-6 py-4 font-data-mono text-[13px]">CRT-0988-X</td>
+<td class="px-6 py-4 text-on-surface-variant">12 May 2022</td>
+<td class="px-6 py-4 text-on-surface-variant">12 May 2025</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                                            Valid
+                                        </span>
+</td>
+</tr>
+<tr class="hover:bg-surface transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">engineering</span>
+<span class="font-bold">Advanced Fryer Calibration</span>
+</div>
+</td>
+<td class="px-6 py-4 font-data-mono text-[13px]">CRT-4412-M</td>
+<td class="px-6 py-4 text-on-surface-variant">01 Feb 2021</td>
+<td class="px-6 py-4 text-on-surface-variant">01 Feb 2024</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-bold bg-error-container text-on-error-container">
+                                            Expiring Soon
+                                        </span>
+</td>
+</tr>
+<tr class="hover:bg-surface transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-secondary-container">forklift</span>
+<span class="font-bold">Industrial Vehicle Class-A</span>
+</div>
+</td>
+<td class="px-6 py-4 font-data-mono text-[13px]">LIC-7701-K</td>
+<td class="px-6 py-4 text-on-surface-variant">15 Aug 2023</td>
+<td class="px-6 py-4 text-on-surface-variant">15 Aug 2028</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                                            Valid
+                                        </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+<!-- Footer Meta -->
+<footer class="mt-auto p-6 border-t border-outline-variant bg-surface-container-low flex justify-between items-center text-body-sm text-on-surface-variant">
+<div class="flex gap-4">
+<span class="">Facility ID: <b class="font-data-mono">ALPHA-1</b></span>
+<span class="">System Version: <b class="font-data-mono">v4.8.2</b></span>
+</div>
+<div class="">Last updated: Just now</div>
+</footer>
+</main>
+</div>
+<!-- Mobile Navigation Bar -->
+<div class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface border-t border-outline-variant flex justify-around items-center z-50">
+<button class="flex flex-col items-center text-on-surface-variant opacity-60">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold">DASHBOARD</span>
+</button>
+<button class="flex flex-col items-center text-primary font-bold">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+<span class="text-[10px]">ASSOCIATES</span>
+</button>
+<button class="flex flex-col items-center text-on-surface-variant opacity-60">
+<span class="material-symbols-outlined">factory</span>
+<span class="text-[10px] font-bold">FACTORY</span>
+</button>
+<button class="flex flex-col items-center text-on-surface-variant opacity-60">
+<span class="material-symbols-outlined">assessment</span>
+<span class="text-[10px] font-bold">REPORTS</span>
+</button>
+</div>
+<script>
+        // Simple UI interaction logic
+        document.querySelectorAll('nav button').forEach(button => {
+            button.addEventListener('click', function() {
+                const navButtons = this.parentElement.querySelectorAll('button');
+                navButtons.forEach(btn => {
+                    btn.classList.remove('tab-active', 'text-on-surface');
+                    btn.classList.add('text-on-surface-variant', 'opacity-60');
+                });
+                this.classList.add('tab-active');
+                this.classList.remove('text-on-surface-variant', 'opacity-60');
+            });
+        });
+
+        // Search Bar Focus Effect
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('ring-2', 'ring-primary/20');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('ring-2', 'ring-primary/20');
+        });
+    </script>
+
+
+</body></html>

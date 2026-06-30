@@ -68,7 +68,7 @@ export const AuditLogs: React.FC = () => {
   return (
     <div className="flex-1 h-full flex flex-col overflow-hidden bg-background select-none animate-fade-in">
       {/* Header */}
-      <header className="flex justify-between items-center px-margin-desktop h-16 w-full border-b border-slate-200 shrink-0 bg-white">
+      <header className="flex justify-between items-center px-margin-desktop h-16 w-full border-b border-outline-variant shrink-0 bg-surface-container-lowest">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-primary text-headline-md font-bold">terminal</span>
           <h1 className="font-headline-md text-base font-bold text-primary">Audit Trail & Compliance Logs</h1>
@@ -78,13 +78,13 @@ export const AuditLogs: React.FC = () => {
         <div className="flex gap-3 select-none">
           <button
             onClick={handleExportCSV}
-            className="py-2 px-4 bg-white border border-slate-200 hover:bg-slate-50 text-[10px] font-bold rounded-lg flex items-center gap-1.5 text-primary cursor-pointer shadow-premium-sm transition-all font-label-caps tracking-wider hover:scale-[1.02]"
+            className="py-2 px-4 bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-low text-[10px] font-bold rounded-lg flex items-center gap-1.5 text-primary cursor-pointer shadow-premium-sm transition-all font-label-caps tracking-wider hover:scale-[1.02]"
           >
             <span className="material-symbols-outlined text-sm">download</span> EXPORT CSV
           </button>
           <button
             onClick={handleExportJSON}
-            className="py-2 px-4 bg-white border border-slate-200 hover:bg-slate-50 text-[10px] font-bold rounded-lg flex items-center gap-1.5 text-primary cursor-pointer shadow-premium-sm transition-all font-label-caps tracking-wider hover:scale-[1.02]"
+            className="py-2 px-4 bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-low text-[10px] font-bold rounded-lg flex items-center gap-1.5 text-primary cursor-pointer shadow-premium-sm transition-all font-label-caps tracking-wider hover:scale-[1.02]"
           >
             <span className="material-symbols-outlined text-sm">download</span> EXPORT JSON
           </button>
@@ -95,7 +95,7 @@ export const AuditLogs: React.FC = () => {
       <div className="flex-1 overflow-hidden p-margin-desktop flex flex-col gap-6 animate-fade-in">
         
         {/* Filters bar */}
-        <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-premium-sm flex flex-col md:flex-row gap-5 justify-between">
+        <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-premium-sm flex flex-col md:flex-row gap-5 justify-between">
           <div className="flex flex-wrap gap-5 items-center">
             {/* Action Type Dropdown */}
             <div className="flex flex-col gap-1.5">
@@ -103,7 +103,7 @@ export const AuditLogs: React.FC = () => {
               <select
                 value={filterAction}
                 onChange={(e) => setFilterAction(e.target.value)}
-                className="py-2 px-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-white font-bold cursor-pointer shadow-premium-sm text-xs"
+                className="py-2 px-3 border border-outline-variant rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-surface-container-lowest font-bold cursor-pointer shadow-premium-sm text-xs"
               >
                 <option value="ALL">All Actions</option>
                 <option value="ALLOCATION">Roster Allocations</option>
@@ -116,7 +116,7 @@ export const AuditLogs: React.FC = () => {
             {/* Total Count Display */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[9px] font-bold text-secondary font-mono tracking-wider invisible md:visible">COUNT</label>
-              <div className="bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 flex gap-2 items-center text-xs font-semibold shadow-premium-sm h-[34px]">
+              <div className="bg-surface-container-low px-3 py-2 rounded-lg border border-outline-variant flex gap-2 items-center text-xs font-semibold shadow-premium-sm h-[34px]">
                 <span className="text-secondary">Loaded Logs:</span>
                 <span className="font-mono font-bold bg-primary text-white px-2 py-0.5 rounded text-[10px]">
                   {filteredLogs.length}
@@ -135,14 +135,14 @@ export const AuditLogs: React.FC = () => {
                 placeholder="Search operator, supervisor, or reason..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm"
+                className="w-full pl-9 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm"
               />
             </div>
           </div>
         </div>
 
         {/* Logs Table Area */}
-        <div className="flex-1 overflow-y-auto border border-slate-200 rounded-lg shadow-premium-sm bg-white custom-scrollbar">
+        <div className="flex-1 overflow-y-auto border border-outline-variant rounded-lg shadow-premium-sm bg-surface-container-lowest custom-scrollbar">
           {filteredLogs.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-secondary/80 gap-3 py-20">
               <span className="material-symbols-outlined text-4xl text-secondary">history</span>
@@ -151,7 +151,7 @@ export const AuditLogs: React.FC = () => {
           ) : (
             <table className="w-full text-xs text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps sticky top-0 z-10 select-none">
+                <tr className="bg-surface-container-low border-b border-outline-variant text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps sticky top-0 z-10 select-none">
                   <th className="p-3.5">TIMESTAMP</th>
                   <th className="p-3.5">ACTION</th>
                   <th className="p-3.5">DETAILS</th>
@@ -162,15 +162,15 @@ export const AuditLogs: React.FC = () => {
               <tbody className="divide-y divide-slate-100">
                 {filteredLogs.map(log => {
                   const isOverride = log.actionType === 'OVERRIDE_ALLOCATION';
-                  const rowClass = isOverride ? 'bg-rose-50/20 hover:bg-rose-50/40 transition-colors' : 'hover:bg-slate-50/50 transition-colors';
+                  const rowClass = isOverride ? 'bg-rose-50/20 hover:bg-rose-50/40 transition-colors' : 'hover:bg-surface-container-low/50 transition-colors';
                   
-                  let badgeStyle = 'bg-slate-50 text-slate-700 border-slate-200';
+                  let badgeStyle = 'bg-surface-container-low text-slate-700 border-outline-variant';
                   if (log.actionType === 'OVERRIDE_ALLOCATION') {
                     badgeStyle = 'bg-rose-50 text-rose-700 border-rose-100 font-bold';
                   } else if (log.actionType === 'ALLOCATION_CONFIRMED') {
-                    badgeStyle = 'bg-emerald-50 text-emerald-700 border-emerald-100';
+                    badgeStyle = 'bg-tertiary-fixed-dim/20 text-on-tertiary-fixed-variant border-outline-variant';
                   } else if (log.actionType === 'TRAINING_ADDED') {
-                    badgeStyle = 'bg-blue-50 text-primary border-blue-100';
+                    badgeStyle = 'bg-secondary-container text-primary border-outline-variant';
                   } else if (log.actionType === 'MASTER_DATA_UPDATED') {
                     badgeStyle = 'bg-purple-50 text-purple-700 border-purple-100';
                   }

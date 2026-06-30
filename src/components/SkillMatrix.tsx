@@ -140,10 +140,10 @@ export const SkillMatrix: React.FC = () => {
   // ── Cell renderer (memoized style lookup) ────────────────────────────────
   const getCellStyle = (level: SkillLevel, expired: boolean) => {
     if (expired) return 'bg-rose-50 text-rose-700 border-rose-100 font-bold';
-    if (level === 'Expert') return 'bg-blue-50 text-primary border-blue-100 font-bold';
+    if (level === 'Expert') return 'bg-secondary-container text-primary border-outline-variant font-bold';
     if (level === 'Certified') return 'bg-indigo-50 text-indigo-700 font-bold border-indigo-100';
-    if (level === 'Operator') return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-    return 'bg-amber-50 text-amber-700 border-amber-100';
+    if (level === 'Operator') return 'bg-tertiary-fixed-dim/20 text-on-tertiary-fixed-variant border-outline-variant';
+    return 'bg-secondary-container text-on-secondary-container border-outline-variant';
   };
 
 
@@ -152,15 +152,15 @@ export const SkillMatrix: React.FC = () => {
   return (
     <div className="flex-1 h-full flex flex-col overflow-hidden bg-background select-none animate-fade-in">
       {/* Header */}
-      <header className="flex justify-between items-center px-margin-desktop h-16 w-full border-b border-slate-200 shrink-0 bg-white">
+      <header className="flex justify-between items-center px-margin-desktop h-16 w-full border-b border-outline-variant shrink-0 bg-surface-container-lowest">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-primary text-headline-md font-bold">military_tech</span>
           <h1 className="font-headline-md text-base font-bold text-primary">Skill & Training Matrix</h1>
         </div>
-        <div className="flex gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 shadow-premium-sm">
+        <div className="flex gap-1 bg-surface-container p-1 rounded-lg border border-outline-variant shadow-premium-sm">
           {(['matrix', 'training', 'bulk'] as const).map(tab => (
             <button key={tab} onClick={() => setActiveSubTab(tab)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${activeSubTab === tab ? 'bg-white text-primary shadow-premium-sm border border-slate-200' : 'text-secondary hover:text-primary'}`}>
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${activeSubTab === tab ? 'bg-surface-container-lowest text-primary shadow-premium-sm border border-outline-variant' : 'text-secondary hover:text-primary'}`}>
               {tab === 'matrix' ? 'Compliance Grid' : tab === 'training' ? 'Log Training' : 'Bulk Import CSV'}
             </button>
           ))}
@@ -183,7 +183,7 @@ export const SkillMatrix: React.FC = () => {
                   placeholder="Search by name or ID…"
                   value={search}
                   onChange={e => handleSearch(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 border border-slate-200 bg-white rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm"
+                  className="w-full pl-8 pr-3 py-2 border border-outline-variant bg-surface-container-lowest rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm"
                 />
                 {search && (
                   <button onClick={() => handleSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-secondary hover:text-primary cursor-pointer">
@@ -194,7 +194,7 @@ export const SkillMatrix: React.FC = () => {
 
               {/* Category filter */}
               <select value={filterCategory} onChange={e => handleCategoryFilter(e.target.value)}
-                className="py-2 px-3 border border-slate-200 bg-white rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm cursor-pointer">
+                className="py-2 px-3 border border-outline-variant bg-surface-container-lowest rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm cursor-pointer">
                 <option value="ALL">All Categories</option>
                 <option value="Contract">Contract</option>
                 <option value="Company">Company</option>
@@ -203,14 +203,14 @@ export const SkillMatrix: React.FC = () => {
 
               {/* Skill filter */}
               <select value={filterSkill} onChange={e => handleSkillFilter(e.target.value)}
-                className="py-2 px-3 border border-slate-200 bg-white rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm cursor-pointer">
+                className="py-2 px-3 border border-outline-variant bg-surface-container-lowest rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm cursor-pointer">
                 <option value="ALL">All Skills</option>
                 {skills.map(sk => <option key={sk.id} value={sk.id}>{sk.name}</option>)}
               </select>
 
               {/* Expiry filter */}
               <select value={filterExpiry} onChange={e => handleExpiryFilter(e.target.value)}
-                className="py-2 px-3 border border-slate-200 bg-white rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm cursor-pointer">
+                className="py-2 px-3 border border-outline-variant bg-surface-container-lowest rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm cursor-pointer">
                 <option value="ALL">All Expiry Status</option>
                 <option value="expired">⛔ Expired</option>
                 <option value="expiring_soon">⚠️ Expiring in 30 days</option>
@@ -232,19 +232,19 @@ export const SkillMatrix: React.FC = () => {
             </div>
 
             {/* Grid Table */}
-            <div className="flex-1 overflow-auto border border-slate-200 rounded-lg shadow-premium-sm bg-white custom-scrollbar">
+            <div className="flex-1 overflow-auto border border-outline-variant rounded-lg shadow-premium-sm bg-surface-container-lowest custom-scrollbar">
               <table className="w-full border-collapse text-left text-xs">
                 <thead>
                   <tr className="text-on-surface font-semibold font-mono">
-                    <th className="p-3.5 bg-slate-50 min-w-[180px] sticky top-0 left-0 border-r border-b border-slate-200 z-20 font-bold text-[9px] tracking-widest uppercase font-label-caps">
+                    <th className="p-3.5 bg-surface-container-low min-w-[180px] sticky top-0 left-0 border-r border-b border-outline-variant z-20 font-bold text-[9px] tracking-widest uppercase font-label-caps">
                       OPERATOR
                     </th>
                     {skills.map(sk => (
-                      <th key={sk.id} className="p-3.5 text-center font-mono font-bold text-[9px] tracking-widest sticky top-0 bg-slate-50 border-b border-slate-200 z-10 whitespace-nowrap" title={sk.name}>
+                      <th key={sk.id} className="p-3.5 text-center font-mono font-bold text-[9px] tracking-widest sticky top-0 bg-surface-container-low border-b border-outline-variant z-10 whitespace-nowrap" title={sk.name}>
                         {sk.id}
                       </th>
                     ))}
-                    <th className="p-3.5 text-center font-mono font-bold text-[9px] tracking-widest sticky top-0 bg-slate-50 border-b border-slate-200 z-10 whitespace-nowrap">
+                    <th className="p-3.5 text-center font-mono font-bold text-[9px] tracking-widest sticky top-0 bg-surface-container-low border-b border-outline-variant z-10 whitespace-nowrap">
                       COVERAGE
                     </th>
                   </tr>
@@ -264,9 +264,9 @@ export const SkillMatrix: React.FC = () => {
                     const expiryStatus = assocExpiryStatus.get(assoc.id);
 
                     return (
-                      <tr key={assoc.id} className="hover:bg-slate-50/50 transition-colors group">
+                      <tr key={assoc.id} className="hover:bg-surface-container-low/50 transition-colors group">
                         {/* Sticky name column */}
-                        <td className="p-3.5 bg-white sticky left-0 border-r border-slate-200 shadow-[2px_0_5px_rgba(0,0,0,0.015)] z-10 group-hover:bg-slate-50/50">
+                        <td className="p-3.5 bg-surface-container-lowest sticky left-0 border-r border-outline-variant shadow-[2px_0_5px_rgba(0,0,0,0.015)] z-10 group-hover:bg-surface-container-low/50">
                           <div className="flex items-center gap-2">
                             <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${expiryStatus === 'expired' ? 'bg-rose-500' : expiryStatus === 'expiring_soon' ? 'bg-amber-400' : 'bg-emerald-400'}`} title={expiryStatus} />
                             <div>
@@ -303,7 +303,7 @@ export const SkillMatrix: React.FC = () => {
                             <span className={`text-[10px] font-bold font-mono ${coveragePct === 100 ? 'text-emerald-600' : coveragePct >= 50 ? 'text-primary' : 'text-rose-600'}`}>
                               {coveragePct}%
                             </span>
-                            <div className="w-10 h-1 rounded-full bg-slate-100 overflow-hidden">
+                            <div className="w-10 h-1 rounded-full bg-surface-container overflow-hidden">
                               <div
                                 className={`h-full rounded-full transition-all ${coveragePct === 100 ? 'bg-emerald-400' : coveragePct >= 50 ? 'bg-primary' : 'bg-rose-400'}`}
                                 style={{ width: `${coveragePct}%` }}
@@ -323,10 +323,10 @@ export const SkillMatrix: React.FC = () => {
               {/* Legend */}
               <div className="flex flex-wrap gap-3 text-[9px] font-bold font-mono tracking-widest">
                 {[
-                  { color: 'bg-blue-50 border-blue-100', label: 'EXPERT' },
+                  { color: 'bg-secondary-container border-outline-variant', label: 'EXPERT' },
                   { color: 'bg-indigo-50 border-indigo-100', label: 'CERTIFIED' },
-                  { color: 'bg-emerald-50 border-emerald-100', label: 'OPERATOR' },
-                  { color: 'bg-amber-50 border-amber-100', label: 'TRAINEE' },
+                  { color: 'bg-tertiary-fixed-dim/20 border-outline-variant', label: 'OPERATOR' },
+                  { color: 'bg-secondary-container border-outline-variant', label: 'TRAINEE' },
                   { color: 'bg-rose-50 border-rose-100', label: 'EXPIRED' },
                 ].map(({ color, label }) => (
                   <span key={label} className="flex items-center gap-1.5">
@@ -344,7 +344,7 @@ export const SkillMatrix: React.FC = () => {
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={safePage === 1}
-                    className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-premium-sm"
+                    className="w-7 h-7 flex items-center justify-center rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-premium-sm"
                   >
                     <span className="material-symbols-outlined text-sm">chevron_left</span>
                   </button>
@@ -360,7 +360,7 @@ export const SkillMatrix: React.FC = () => {
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
-                        className={`w-7 h-7 flex items-center justify-center rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${page === safePage ? 'bg-primary text-white border-primary shadow-premium-sm' : 'bg-white border-slate-200 hover:bg-slate-50 text-secondary shadow-premium-sm'}`}
+                        className={`w-7 h-7 flex items-center justify-center rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${page === safePage ? 'bg-primary text-white border-primary shadow-premium-sm' : 'bg-surface-container-lowest border-outline-variant hover:bg-surface-container-low text-secondary shadow-premium-sm'}`}
                       >
                         {page}
                       </button>
@@ -370,7 +370,7 @@ export const SkillMatrix: React.FC = () => {
                   <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={safePage === totalPages}
-                    className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-premium-sm"
+                    className="w-7 h-7 flex items-center justify-center rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-premium-sm"
                   >
                     <span className="material-symbols-outlined text-sm">chevron_right</span>
                   </button>
@@ -382,7 +382,7 @@ export const SkillMatrix: React.FC = () => {
 
         {/* ── Log Training ──────────────────────────────────────────────── */}
         {activeSubTab === 'training' && (
-          <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 w-full max-w-[512px] mx-auto animate-slide-up">
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-premium-md flex flex-col gap-5 w-full max-w-[512px] mx-auto animate-slide-up">
             <div>
               <h2 className="text-sm font-bold text-on-surface">Log Training & Recertifications</h2>
               <p className="text-[10px] text-secondary">Record a new operator qualification. Saving updates the shift allocator instantly.</p>
@@ -401,24 +401,24 @@ export const SkillMatrix: React.FC = () => {
                       onFocus={() => { if (trAssocId) { setTrSearch(''); setTrAssocId(''); setTrAssocName(''); } setShowTrDropdown(true); }}
                       onChange={e => { setTrSearch(e.target.value); setTrAssocId(''); setTrAssocName(''); setShowTrDropdown(true); }}
                       onBlur={() => setTimeout(() => setShowTrDropdown(false), 150)}
-                      className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm text-xs"
+                      className="w-full pl-8 pr-3 py-2 border border-outline-variant rounded-lg bg-surface-container-lowest focus:outline-none focus:ring-1 focus:ring-primary shadow-premium-sm text-xs"
                     />
                   </div>
                   {showTrDropdown && trFilteredAssociates.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-premium-lg z-50 overflow-hidden">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-premium-lg z-50 overflow-hidden">
                       {trFilteredAssociates.map(a => (
                         <button
                           key={a.id}
                           type="button"
                           onMouseDown={() => { setTrAssocId(a.id); setTrAssocName(a.name); setTrSearch(''); setShowTrDropdown(false); }}
-                          className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+                          className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-surface-container-low transition-colors text-left cursor-pointer"
                         >
                           <span className="font-bold text-on-surface text-xs">{a.name}</span>
                           <span className="font-mono text-[9px] text-secondary">{a.id} • {a.category}</span>
                         </button>
                       ))}
                       {trSearch && trFilteredAssociates.length === 8 && (
-                        <div className="px-3 py-1.5 text-[9px] text-secondary text-center border-t border-slate-100 font-mono">Showing top 8 — type more to narrow</div>
+                        <div className="px-3 py-1.5 text-[9px] text-secondary text-center border-t border-outline-variant font-mono">Showing top 8 — type more to narrow</div>
                       )}
                     </div>
                   )}
@@ -427,7 +427,7 @@ export const SkillMatrix: React.FC = () => {
                 <div className="flex flex-col gap-1.5">
                   <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">SELECT COMPLIANT SKILL</label>
                   <select required value={trSkillId} onChange={e => setTrSkillId(e.target.value)}
-                    className="py-2 px-3 border border-slate-200 bg-white font-bold rounded-lg focus:ring-1 focus:ring-primary focus:outline-none shadow-premium-sm text-xs cursor-pointer">
+                    className="py-2 px-3 border border-outline-variant bg-surface-container-lowest font-bold rounded-lg focus:ring-1 focus:ring-primary focus:outline-none shadow-premium-sm text-xs cursor-pointer">
                     <option value="">-- Choose Skill --</option>
                     {skills.map(sk => <option key={sk.id} value={sk.id}>{sk.name} ({sk.id})</option>)}
                   </select>
@@ -437,7 +437,7 @@ export const SkillMatrix: React.FC = () => {
                   <div className="flex flex-col gap-1.5">
                     <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">COMPETENCY LEVEL</label>
                     <select value={trLevel} onChange={e => setTrLevel(e.target.value as SkillLevel)}
-                      className="py-2 px-3 border border-slate-200 bg-white font-bold rounded-lg focus:ring-1 focus:ring-primary focus:outline-none shadow-premium-sm text-xs cursor-pointer">
+                      className="py-2 px-3 border border-outline-variant bg-surface-container-lowest font-bold rounded-lg focus:ring-1 focus:ring-primary focus:outline-none shadow-premium-sm text-xs cursor-pointer">
                       <option value="Trainee">Trainee</option>
                       <option value="Operator">Operator</option>
                       <option value="Certified">Certified</option>
@@ -447,14 +447,14 @@ export const SkillMatrix: React.FC = () => {
                   <div className="flex flex-col gap-1.5">
                     <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">EXPIRY DATE</label>
                     <input type="date" required value={trExpiry} onChange={e => setTrExpiry(e.target.value)}
-                      className="py-1.5 px-3 border border-slate-200 bg-white font-mono rounded-lg focus:ring-1 focus:ring-primary focus:outline-none shadow-premium-sm text-xs cursor-pointer" />
+                      className="py-1.5 px-3 border border-outline-variant bg-surface-container-lowest font-mono rounded-lg focus:ring-1 focus:ring-primary focus:outline-none shadow-premium-sm text-xs cursor-pointer" />
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
                   <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">CERTIFIED BY / ASSESSOR</label>
                   <input type="text" required value={trCertifier} onChange={e => setTrCertifier(e.target.value)}
-                    className="py-2 px-3 border border-slate-200 bg-slate-50 rounded-lg focus:ring-1 focus:ring-primary focus:outline-none shadow-premium-sm text-xs"
+                    className="py-2 px-3 border border-outline-variant bg-surface-container-low rounded-lg focus:ring-1 focus:ring-primary focus:outline-none shadow-premium-sm text-xs"
                     placeholder="e.g. B. Sengupta (Quality Lead)" />
                 </div>
 
@@ -473,7 +473,7 @@ export const SkillMatrix: React.FC = () => {
 
         {/* ── Bulk Import ───────────────────────────────────────────────── */}
         {activeSubTab === 'bulk' && (
-          <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-premium-md flex flex-col gap-5 w-full max-w-[576px] mx-auto animate-slide-up">
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-premium-md flex flex-col gap-5 w-full max-w-[576px] mx-auto animate-slide-up">
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-sm font-bold text-on-surface">CSV Bulk Mappings Importer</h2>
@@ -481,7 +481,7 @@ export const SkillMatrix: React.FC = () => {
               </div>
               <div className="flex gap-2">
                 <button onClick={downloadTemplate}
-                  className="text-[9px] font-bold text-primary hover:underline flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer shadow-premium-sm font-label-caps tracking-wider">
+                  className="text-[9px] font-bold text-primary hover:underline flex items-center gap-1.5 bg-surface-container px-2.5 py-1.5 rounded-lg border border-outline-variant cursor-pointer shadow-premium-sm font-label-caps tracking-wider">
                   <span className="material-symbols-outlined text-xs">download</span> Associate Template
                 </button>
                 <button onClick={() => {
@@ -491,7 +491,7 @@ export const SkillMatrix: React.FC = () => {
                   link.setAttribute('download', 'workstation_mappings_template.csv');
                   document.body.appendChild(link); link.click(); document.body.removeChild(link);
                 }}
-                  className="text-[9px] font-bold text-primary hover:underline flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer shadow-premium-sm font-label-caps tracking-wider">
+                  className="text-[9px] font-bold text-primary hover:underline flex items-center gap-1.5 bg-surface-container px-2.5 py-1.5 rounded-lg border border-outline-variant cursor-pointer shadow-premium-sm font-label-caps tracking-wider">
                   <span className="material-symbols-outlined text-xs">download</span> Workstation Template
                 </button>
               </div>
@@ -502,7 +502,7 @@ export const SkillMatrix: React.FC = () => {
                 <div className="flex flex-col gap-1.5">
                   <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">PASTE CSV CONTENT</label>
                   <textarea rows={6} value={bulkCsvText} onChange={e => setBulkCsvText(e.target.value)}
-                    className="w-full p-3 border border-slate-200 rounded-lg font-mono text-[10px] focus:ring-1 focus:ring-primary focus:outline-none bg-slate-50 shadow-premium-sm"
+                    className="w-full p-3 border border-outline-variant rounded-lg font-mono text-[10px] focus:ring-1 focus:ring-primary focus:outline-none bg-surface-container-low shadow-premium-sm"
                     placeholder={"-- Associate CSV --\nemployee_id,name,category,skills\nEMP125,A. Banerjee,Company,BLADE_OPT:Expert:2027-12-31\n\n-- OR Workstation CSV --\nworkstation_id,name,line_id,required_skills,min_level,max_staff\nWS-106,Sieve,LINE-01,BLADE_OPT;HYGIENE_L2,Operator,1"} />
                 </div>
 
@@ -545,7 +545,7 @@ export const SkillMatrix: React.FC = () => {
                   Process CSV Import
                 </button>
 
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-[9px] text-secondary leading-relaxed">
+                <div className="bg-surface-container-low p-3 rounded-lg border border-outline-variant text-[9px] text-secondary leading-relaxed">
                   <span className="font-bold text-primary block mb-1">CSV Guidelines:</span>
                   - <strong>Associate Import Headers</strong>: employee_id, name, category, skills<br />
                   - <strong>Workstation Mappings Headers</strong>: workstation_id, name, line_id, required_skills, min_level, max_staff

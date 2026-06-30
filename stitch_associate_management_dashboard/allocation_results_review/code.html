@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Allocation Results & Review | IndustrialLogic</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#00190e",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "on-primary-fixed": "#111c2d",
+                        "on-tertiary-fixed": "#002113",
+                        "on-tertiary": "#ffffff",
+                        "outline-variant": "#c5c6cd",
+                        "inverse-on-surface": "#eff1f3",
+                        "inverse-surface": "#2d3133",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface-container": "#eceef0",
+                        "on-secondary-container": "#57657a",
+                        "on-primary-fixed-variant": "#3c475a",
+                        "primary-fixed-dim": "#bcc7de",
+                        "background": "#f7f9fb",
+                        "surface-tint": "#545f73",
+                        "on-primary": "#ffffff",
+                        "on-background": "#191c1e",
+                        "secondary-container": "#d5e3fc",
+                        "surface": "#f7f9fb",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "tertiary-fixed": "#6ffbbe",
+                        "tertiary-container": "#00301e",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-variant": "#e0e3e5",
+                        "surface-container-low": "#f2f4f6",
+                        "secondary": "#515f74",
+                        "on-tertiary-container": "#00a472",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "on-surface": "#191c1e",
+                        "on-primary-container": "#8590a6",
+                        "primary-container": "#1e293b",
+                        "inverse-primary": "#bcc7de",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed": "#d8e3fb",
+                        "primary": "#091426",
+                        "outline": "#75777d",
+                        "secondary-fixed": "#d5e3fc",
+                        "surface-bright": "#f7f9fb",
+                        "surface-dim": "#d8dadc",
+                        "on-surface-variant": "#45474c",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#e6e8ea",
+                        "on-error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "margin-mobile": "16px",
+                        "gutter-mobile": "12px",
+                        "md": "16px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "data-mono": ["JetBrains Mono"],
+                        "label-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-screen w-64 bg-surface-container-low border-r border-outline-variant flex flex-col py-lg px-md z-50">
+<div class="mb-xl px-sm">
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary">Workforce Manager</h1>
+<p class="text-on-surface-variant font-body-sm">Snack Production Unit 4</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-md px-md py-sm text-on-secondary-fixed-variant hover:bg-surface-container-high transition-all rounded-lg font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Active State: Production Lines -->
+<a class="flex items-center gap-md px-md py-sm bg-secondary-container text-on-secondary-container font-bold rounded-lg font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">factory</span>
+<span>Production Lines</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-secondary-fixed-variant hover:bg-surface-container-high transition-all rounded-lg font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Associates</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-secondary-fixed-variant hover:bg-surface-container-high transition-all rounded-lg font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span>Reports</span>
+</a>
+</nav>
+<button class="bg-primary text-on-primary py-sm px-md rounded-lg font-label-lg text-label-lg font-bold mb-xl active:scale-95 duration-150 shadow-sm">
+            New Batch
+        </button>
+<div class="border-t border-outline-variant pt-lg space-y-1">
+<a class="flex items-center gap-md px-md py-sm text-on-secondary-fixed-variant hover:bg-surface-container-high transition-all rounded-lg font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-secondary-fixed-variant hover:bg-surface-container-high transition-all rounded-lg font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">help</span>
+<span>Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-40 w-full h-16 bg-surface-container-lowest border-b border-outline-variant flex items-center justify-between px-xl">
+<div class="flex items-center gap-md">
+<div class="font-headline-lg text-headline-lg font-bold text-primary">IndustrialLogic</div>
+<div class="h-6 w-[1px] bg-outline-variant mx-sm"></div>
+<div class="flex items-center gap-sm bg-surface-container px-md py-xs rounded-full border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md w-64 p-0" placeholder="Search operations..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<button class="material-symbols-outlined text-primary hover:bg-surface-container p-sm rounded-full transition-colors">notifications</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a female industrial plant manager wearing a clean high-visibility vest and a soft blue collared shirt. She has a confident and friendly expression, standing against a blurred background of a modern, organized manufacturing facility. The lighting is crisp and natural, emphasizing a bright, professional light-mode aesthetic with a palette of soft slates and whites." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpX3lumVydjKUz1X5oeqc7aJtWYcG0-7bUcCFgwf_Zoe_VbzLLkWDdlx9jVA1DQ_9eQ9n0ZTkyhCfaYnrEp2GlmvV0CmT6IPw3Suw68CsVKPny61OjbfR0UCacGXtzUfm-JbGfNoEf6ykMkGE-pVwoEeanrj_UG_qdDsKFNjw7n_0AsfHhb84Yspj1x6hChH-QdnvaNMU5CjF1s8WDz2JhyY9_n8W_IPYacNzE1tX2t859d3dD0K2VYABeWN59zg1hyVBQ6TmeKGg"/>
+</div>
+</div>
+</header>
+<!-- View Content -->
+<div class="p-xl space-y-lg">
+<!-- Allocation Status Header -->
+<section class="bg-white border border-outline-variant rounded-xl p-lg shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-lg">
+<div class="w-14 h-14 bg-on-tertiary-container/10 flex items-center justify-center rounded-full text-on-tertiary-container">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md text-primary">AI Allocation Complete</h2>
+<p class="font-body-md text-on-surface-variant">42 Associates successfully allocated across 3 lines. <span class="text-on-tertiary-container font-bold">0 Gaps remaining.</span></p>
+</div>
+</div>
+<div class="flex gap-md">
+<button class="bg-white border border-outline text-primary px-lg py-sm rounded-lg font-bold hover:bg-surface-container transition-all active:scale-95">
+                        Re-run Engine
+                    </button>
+<button class="bg-primary-container text-on-primary px-lg py-sm rounded-lg font-bold hover:opacity-90 transition-all active:scale-95 shadow-sm">
+                        Commit Assignments
+                    </button>
+</div>
+</section>
+<!-- Warnings/Conflicts Panel -->
+<section class="bg-[#FFFBEB] border border-[#FEF3C7] rounded-xl p-md flex items-start gap-md">
+<span class="material-symbols-outlined text-[#D97706]">warning</span>
+<div class="flex-1">
+<h3 class="font-label-lg text-label-lg text-[#92400E]">Near-Miss Allocation Alerts (2)</h3>
+<div class="mt-sm flex gap-xl overflow-x-auto pb-xs custom-scrollbar">
+<div class="flex items-center gap-sm bg-white/50 px-md py-xs rounded border border-[#FDE68A]">
+<span class="font-body-sm text-[#B45309]"><strong>Sarah Miller:</strong> Level 3 Certification expiring in 2 days.</span>
+</div>
+<div class="flex items-center gap-sm bg-white/50 px-md py-xs rounded border border-[#FDE68A]">
+<span class="font-body-sm text-[#B45309]"><strong>Marcus Chen:</strong> Overtime threshold reaching 95% this shift.</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Production Lines Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-lg">
+<!-- Line Card 1: Kurkure Line A -->
+<div class="bg-white border border-outline-variant rounded-xl overflow-hidden flex flex-col shadow-sm">
+<header class="bg-surface-container-low p-md border-b border-outline-variant flex justify-between items-center">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">precision_manufacturing</span>
+<h3 class="font-headline-sm text-headline-sm text-primary">Kurkure Line A</h3>
+</div>
+<div class="bg-tertiary-container/10 px-md py-xs rounded-full border border-on-tertiary-container/20">
+<span class="text-on-tertiary-container font-label-md text-label-md">100% Staffed</span>
+</div>
+</header>
+<div class="p-md">
+<table class="w-full text-left">
+<thead>
+<tr class="text-on-surface-variant font-label-md text-label-md border-b border-outline-variant">
+<th class="pb-sm font-semibold">Station</th>
+<th class="pb-sm font-semibold">Associate</th>
+<th class="pb-sm font-semibold text-right">Match Context</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Station Row -->
+<tr class="group hover:bg-surface-container-low transition-colors">
+<td class="py-md">
+<div class="font-headline-sm text-headline-sm text-primary">Frying</div>
+<div class="text-body-sm text-on-surface-variant">High-Heat Zone</div>
+</td>
+<td class="py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center font-bold text-on-secondary-fixed text-[12px]">JD</div>
+<div>
+<div class="font-body-md font-semibold text-primary">James Dalton</div>
+<div class="text-body-sm text-on-surface-variant">ID: 8842-A</div>
+</div>
+</div>
+</td>
+<td class="py-md text-right">
+<span class="bg-on-tertiary-container/10 text-on-tertiary-container px-sm py-xs rounded font-label-md text-label-md">Certified L3</span>
+</td>
+</tr>
+<!-- Station Row -->
+<tr class="group hover:bg-surface-container-low transition-colors">
+<td class="py-md">
+<div class="font-headline-sm text-headline-sm text-primary">Seasoning</div>
+<div class="text-body-sm text-on-surface-variant">Automated Dispenser</div>
+</td>
+<td class="py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A focused male factory worker wearing a hairnet and uniform, looking directly at the camera with a calm expression. The background is a high-tech food processing plant with stainless steel machinery and blue accent lighting. The image should have a professional industrial photography style, emphasizing clarity and order." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjRUbkE-47M_JLdm2v27cC3lpfAvUuYw6JH5bI8y8_i-tBbPLexX_WL6uqsxKkX_TieQTSG8M2yZZ8EUnnpbVtllUbYdEsz5ch5KbGptRa9I2CWJ5_usa817k23FngigurRSsoyvT2WooP5Xy-dqbiTiGx4o9lnaK-T3Tiwc62drgbLpHbDkHq24f8CgTM68Go22c6bEc1z0QDxOOMDIeDcB_O5B9rG5zNK54NJpPFcdV_POR2VZIvCRng45JxbKbJIeH9J84MK0w"/>
+</div>
+<div>
+<div class="font-body-md font-semibold text-primary">Elena Rodriguez</div>
+<div class="text-body-sm text-on-surface-variant">ID: 7120-C</div>
+</div>
+</div>
+</td>
+<td class="py-md text-right">
+<span class="bg-secondary-container/30 text-on-secondary-container px-sm py-xs rounded font-label-md text-label-md">Optimal Match</span>
+</td>
+</tr>
+<!-- Station Row -->
+<tr class="group hover:bg-surface-container-low transition-colors">
+<td class="py-md">
+<div class="font-headline-sm text-headline-sm text-primary">Packing</div>
+<div class="text-body-sm text-on-surface-variant">Case Loading</div>
+</td>
+<td class="py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center font-bold text-on-primary-fixed text-[12px]">TR</div>
+<div>
+<div class="font-body-md font-semibold text-primary">Tom Riley</div>
+<div class="text-body-sm text-on-surface-variant">ID: 9931-F</div>
+</div>
+</div>
+</td>
+<td class="py-md text-right">
+<span class="bg-secondary-container/30 text-on-secondary-container px-sm py-xs rounded font-label-md text-label-md">Closest Proximity</span>
+</td>
+</tr>
+<!-- Station Row -->
+<tr class="group hover:bg-surface-container-low transition-colors">
+<td class="py-md">
+<div class="font-headline-sm text-headline-sm text-primary">QC Audit</div>
+<div class="text-body-sm text-on-surface-variant">Final Check</div>
+</td>
+<td class="py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A portrait of a middle-aged female quality control specialist in a manufacturing plant. She is wearing a white lab coat over her industrial uniform and safety glasses. The setting is a clean, bright laboratory-style quality control station within a food production facility. The lighting is bright and even, conveying a high-stakes, professional environment with a focus on hygiene and precision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHtN6k69_YQ6-estFsMomuJkBDgf41i8VVxv0zR8BOVSzK7D437fdXyXQL2V8FvetdGpIvwrB3xCHaeEqXO4CLx-0AYyp7ZL154RBsciycja85ScliIDdDVoFQLJ0F0qvbD_eYbRHt9E8564OV_nemDQeCfuFTI7HY15XTVYkygqQJ3OOxRz77bG6wJrsQ_EUYZaf8DI_RWSJPSN-ZhB0WWrmAjoa5PF9swagCXX9szA-QQb5FR5pC6jjLG0BVZyydJVIh38YH9EY"/>
+</div>
+<div>
+<div class="font-body-md font-semibold text-primary">Sarah Miller</div>
+<div class="text-body-sm text-on-surface-variant">ID: 4402-K</div>
+</div>
+</div>
+</td>
+<td class="py-md text-right">
+<span class="bg-[#FEF3C7] text-[#92400E] px-sm py-xs rounded font-label-md text-label-md border border-[#FDE68A]">Cert. Warning</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<footer class="mt-auto p-md bg-surface-container-low/50 border-t border-outline-variant flex justify-between items-center">
+<span class="text-body-sm text-on-surface-variant">Avg. Match Score: 94%</span>
+<button class="text-on-secondary-fixed-variant font-label-lg text-label-lg hover:underline">Adjust Line Staffing</button>
+</footer>
+</div>
+<!-- Line Card 2: Lays Line 2 -->
+<div class="bg-white border border-outline-variant rounded-xl overflow-hidden flex flex-col shadow-sm">
+<header class="bg-surface-container-low p-md border-b border-outline-variant flex justify-between items-center">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">inventory_2</span>
+<h3 class="font-headline-sm text-headline-sm text-primary">Lays Line 2</h3>
+</div>
+<div class="bg-tertiary-container/10 px-md py-xs rounded-full border border-on-tertiary-container/20">
+<span class="text-on-tertiary-container font-label-md text-label-md">100% Staffed</span>
+</div>
+</header>
+<div class="p-md">
+<table class="w-full text-left">
+<thead>
+<tr class="text-on-surface-variant font-label-md text-label-md border-b border-outline-variant">
+<th class="pb-sm font-semibold">Station</th>
+<th class="pb-sm font-semibold">Associate</th>
+<th class="pb-sm font-semibold text-right">Match Context</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Station Row -->
+<tr class="group hover:bg-surface-container-low transition-colors">
+<td class="py-md">
+<div class="font-headline-sm text-headline-sm text-primary">Washing</div>
+<div class="text-body-sm text-on-surface-variant">Wet Process Area</div>
+</td>
+<td class="py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center font-bold text-on-secondary-container text-[12px]">AK</div>
+<div>
+<div class="font-body-md font-semibold text-primary">Amina Khan</div>
+<div class="text-body-sm text-on-surface-variant">ID: 2284-B</div>
+</div>
+</div>
+</td>
+<td class="py-md text-right">
+<span class="bg-secondary-container/30 text-on-secondary-container px-sm py-xs rounded font-label-md text-label-md">Skill Match</span>
+</td>
+</tr>
+<!-- Station Row -->
+<tr class="group hover:bg-surface-container-low transition-colors">
+<td class="py-md">
+<div class="font-headline-sm text-headline-sm text-primary">Slicing</div>
+<div class="text-body-sm text-on-surface-variant">Precision Cutting</div>
+</td>
+<td class="py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A younger male technician in a food production setting. He is wearing a blue uniform and focused intently on an interface screen off-camera. The lighting is crisp, highlighting the clean, modern industrial interior with soft teal and slate tones. Professional studio lighting style in an industrial setting, suggesting high-tech manufacturing and efficiency." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGG-hUraTHobjs0_linNt-a7J3KyMmriCL59FDT0hME6Oe7x-Z-Mnx5DgGfXtvn80m8wGkVIba1iCLK40_ijjjBZfNYcUaZ2nKabPmAfZZFdLoY2TZr72SF5c7gZ6IJLDyc7eo7RjCLzw5MzyomgBOG4HciTtVuSOU6KDPXMW4Szkl_p44SrxWYVxwqu5WNMbpgb0PR5FujqxVYFE1bDEDmQwYb4jeFOLetZml3otJDhqSMJXPLuHyJI0f23ySNozq0w4GSPa8y9k"/>
+</div>
+<div>
+<div class="font-body-md font-semibold text-primary">Kevin Zhao</div>
+<div class="text-body-sm text-on-surface-variant">ID: 5543-D</div>
+</div>
+</div>
+</td>
+<td class="py-md text-right">
+<span class="bg-on-tertiary-container/10 text-on-tertiary-container px-sm py-xs rounded font-label-md text-label-md">Certified L2</span>
+</td>
+</tr>
+<!-- Station Row -->
+<tr class="group hover:bg-surface-container-low transition-colors">
+<td class="py-md">
+<div class="font-headline-sm text-headline-sm text-primary">Frying</div>
+<div class="text-body-sm text-on-surface-variant">High-Heat Zone</div>
+</td>
+<td class="py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center font-bold text-on-surface text-[12px]">MC</div>
+<div>
+<div class="font-body-md font-semibold text-primary">Marcus Chen</div>
+<div class="text-body-sm text-on-surface-variant">ID: 6112-E</div>
+</div>
+</div>
+</td>
+<td class="py-md text-right">
+<span class="bg-[#FEF3C7] text-[#92400E] px-sm py-xs rounded font-label-md text-label-md border border-[#FDE68A]">OT Threshold</span>
+</td>
+</tr>
+<!-- Station Row -->
+<tr class="group hover:bg-surface-container-low transition-colors">
+<td class="py-md">
+<div class="font-headline-sm text-headline-sm text-primary">Seasoning</div>
+<div class="text-body-sm text-on-surface-variant">Batch Coating</div>
+</td>
+<td class="py-md">
+<div class="flex items-center gap-md">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A portrait of a senior female manufacturing associate in a modern industrial uniform. She has a knowledgeable and warm expression, standing next to a large seasoning drum in a snack factory. The lighting is high-key and professional, with a clean color palette of slate, white, and subtle metallic accents. The overall atmosphere is one of reliability, experience, and industrial excellence." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBP8D0wYkBnifLJJNW4jF9iFnrrud4iP7Bky4l83yYS8ZH-ZcHOqF8_q42j0MLl3mPPY_bpLhj9zCvnaxkTEplD9yVc9YwPsAnoqOAba0LVArUdXfXBg1emQfSVFy01lxNLf7uPPVbdYbjo3ck5wndtEIrh3_14dlOTQKZB21xGIW_nyu5E7wqaaULkQPI7r7Pj1uT5scHpVeU7QoiNC5cXFsmqMxBxbOC9XfIJH5EfVrH58QXLrC3Hp1jEo6NuHmNoTGpVTTA5SPY"/>
+</div>
+<div>
+<div class="font-body-md font-semibold text-primary">Linda Peters</div>
+<div class="text-body-sm text-on-surface-variant">ID: 1098-Z</div>
+</div>
+</div>
+</td>
+<td class="py-md text-right">
+<span class="bg-secondary-container/30 text-on-secondary-container px-sm py-xs rounded font-label-md text-label-md">Subject Expert</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<footer class="mt-auto p-md bg-surface-container-low/50 border-t border-outline-variant flex justify-between items-center">
+<span class="text-body-sm text-on-surface-variant">Avg. Match Score: 89%</span>
+<button class="text-on-secondary-fixed-variant font-label-lg text-label-lg hover:underline">Adjust Line Staffing</button>
+</footer>
+</div>
+</div>
+<!-- Additional Stats / Summary -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-lg">
+<div class="bg-white border border-outline-variant rounded-xl p-md">
+<p class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">Total Headcount</p>
+<div class="flex items-end gap-sm mt-xs">
+<span class="font-headline-lg text-headline-lg text-primary">42</span>
+<span class="text-on-tertiary-container font-body-sm mb-1 flex items-center"><span class="material-symbols-outlined text-[14px]">arrow_upward</span> 4%</span>
+</div>
+</div>
+<div class="bg-white border border-outline-variant rounded-xl p-md">
+<p class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">Labor Utilization</p>
+<div class="flex items-end gap-sm mt-xs">
+<span class="font-headline-lg text-headline-lg text-primary">92.4%</span>
+<span class="text-on-tertiary-container font-body-sm mb-1 flex items-center">Optimal</span>
+</div>
+</div>
+<div class="bg-white border border-outline-variant rounded-xl p-md">
+<p class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">Certification Compliance</p>
+<div class="flex items-end gap-sm mt-xs">
+<span class="font-headline-lg text-headline-lg text-primary">98%</span>
+<span class="text-error font-body-sm mb-1 flex items-center"><span class="material-symbols-outlined text-[14px]">priority_high</span> Warning</span>
+</div>
+</div>
+<div class="bg-white border border-outline-variant rounded-xl p-md">
+<p class="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">Skill Versatility Index</p>
+<div class="flex items-end gap-sm mt-xs">
+<span class="font-headline-lg text-headline-lg text-primary">3.2</span>
+<span class="text-on-surface-variant font-body-sm mb-1">Stations/Person</span>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Micro-interactions Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Commit Assignments Interaction
+            const commitBtn = document.querySelector('button.bg-primary-container');
+            commitBtn.addEventListener('click', () => {
+                commitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin mr-sm">sync</span> Committing...';
+                commitBtn.disabled = true;
+                setTimeout(() => {
+                    commitBtn.innerHTML = '<span class="material-symbols-outlined mr-sm">done_all</span> Assignments Committed';
+                    commitBtn.classList.remove('bg-primary-container');
+                    commitBtn.classList.add('bg-tertiary-container', 'text-on-tertiary-container');
+                }, 1500);
+            });
+
+            // Re-run Engine Interaction
+            const rerunBtn = document.querySelector('button.border-outline');
+            rerunBtn.addEventListener('click', () => {
+                rerunBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">autorenew</span>';
+                setTimeout(() => {
+                    location.reload();
+                }, 800);
+            });
+
+            // Highlight table rows on click
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                row.addEventListener('click', () => {
+                    rows.forEach(r => r.classList.remove('bg-secondary-container/10'));
+                    row.classList.add('bg-secondary-container/10');
+                });
+            });
+        });
+    </script>
+</body></html>

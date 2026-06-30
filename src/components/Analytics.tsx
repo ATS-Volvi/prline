@@ -68,7 +68,7 @@ export const Analytics: React.FC = () => {
   return (
     <div className="flex-1 h-full flex flex-col overflow-hidden bg-background select-none animate-fade-in">
       {/* Header */}
-      <header className="flex justify-between items-center px-margin-desktop h-16 w-full border-b border-slate-200 shrink-0 bg-white">
+      <header className="flex justify-between items-center px-margin-desktop h-16 w-full border-b border-outline-variant shrink-0 bg-surface-container-lowest">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-primary text-headline-md font-bold">analytics</span>
           <h1 className="font-headline-md text-base font-bold text-primary">Skill Gap & Capacity Analysis</h1>
@@ -80,7 +80,7 @@ export const Analytics: React.FC = () => {
         
         {/* Top metrics dashboard */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-premium-sm flex items-start gap-4 transition-all duration-300 hover:shadow-premium-md hover:-translate-y-0.5">
+          <div className="bg-surface-container-lowest p-5 rounded-lg border border-outline-variant shadow-premium-sm flex items-start gap-4 transition-all duration-300 hover:shadow-premium-md hover:-translate-y-0.5">
             <span className="material-symbols-outlined text-rose-600 bg-rose-50 border border-rose-100 p-2.5 rounded-lg text-xl font-bold shadow-premium-sm">report</span>
             <div>
               <span className="text-[9px] font-label-caps text-secondary font-bold tracking-wider block mb-1">Critical Skill Gaps</span>
@@ -91,8 +91,8 @@ export const Analytics: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-premium-sm flex items-start gap-4 transition-all duration-300 hover:shadow-premium-md hover:-translate-y-0.5">
-            <span className="material-symbols-outlined text-amber-500 bg-amber-50 border border-amber-100 p-2.5 rounded-lg text-xl font-bold shadow-premium-sm">warning</span>
+          <div className="bg-surface-container-lowest p-5 rounded-lg border border-outline-variant shadow-premium-sm flex items-start gap-4 transition-all duration-300 hover:shadow-premium-md hover:-translate-y-0.5">
+            <span className="material-symbols-outlined text-amber-500 bg-secondary-container border border-outline-variant p-2.5 rounded-lg text-xl font-bold shadow-premium-sm">warning</span>
             <div>
               <span className="text-[9px] font-label-caps text-secondary font-bold tracking-wider block mb-1">Tight Skill Capacity</span>
               <span className="font-data-mono-lg text-2xl font-bold text-amber-600 block">
@@ -102,8 +102,8 @@ export const Analytics: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-premium-sm flex items-start gap-4 transition-all duration-300 hover:shadow-premium-md hover:-translate-y-0.5">
-            <span className="material-symbols-outlined text-emerald-600 bg-emerald-50 border border-emerald-100 p-2.5 rounded-lg text-xl font-bold shadow-premium-sm">check_circle</span>
+          <div className="bg-surface-container-lowest p-5 rounded-lg border border-outline-variant shadow-premium-sm flex items-start gap-4 transition-all duration-300 hover:shadow-premium-md hover:-translate-y-0.5">
+            <span className="material-symbols-outlined text-emerald-600 bg-tertiary-fixed-dim/20 border border-outline-variant p-2.5 rounded-lg text-xl font-bold shadow-premium-sm">check_circle</span>
             <div>
               <span className="text-[9px] font-label-caps text-secondary font-bold tracking-wider block mb-1">Sufficient Depth</span>
               <span className="font-data-mono-lg text-2xl font-bold text-emerald-600 block">
@@ -115,49 +115,49 @@ export const Analytics: React.FC = () => {
         </section>
 
         {/* Heatmap Grid */}
-        <section className="bg-white border border-slate-200 rounded-lg p-5 shadow-premium-sm">
+        <section className="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-premium-sm">
           <div className="mb-4">
             <h2 className="text-sm font-bold text-on-surface">Skill Capacity & Adequacy Heatmap</h2>
             <p className="text-[10px] text-secondary">Roster metrics of qualified operators compared with operational demand</p>
           </div>
           
-          <div className="overflow-x-auto custom-scrollbar border border-slate-200 rounded-lg">
+          <div className="overflow-x-auto custom-scrollbar border border-outline-variant rounded-lg">
             <table className="w-full text-xs text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps">
+                <tr className="bg-surface-container-low border-b border-outline-variant text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps">
                   <th className="p-3.5">SKILL ID</th>
                   <th className="p-3.5">SKILL NAME</th>
                   <th className="p-3.5 text-center">EXPERT</th>
                   <th className="p-3.5 text-center">CERTIFIED</th>
                   <th className="p-3.5 text-center">OPERATOR</th>
                   <th className="p-3.5 text-center">TRAINEE</th>
-                  <th className="p-3.5 text-center bg-slate-50">TOTAL AVAILABLE</th>
-                  <th className="p-3.5 text-center bg-slate-50">STATIONS REQUIRING</th>
+                  <th className="p-3.5 text-center bg-surface-container-low">TOTAL AVAILABLE</th>
+                  <th className="p-3.5 text-center bg-surface-container-low">STATIONS REQUIRING</th>
                   <th className="p-3.5 text-center">STATUS</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {skillCoverageData.map(data => {
-                  let statusBg = 'bg-emerald-50 text-emerald-700 border-emerald-100';
+                  let statusBg = 'bg-tertiary-fixed-dim/20 text-on-tertiary-fixed-variant border-outline-variant';
                   let statusText = 'ADEQUATE';
                   if (data.adequacy === 'Critical') {
                     statusBg = 'bg-rose-50 text-rose-700 border-rose-100';
                     statusText = 'CRITICAL GAP';
                   } else if (data.adequacy === 'Tight') {
-                    statusBg = 'bg-amber-50 text-amber-700 border-amber-100';
+                    statusBg = 'bg-secondary-container text-on-secondary-container border-outline-variant';
                     statusText = 'TIGHT COVER';
                   }
 
                   return (
-                    <tr key={data.skillId} className="hover:bg-slate-50/50 transition-colors">
+                    <tr key={data.skillId} className="hover:bg-surface-container-low/50 transition-colors">
                       <td className="p-3.5 font-mono font-bold text-primary">{data.skillId}</td>
                       <td className="p-3.5 font-semibold text-on-surface">{data.name}</td>
                       <td className="p-3.5 text-center font-bold font-mono text-blue-900">{data.expertCount || '-'}</td>
                       <td className="p-3.5 text-center font-bold font-mono text-indigo-600">{data.certCount || '-'}</td>
-                      <td className="p-3.5 text-center font-bold font-mono text-emerald-700">{data.operatorCount || '-'}</td>
+                      <td className="p-3.5 text-center font-bold font-mono text-on-tertiary-fixed-variant">{data.operatorCount || '-'}</td>
                       <td className="p-3.5 text-center font-bold font-mono text-amber-600">{data.traineeCount || '-'}</td>
-                      <td className="p-3.5 text-center font-extrabold bg-slate-50 text-primary font-mono">{data.totalCount}</td>
-                      <td className="p-3.5 text-center font-extrabold bg-slate-50 text-secondary font-mono">{data.wsRequiring}</td>
+                      <td className="p-3.5 text-center font-extrabold bg-surface-container-low text-primary font-mono">{data.totalCount}</td>
+                      <td className="p-3.5 text-center font-extrabold bg-surface-container-low text-secondary font-mono">{data.wsRequiring}</td>
                       <td className="p-3.5 text-center">
                         <span className={`px-2 py-0.5 rounded text-[8px] font-bold font-mono tracking-wider border shadow-premium-sm ${statusBg}`}>
                           {statusText}
@@ -172,16 +172,16 @@ export const Analytics: React.FC = () => {
         </section>
 
         {/* Training Needs Table */}
-        <section className="bg-white border border-slate-200 rounded-lg p-5 shadow-premium-sm mb-4">
+        <section className="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-premium-sm mb-4">
           <div className="mb-4">
             <h2 className="text-sm font-bold text-on-surface">Training Needs & Expiring Certifications</h2>
             <p className="text-[10px] text-secondary">Active operators whose qualifications expire inside 90 days. Retraining should be prioritized.</p>
           </div>
 
-          <div className="overflow-x-auto custom-scrollbar border border-slate-200 rounded-lg">
+          <div className="overflow-x-auto custom-scrollbar border border-outline-variant rounded-lg">
             <table className="w-full text-xs text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps">
+                <tr className="bg-surface-container-low border-b border-outline-variant text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps">
                   <th className="p-3.5">ASSOCIATE</th>
                   <th className="p-3.5">EMPLOYEE ID</th>
                   <th className="p-3.5">SKILL CERTIFICATE</th>
@@ -202,17 +202,17 @@ export const Analytics: React.FC = () => {
                   expiringRecords.map((rec, idx) => {
                     const isExpired = rec.diffDays < 0;
                     
-                    let daysBg = 'bg-slate-50 text-secondary border-slate-200';
+                    let daysBg = 'bg-surface-container-low text-secondary border-outline-variant';
                     if (isExpired) {
                       daysBg = 'bg-rose-50 text-rose-700 border-rose-100 font-bold';
                     } else if (rec.diffDays <= 7) {
                       daysBg = 'bg-rose-50 text-rose-700 border border-rose-100 font-bold';
                     } else if (rec.diffDays <= 30) {
-                      daysBg = 'bg-amber-50 text-amber-700 border border-amber-100 font-bold';
+                      daysBg = 'bg-secondary-container text-on-secondary-container border border-outline-variant font-bold';
                     }
 
                     return (
-                      <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                      <tr key={idx} className="hover:bg-surface-container-low/50 transition-colors">
                         <td className="p-3.5 font-bold text-on-surface">{rec.assocName}</td>
                         <td className="p-3.5 font-mono font-bold text-primary">{rec.associateId}</td>
                         <td className="p-3.5 font-mono font-bold text-secondary">{rec.skillId} ({rec.skillName})</td>

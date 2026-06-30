@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Industrial Logic | Real-time Allocation Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#bcc7de",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f2f4f6",
+                        "outline-variant": "#c5c6cd",
+                        "background": "#f7f9fb",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-tertiary-fixed": "#002113",
+                        "surface-container": "#eceef0",
+                        "on-surface-variant": "#45474c",
+                        "surface-variant": "#e0e3e5",
+                        "inverse-on-surface": "#eff1f3",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "tertiary": "#00190e",
+                        "secondary-container": "#d5e3fc",
+                        "on-primary-fixed-variant": "#3c475a",
+                        "primary-fixed": "#d8e3fb",
+                        "primary-container": "#1e293b",
+                        "secondary": "#515f74",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "inverse-primary": "#bcc7de",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#f7f9fb",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "tertiary-fixed": "#6ffbbe",
+                        "surface-container-high": "#e6e8ea",
+                        "on-primary-fixed": "#111c2d",
+                        "secondary-fixed": "#d5e3fc",
+                        "on-primary-container": "#8590a6",
+                        "on-tertiary-container": "#00a472",
+                        "outline": "#75777d",
+                        "primary": "#091426",
+                        "on-background": "#191c1e",
+                        "error": "#ba1a1a",
+                        "on-primary": "#ffffff",
+                        "surface-tint": "#545f73",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "on-surface": "#191c1e",
+                        "surface-dim": "#d8dadc",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "tertiary-container": "#00301e",
+                        "inverse-surface": "#2d3133",
+                        "on-secondary-container": "#57657a",
+                        "on-error": "#ffffff",
+                        "surface": "#f7f9fb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "sm": "8px",
+                        "gutter-mobile": "12px",
+                        "margin-mobile": "16px",
+                        "base": "4px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "label-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "data-mono": ["JetBrains Mono"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen">
+<!-- SideNavBar (Predicted Component) -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-surface-container border-r border-outline-variant flex flex-col p-md z-40 hidden md:flex">
+<div class="mb-xl">
+<span class="font-headline-md text-headline-md font-black text-primary">Industrial Logic</span>
+<div class="mt-md flex items-center gap-sm p-sm rounded-lg bg-surface-container-highest">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a factory plant manager with a neutral expression, wearing a high-visibility industrial vest over a blue collared shirt. The lighting is clean and balanced, suitable for a corporate industrial profile image. The background is a blurred industrial office environment with soft technical displays." src="https://lh3.googleusercontent.com/aida-public/AB6AXuATXfoEAEoEwmdDf4-ityy9AqGNQRNwxpazVqnTXrcmJ2VIIJvoF443bJLYTau1ZhI76Oh5O1-NNnyA7lA_xqPtE0qTPzbtBz7_Nc4a2mlFkWTHmfJs1AWoxrIvVPizZUh2n2ZiUBT7EgzH2OaxawTJG6xYxr3pMILqLPvOspTbXWV62_P5qjYFG2ccCM3qZaHIacy-CO2TQmV8liKMys60x4_fGNJSIwZTbplpbJo0Sb8niomxQEz2U_iWqTl279Pp9BzwYyrg6uw"/>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-primary">Plant Manager</p>
+<p class="text-xs text-on-surface-variant">North Sector</p>
+</div>
+</div>
+</div>
+<nav class="flex-grow space-y-xs overflow-y-auto custom-scrollbar">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-all active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-lg text-label-lg">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm bg-primary-container text-on-primary-container rounded-lg font-bold transition-all active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="factory">factory</span>
+<span class="font-label-lg text-label-lg">Production Lines</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-all active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-lg text-label-lg">Associates</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-all active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="precision_manufacturing">precision_manufacturing</span>
+<span class="font-label-lg text-label-lg">Workstations</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-all active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span class="font-label-lg text-label-lg">Skills</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-all active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+<span class="font-label-lg text-label-lg">Reports</span>
+</a>
+</nav>
+<div class="mt-auto space-y-xs pt-md border-t border-outline-variant">
+<button class="w-full py-md px-md bg-error text-on-error font-bold rounded-lg uppercase tracking-wider text-xs mb-md hover:opacity-90 active:scale-95 transition-all">
+                Emergency Stop
+            </button>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-lg text-label-lg">Support</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-lg text-label-lg">Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 flex flex-col min-h-screen">
+<!-- TopAppBar (Predicted Component) -->
+<header class="w-full h-14 bg-surface-container-lowest flex justify-between items-center px-lg sticky top-0 z-50 border-b border-outline-variant">
+<div class="flex items-center gap-md">
+<button class="md:hidden p-sm hover:bg-surface-container-low rounded-full">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="relative hidden sm:block">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-[20px]">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-surface-container-low border-none rounded-lg text-body-md focus:ring-2 focus:ring-primary-container w-64" placeholder="Search machine, ID, or associate..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-sm text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border border-white"></span>
+</button>
+<button class="p-sm text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 ml-md rounded-full bg-secondary-container flex items-center justify-center">
+<span class="text-[10px] font-bold text-on-secondary-container">PM</span>
+</div>
+</div>
+</header>
+<!-- Dashboard Sub-Header -->
+<section class="bg-surface-container-lowest px-lg py-md border-b border-outline-variant flex flex-col sm:flex-row sm:items-center justify-between gap-md">
+<div>
+<nav class="flex items-center text-xs text-on-surface-variant mb-1 uppercase tracking-widest font-bold">
+<span>Floor 2</span>
+<span class="mx-2">/</span>
+<span>Line Alpha</span>
+</nav>
+<h1 class="font-headline-lg text-headline-lg text-primary flex items-center gap-sm">
+                    Allocation Dashboard
+                    <span class="material-symbols-outlined text-tertiary-fixed-dim">verified</span>
+</h1>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex flex-col items-end">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Current Shift</span>
+<span class="font-data-mono text-data-mono text-primary bg-secondary-container px-sm py-0.5 rounded">Shift A - Morning (06:00 - 14:00)</span>
+</div>
+<div class="h-10 w-[1px] bg-outline-variant mx-sm hidden sm:block"></div>
+<button class="bg-primary text-on-primary px-lg py-sm font-bold rounded flex items-center gap-sm active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[20px]">person_add</span>
+                    Quick Allocate
+                </button>
+</div>
+</section>
+<!-- Main Content Area: Bento Grid Layout -->
+<div class="p-lg">
+<!-- Filter & Stats Bar -->
+<div class="flex flex-wrap items-center justify-between gap-md mb-lg">
+<div class="flex items-center gap-sm">
+<div class="flex rounded-lg border border-outline-variant overflow-hidden">
+<button class="px-md py-1.5 bg-primary-container text-on-primary-container font-bold text-xs uppercase tracking-wider">All Machines</button>
+<button class="px-md py-1.5 bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low font-bold text-xs uppercase tracking-wider">Unallocated (4)</button>
+</div>
+<button class="p-2 border border-outline-variant rounded-lg bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low">
+<span class="material-symbols-outlined">filter_alt</span>
+</button>
+</div>
+<div class="flex items-center gap-xl bg-surface-container-low px-lg py-2 rounded-lg border border-outline-variant/30">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Total Assets</span>
+<span class="font-data-mono text-lg font-bold text-primary">24</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Line Capacity</span>
+<span class="font-data-mono text-lg font-bold text-on-tertiary-container">83%</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Critical Gaps</span>
+<span class="font-data-mono text-lg font-bold text-error">04</span>
+</div>
+</div>
+</div>
+<!-- Machine Cards Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-md" id="allocation-grid">
+<!-- Sorted by logic: Unallocated (Red) first -->
+<!-- Card: Unallocated 1 -->
+<div class="bg-surface-container-lowest border border-error/30 rounded-lg overflow-hidden flex flex-col hover:border-error transition-all group shadow-sm">
+<div class="p-md bg-error/5 flex justify-between items-start border-b border-error/10">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-0.5">CNC-L014</h3>
+<p class="text-[10px] font-data-mono text-on-surface-variant uppercase">Asset ID: #9902-A</p>
+</div>
+<span class="material-symbols-outlined text-error" data-icon="warning">warning</span>
+</div>
+<div class="p-md flex-grow flex flex-col justify-center items-center py-xl">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mb-2 tracking-widest">Required Skill</span>
+<span class="px-md py-1.5 bg-primary text-on-primary font-bold text-xs rounded uppercase tracking-tighter shadow-sm">Expert Level</span>
+</div>
+<div class="p-md bg-error flex items-center justify-between text-on-error">
+<span class="text-xs font-black uppercase tracking-widest">Unallocated</span>
+<button class="bg-white/20 hover:bg-white/30 px-sm py-1 rounded text-[10px] font-bold flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">add_circle</span> ASSIGN
+                        </button>
+</div>
+</div>
+<!-- Card: Unallocated 2 -->
+<div class="bg-surface-container-lowest border border-error/30 rounded-lg overflow-hidden flex flex-col hover:border-error transition-all group shadow-sm">
+<div class="p-md bg-error/5 flex justify-between items-start border-b border-error/10">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-0.5">HYD-PRESS-21</h3>
+<p class="text-[10px] font-data-mono text-on-surface-variant uppercase">Asset ID: #4412-B</p>
+</div>
+<span class="material-symbols-outlined text-error" data-icon="error_outline">error_outline</span>
+</div>
+<div class="p-md flex-grow flex flex-col justify-center items-center py-xl">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mb-2 tracking-widest">Required Skill</span>
+<span class="px-md py-1.5 bg-secondary text-white font-bold text-xs rounded uppercase tracking-tighter">Certified</span>
+</div>
+<div class="p-md bg-error flex items-center justify-between text-on-error">
+<span class="text-xs font-black uppercase tracking-widest">Unallocated</span>
+<button class="bg-white/20 hover:bg-white/30 px-sm py-1 rounded text-[10px] font-bold flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">add_circle</span> ASSIGN
+                        </button>
+</div>
+</div>
+<!-- Card: Unallocated 3 -->
+<div class="bg-surface-container-lowest border border-error/30 rounded-lg overflow-hidden flex flex-col hover:border-error transition-all group shadow-sm">
+<div class="p-md bg-error/5 flex justify-between items-start border-b border-error/10">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-0.5">LATHE-X10</h3>
+<p class="text-[10px] font-data-mono text-on-surface-variant uppercase">Asset ID: #1029-C</p>
+</div>
+<span class="material-symbols-outlined text-error" data-icon="warning">warning</span>
+</div>
+<div class="p-md flex-grow flex flex-col justify-center items-center py-xl">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mb-2 tracking-widest">Required Skill</span>
+<span class="px-md py-1.5 bg-secondary text-white font-bold text-xs rounded uppercase tracking-tighter">Certified</span>
+</div>
+<div class="p-md bg-error flex items-center justify-between text-on-error">
+<span class="text-xs font-black uppercase tracking-widest">Unallocated</span>
+<button class="bg-white/20 hover:bg-white/30 px-sm py-1 rounded text-[10px] font-bold flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">add_circle</span> ASSIGN
+                        </button>
+</div>
+</div>
+<!-- Card: Unallocated 4 -->
+<div class="bg-surface-container-lowest border border-error/30 rounded-lg overflow-hidden flex flex-col hover:border-error transition-all group shadow-sm">
+<div class="p-md bg-error/5 flex justify-between items-start border-b border-error/10">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-0.5">COBOT-R05</h3>
+<p class="text-[10px] font-data-mono text-on-surface-variant uppercase">Asset ID: #5512-R</p>
+</div>
+<span class="material-symbols-outlined text-error" data-icon="priority_high">priority_high</span>
+</div>
+<div class="p-md flex-grow flex flex-col justify-center items-center py-xl">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mb-2 tracking-widest">Required Skill</span>
+<span class="px-md py-1.5 bg-primary-container text-on-primary-container font-bold text-xs rounded uppercase tracking-tighter border border-outline">Operator</span>
+</div>
+<div class="p-md bg-error flex items-center justify-between text-on-error">
+<span class="text-xs font-black uppercase tracking-widest">Unallocated</span>
+<button class="bg-white/20 hover:bg-white/30 px-sm py-1 rounded text-[10px] font-bold flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]">add_circle</span> ASSIGN
+                        </button>
+</div>
+</div>
+<!-- Card: Allocated 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col hover:border-on-tertiary-container transition-all group shadow-sm">
+<div class="p-md bg-surface-container-low flex justify-between items-start border-b border-outline-variant">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-0.5">MILL-PRO-02</h3>
+<p class="text-[10px] font-data-mono text-on-surface-variant uppercase">Asset ID: #1182-M</p>
+</div>
+<span class="material-symbols-outlined text-on-tertiary-container" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="p-md flex-grow flex flex-col justify-center items-center py-xl">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mb-2 tracking-widest">Required Skill</span>
+<span class="px-md py-1.5 bg-primary text-on-primary font-bold text-xs rounded uppercase tracking-tighter shadow-sm">Expert Level</span>
+</div>
+<div class="p-md bg-tertiary-container border-t border-on-tertiary-container/20 flex flex-col gap-1">
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-bold text-on-tertiary-container uppercase tracking-widest">Allocated To</span>
+<span class="text-[10px] text-tertiary-fixed-dim font-bold">ACTIVE</span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="w-6 h-6 rounded-full bg-on-tertiary-container flex items-center justify-center text-[10px] text-white font-bold">JD</div>
+<span class="text-sm font-bold text-white">Jonathon Doe</span>
+</div>
+</div>
+</div>
+<!-- Card: Allocated 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col hover:border-on-tertiary-container transition-all group shadow-sm">
+<div class="p-md bg-surface-container-low flex justify-between items-start border-b border-outline-variant">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-0.5">DRILL-Z-09</h3>
+<p class="text-[10px] font-data-mono text-on-surface-variant uppercase">Asset ID: #3302-D</p>
+</div>
+<span class="material-symbols-outlined text-on-tertiary-container" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="p-md flex-grow flex flex-col justify-center items-center py-xl">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mb-2 tracking-widest">Required Skill</span>
+<span class="px-md py-1.5 bg-secondary text-white font-bold text-xs rounded uppercase tracking-tighter">Certified</span>
+</div>
+<div class="p-md bg-tertiary-container border-t border-on-tertiary-container/20 flex flex-col gap-1">
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-bold text-on-tertiary-container uppercase tracking-widest">Allocated To</span>
+<span class="text-[10px] text-tertiary-fixed-dim font-bold">ACTIVE</span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="w-6 h-6 rounded-full bg-on-tertiary-container flex items-center justify-center text-[10px] text-white font-bold">AS</div>
+<span class="text-sm font-bold text-white">Alicia Strom</span>
+</div>
+</div>
+</div>
+<!-- Card: Allocated 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col hover:border-on-tertiary-container transition-all group shadow-sm">
+<div class="p-md bg-surface-container-low flex justify-between items-start border-b border-outline-variant">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-0.5">QC-SCANNER-01</h3>
+<p class="text-[10px] font-data-mono text-on-surface-variant uppercase">Asset ID: #0012-Q</p>
+</div>
+<span class="material-symbols-outlined text-on-tertiary-container" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="p-md flex-grow flex flex-col justify-center items-center py-xl">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mb-2 tracking-widest">Required Skill</span>
+<span class="px-md py-1.5 bg-primary-container text-on-primary-container font-bold text-xs rounded uppercase tracking-tighter border border-outline">Operator</span>
+</div>
+<div class="p-md bg-tertiary-container border-t border-on-tertiary-container/20 flex flex-col gap-1">
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-bold text-on-tertiary-container uppercase tracking-widest">Allocated To</span>
+<span class="text-[10px] text-tertiary-fixed-dim font-bold">ACTIVE</span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="w-6 h-6 rounded-full bg-on-tertiary-container flex items-center justify-center text-[10px] text-white font-bold">RK</div>
+<span class="text-sm font-bold text-white">Robert Kimm</span>
+</div>
+</div>
+</div>
+<!-- Card: Allocated 4 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col hover:border-on-tertiary-container transition-all group shadow-sm">
+<div class="p-md bg-surface-container-low flex justify-between items-start border-b border-outline-variant">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-0.5">CONV-LINE-C</h3>
+<p class="text-[10px] font-data-mono text-on-surface-variant uppercase">Asset ID: #9822-L</p>
+</div>
+<span class="material-symbols-outlined text-on-tertiary-container" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="p-md flex-grow flex flex-col justify-center items-center py-xl">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mb-2 tracking-widest">Required Skill</span>
+<span class="px-md py-1.5 bg-primary-container text-on-primary-container font-bold text-xs rounded uppercase tracking-tighter border border-outline">Operator</span>
+</div>
+<div class="p-md bg-tertiary-container border-t border-on-tertiary-container/20 flex flex-col gap-1">
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-bold text-on-tertiary-container uppercase tracking-widest">Allocated To</span>
+<span class="text-[10px] text-tertiary-fixed-dim font-bold">ACTIVE</span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="w-6 h-6 rounded-full bg-on-tertiary-container flex items-center justify-center text-[10px] text-white font-bold">ML</div>
+<span class="text-sm font-bold text-white">Marco Lopez</span>
+</div>
+</div>
+</div>
+<!-- Card: Allocated 5 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex flex-col hover:border-on-tertiary-container transition-all group shadow-sm">
+<div class="p-md bg-surface-container-low flex justify-between items-start border-b border-outline-variant">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-0.5">CNC-M004</h3>
+<p class="text-[10px] font-data-mono text-on-surface-variant uppercase">Asset ID: #9905-M</p>
+</div>
+<span class="material-symbols-outlined text-on-tertiary-container" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="p-md flex-grow flex flex-col justify-center items-center py-xl">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase mb-2 tracking-widest">Required Skill</span>
+<span class="px-md py-1.5 bg-primary text-on-primary font-bold text-xs rounded uppercase tracking-tighter shadow-sm">Expert Level</span>
+</div>
+<div class="p-md bg-tertiary-container border-t border-on-tertiary-container/20 flex flex-col gap-1">
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-bold text-on-tertiary-container uppercase tracking-widest">Allocated To</span>
+<span class="text-[10px] text-tertiary-fixed-dim font-bold">ACTIVE</span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="w-6 h-6 rounded-full bg-on-tertiary-container flex items-center justify-center text-[10px] text-white font-bold">SC</div>
+<span class="text-sm font-bold text-white">Sarah Chen</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Info -->
+<footer class="mt-auto px-lg py-md border-t border-outline-variant flex justify-between items-center bg-surface-container-lowest">
+<p class="text-xs text-on-surface-variant font-data-mono">System Refresh: <span id="timestamp">10:42:15</span> | Version 4.8.2-stable</p>
+<div class="flex gap-md">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 bg-error rounded-full animate-pulse"></span>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Live Incidents: 0</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 bg-on-tertiary-container rounded-full"></span>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">System Health: Nominal</span>
+</div>
+</div>
+</footer>
+</main>
+<script>
+        // Micro-interaction for refreshing timestamp
+        setInterval(() => {
+            const now = new Date();
+            const timeString = now.getHours().toString().padStart(2, '0') + ':' + 
+                               now.getMinutes().toString().padStart(2, '0') + ':' + 
+                               now.getSeconds().toString().padStart(2, '0');
+            const timestampEl = document.getElementById('timestamp');
+            if (timestampEl) timestampEl.innerText = timeString;
+        }, 1000);
+
+        // Sorting Logic Implementation (Visual sort is already achieved in HTML order, 
+        // but this demonstrates programmatic sorting capability)
+        function sortMachines() {
+            const grid = document.getElementById('allocation-grid');
+            const cards = Array.from(grid.children);
+            
+            cards.sort((a, b) => {
+                const aUnallocated = a.innerText.toLowerCase().includes('unallocated');
+                const bUnallocated = b.innerText.toLowerCase().includes('unallocated');
+                
+                if (aUnallocated && !bUnallocated) return -1;
+                if (!aUnallocated && bUnallocated) return 1;
+                return 0;
+            });
+            
+            grid.innerHTML = '';
+            cards.forEach(card => grid.appendChild(card));
+        }
+
+        // Initialize sort on load
+        window.addEventListener('DOMContentLoaded', sortMachines);
+    </script>
+</body></html>

@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Industrial Logic | Assets</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .gantt-grid {
+            background-size: 40px 100%;
+            background-image: linear-gradient(to right, #e2e8f0 1px, transparent 1px);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#eceef0",
+                        "surface-tint": "#545f73",
+                        "surface-container-high": "#e6e8ea",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#111c2d",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#00190e",
+                        "secondary-fixed": "#d5e3fc",
+                        "on-tertiary-fixed": "#002113",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#57657a",
+                        "primary-fixed": "#d8e3fb",
+                        "error-container": "#ffdad6",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-surface-variant": "#45474c",
+                        "surface-dim": "#d8dadc",
+                        "tertiary-fixed": "#6ffbbe",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "on-background": "#191c1e",
+                        "outline-variant": "#c5c6cd",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "on-error": "#ffffff",
+                        "background": "#f7f9fb",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#bcc7de",
+                        "primary": "#091426",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "tertiary-container": "#00301e",
+                        "secondary-container": "#d5e3fc",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "inverse-surface": "#2d3133",
+                        "secondary": "#515f74",
+                        "on-primary-container": "#8590a6",
+                        "surface-variant": "#e0e3e5",
+                        "surface": "#f7f9fb",
+                        "on-primary-fixed-variant": "#3c475a",
+                        "surface-bright": "#f7f9fb",
+                        "inverse-on-surface": "#eff1f3",
+                        "primary-fixed-dim": "#bcc7de",
+                        "on-tertiary-container": "#00a472",
+                        "primary-container": "#1e293b",
+                        "error": "#ba1a1a",
+                        "on-surface": "#191c1e",
+                        "outline": "#75777d",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "surface-container-low": "#f2f4f6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "base": "4px",
+                        "xl": "32px",
+                        "xs": "4px",
+                        "md": "16px",
+                        "margin-mobile": "16px",
+                        "lg": "24px",
+                        "gutter-mobile": "12px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "data-mono": ["JetBrains Mono"],
+                        "label-lg": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md h-screen w-screen overflow-hidden flex">
+<!-- Left SideNavBar -->
+<aside class="w-64 shrink-0 h-full bg-surface dark:bg-inverse-surface border-r border-outline-variant dark:border-outline flex flex-col p-md gap-base z-30 hidden md:flex">
+<div class="mb-lg flex items-center gap-sm">
+<div class="w-10 h-10 bg-primary flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">factory</span>
+</div>
+<div>
+<h1 class="font-headline-sm text-headline-sm font-black text-primary dark:text-primary-fixed">Industrial Logic</h1>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Ops Management</p>
+</div>
+</div>
+<nav class="flex-grow space-y-1">
+<a class="flex items-center gap-md bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-lg px-md py-sm active:scale-95 duration-150 transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-lg text-label-lg">Dashboard</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant dark:text-surface-variant px-md py-sm hover:bg-surface-container-high dark:hover:bg-surface-variant active:scale-95 duration-150 transition-all" href="#">
+<span class="material-symbols-outlined">factory</span>
+<span class="font-label-lg text-label-lg">Production Lines</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant dark:text-surface-variant px-md py-sm hover:bg-surface-container-high dark:hover:bg-surface-variant active:scale-95 duration-150 transition-all" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-lg text-label-lg">Workforce</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant dark:text-surface-variant px-md py-sm hover:bg-surface-container-high dark:hover:bg-surface-variant active:scale-95 duration-150 transition-all" href="#">
+<span class="material-symbols-outlined">school</span>
+<span class="font-label-lg text-label-lg">Training</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant dark:text-surface-variant px-md py-sm hover:bg-surface-container-high dark:hover:bg-surface-variant active:scale-95 duration-150 transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-lg text-label-lg">Reports</span>
+</a>
+</nav>
+<div class="mt-auto pt-md border-t border-outline-variant space-y-1">
+<button class="w-full bg-primary text-white font-bold py-sm rounded-lg mb-md flex items-center justify-center gap-sm hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[18px]">sync_alt</span>
+            Shift Handover
+        </button>
+<a class="flex items-center gap-md text-on-surface-variant dark:text-surface-variant px-md py-sm hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-lg text-label-lg">Settings</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant dark:text-surface-variant px-md py-sm hover:bg-surface-container-high dark:hover:bg-surface-variant transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-lg text-label-lg">Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Layout Container -->
+<div class="flex-grow flex flex-col h-full min-w-0 overflow-hidden">
+<!-- TopAppBar -->
+<header class="w-full h-16 bg-surface-container dark:bg-surface-container-high border-b border-outline-variant dark:border-outline flex justify-between items-center px-lg shrink-0 z-20">
+<div class="flex items-center gap-lg">
+<div class="md:hidden flex items-center gap-sm">
+<span class="material-symbols-outlined cursor-pointer">menu</span>
+</div>
+<nav class="hidden md:flex items-center gap-lg h-full">
+<a class="text-secondary dark:text-secondary-fixed-dim pt-4 pb-4 hover:text-primary transition-colors cursor-pointer active:opacity-80 font-body-md text-body-md" href="#">Overview</a>
+<a class="text-secondary dark:text-secondary-fixed-dim pt-4 pb-4 hover:text-primary transition-colors cursor-pointer active:opacity-80 font-body-md text-body-md" href="#">Schedules</a>
+<a class="text-primary dark:text-primary-fixed-dim border-b-2 border-primary dark:border-primary-fixed-dim pt-4 pb-4 font-body-md text-body-md font-bold" href="#">Assets</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="bg-surface-container-low border border-outline-variant rounded-full pl-10 pr-4 py-1.5 text-body-sm w-64 focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Search assets..." type="text"/>
+</div>
+<div class="flex items-center gap-sm">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-highest transition-colors relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline cursor-pointer active:opacity-80">
+<img alt="User portrait" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6YdrSVZRATAeVT0T6qO8ddA_yeFYoprxjA5_pST4nTerurSlOIgSDiBmWQsMS9LNvty3kR5OnAn8ZfX9kPfJE7qo7sSTe49-CHL0zC_A_Hkdp-J6xcme7zun9EoJAaLpmFj2gooxM--9qBZ2eBT7VkHyx8nt9hkcsc-PHEJuwUVeuC-viPEhp4HqBeiN12yj6MOLg7bSNZuNlOsa4BVhUuKfTLPDIhM-xD8v_cmbgFjcLzsI98-ouRhplbrxdqXmR1frf5dMJa5s"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Canvas: Content + Right Sidebar -->
+<div class="flex-grow flex overflow-hidden w-full">
+<!-- Main Content Area -->
+<div class="flex-grow overflow-y-auto p-lg min-w-0 h-full">
+<!-- Header Title & Filters -->
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-md mb-lg">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary mb-1">Asset Health &amp; Utilization</h2>
+<p class="text-on-surface-variant font-body-md">Operational status monitoring for all connected hardware.</p>
+</div>
+<div class="flex items-center gap-sm">
+<div class="flex flex-col gap-1">
+<label class="text-[10px] font-bold uppercase text-on-surface-variant px-1">Filter by Line</label>
+<select class="bg-white border border-outline-variant rounded-lg text-body-sm py-2 px-md min-w-[140px] appearance-none cursor-pointer">
+<option>All Lines</option>
+<option>Assembly Line A</option>
+<option>Assembly Line B</option>
+<option>Machining Cell C</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[10px] font-bold uppercase text-on-surface-variant px-1">Status</label>
+<select class="bg-white border border-outline-variant rounded-lg text-body-sm py-2 px-md min-w-[120px] appearance-none cursor-pointer">
+<option>Status</option>
+<option>Active</option>
+<option>Maintenance</option>
+<option>Idle</option>
+</select>
+</div>
+<button class="bg-primary text-white px-md py-2.5 rounded-lg font-bold flex items-center gap-sm hover:opacity-90 mt-auto">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                        Filter
+                    </button>
+</div>
+</div>
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md mb-lg">
+<div class="bg-white border border-outline-variant p-md rounded-lg shadow-sm">
+<div class="flex justify-between items-start mb-sm">
+<span class="text-on-surface-variant font-label-md">Total Uptime</span>
+<span class="material-symbols-outlined text-tertiary-fixed-dim">check_circle</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-headline-lg font-headline-lg text-primary">96.4%</span>
+<span class="text-[12px] text-tertiary-fixed-dim font-bold">+1.2%</span>
+</div>
+</div>
+<div class="bg-white border border-outline-variant p-md rounded-lg shadow-sm">
+<div class="flex justify-between items-start mb-sm">
+<span class="text-on-surface-variant font-label-md">Under Maintenance</span>
+<span class="material-symbols-outlined text-secondary">build</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-headline-lg font-headline-lg text-primary">3 units</span>
+<span class="text-[12px] text-on-surface-variant">Scheduled</span>
+</div>
+</div>
+<div class="bg-white border border-outline-variant p-md rounded-lg shadow-sm">
+<div class="flex justify-between items-start mb-sm">
+<span class="text-on-surface-variant font-label-md">Avg. Utilization</span>
+<span class="material-symbols-outlined text-primary">speed</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-headline-lg font-headline-lg text-primary">82%</span>
+<span class="text-[12px] text-on-surface-variant">Target 85%</span>
+</div>
+</div>
+<div class="bg-white border border-outline-variant p-md rounded-lg shadow-sm border-l-4 border-l-error">
+<div class="flex justify-between items-start mb-sm">
+<span class="text-on-surface-variant font-label-md">Critical Alerts</span>
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-headline-lg font-headline-lg text-error">1</span>
+<span class="text-[12px] text-error font-bold">Action Required</span>
+</div>
+</div>
+</div>
+<!-- Workstation Grid -->
+<h3 class="font-headline-sm text-headline-sm text-primary mb-md">Assembly Line A</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-md mb-xl">
+<!-- Machine 1: Active -->
+<div class="bg-white border border-outline-variant rounded-lg overflow-hidden flex flex-col transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+<div class="p-md flex justify-between items-center bg-surface-container-low border-b border-outline-variant">
+<div>
+<h4 class="font-bold text-primary">CNC-01</h4>
+<span class="text-[10px] text-on-surface-variant font-data-mono">Milling Station</span>
+</div>
+<span class="px-2 py-1 bg-tertiary-fixed-dim/10 text-tertiary-fixed-dim text-[10px] font-bold rounded uppercase">Active</span>
+</div>
+<div class="p-md flex items-center gap-lg">
+<div class="relative w-16 h-16">
+<svg class="w-full h-full" viewbox="0 0 36 36">
+<circle cx="18" cy="18" fill="none" r="16" stroke="#e2e8f0" stroke-width="3"></circle>
+<circle cx="18" cy="18" fill="none" r="16" stroke="#091426" stroke-dasharray="94, 100" stroke-linecap="round" stroke-width="3"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="text-[12px] font-black">94%</span>
+</div>
+</div>
+<div class="flex-grow">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase mb-2">24h Load Map</p>
+<div class="flex gap-0.5 h-8 items-end">
+<div class="bg-primary/20 w-1.5 h-1/2"></div>
+<div class="bg-primary/30 w-1.5 h-2/3"></div>
+<div class="bg-primary/50 w-1.5 h-3/4"></div>
+<div class="bg-primary/80 w-1.5 h-full"></div>
+<div class="bg-primary w-1.5 h-full"></div>
+<div class="bg-primary/80 w-1.5 h-3/4"></div>
+<div class="bg-primary/40 w-1.5 h-1/2"></div>
+<div class="bg-primary/60 w-1.5 h-2/3"></div>
+<div class="bg-primary/80 w-1.5 h-3/4"></div>
+<div class="bg-primary w-1.5 h-full"></div>
+<div class="bg-primary/90 w-1.5 h-5/6"></div>
+<div class="bg-primary w-1.5 h-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Machine 2: Idle -->
+<div class="bg-white border border-outline-variant rounded-lg overflow-hidden flex flex-col opacity-80 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+<div class="p-md flex justify-between items-center bg-surface-container-low border-b border-outline-variant">
+<div>
+<h4 class="font-bold text-primary">CNC-02</h4>
+<span class="text-[10px] text-on-surface-variant font-data-mono">Turning Center</span>
+</div>
+<span class="px-2 py-1 bg-surface-container-highest text-on-surface-variant text-[10px] font-bold rounded uppercase">Idle</span>
+</div>
+<div class="p-md flex items-center gap-lg">
+<div class="relative w-16 h-16">
+<svg class="w-full h-full" viewbox="0 0 36 36">
+<circle cx="18" cy="18" fill="none" r="16" stroke="#e2e8f0" stroke-width="3"></circle>
+<circle cx="18" cy="18" fill="none" r="16" stroke="#45474c" stroke-dasharray="12, 100" stroke-linecap="round" stroke-width="3"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="text-[12px] font-black">12%</span>
+</div>
+</div>
+<div class="flex-grow">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase mb-2">24h Load Map</p>
+<div class="flex gap-0.5 h-8 items-end">
+<div class="bg-slate-200 w-1.5 h-1/6"></div>
+<div class="bg-slate-200 w-1.5 h-1/6"></div>
+<div class="bg-slate-200 w-1.5 h-1/6"></div>
+<div class="bg-slate-400 w-1.5 h-1/3"></div>
+<div class="bg-slate-200 w-1.5 h-1/6"></div>
+<div class="bg-slate-200 w-1.5 h-1/6"></div>
+<div class="bg-slate-200 w-1.5 h-1/6"></div>
+<div class="bg-slate-200 w-1.5 h-1/6"></div>
+<div class="bg-slate-200 w-1.5 h-1/6"></div>
+<div class="bg-slate-200 w-1.5 h-1/6"></div>
+<div class="bg-slate-400 w-1.5 h-1/3"></div>
+<div class="bg-slate-200 w-1.5 h-1/6"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Machine 3: Maintenance -->
+<div class="bg-white border border-outline-variant rounded-lg overflow-hidden flex flex-col border-l-4 border-l-secondary transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+<div class="p-md flex justify-between items-center bg-surface-container-low border-b border-outline-variant">
+<div>
+<h4 class="font-bold text-primary">ARM-09</h4>
+<span class="text-[10px] text-on-surface-variant font-data-mono">Pick &amp; Place Bot</span>
+</div>
+<span class="px-2 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded uppercase">Maintenance</span>
+</div>
+<div class="p-md flex items-center gap-lg">
+<div class="relative w-16 h-16">
+<svg class="w-full h-full" viewbox="0 0 36 36">
+<circle cx="18" cy="18" fill="none" r="16" stroke="#e2e8f0" stroke-width="3"></circle>
+<circle cx="18" cy="18" fill="none" r="16" stroke="#515f74" stroke-dasharray="0, 100" stroke-linecap="round" stroke-width="3"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="text-[12px] font-black">0%</span>
+</div>
+</div>
+<div class="flex-grow">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase mb-2">24h Load Map</p>
+<div class="flex gap-0.5 h-8 items-end">
+<div class="bg-secondary/10 w-1.5 h-full opacity-30"></div>
+<div class="bg-secondary/10 w-1.5 h-full opacity-30"></div>
+<div class="bg-secondary/10 w-1.5 h-full opacity-30"></div>
+<div class="bg-secondary/10 w-1.5 h-full opacity-30"></div>
+<div class="bg-secondary/10 w-1.5 h-full opacity-30"></div>
+<div class="bg-secondary/10 w-1.5 h-full opacity-30"></div>
+<div class="bg-secondary/10 w-1.5 h-full opacity-30"></div>
+<div class="bg-secondary/10 w-1.5 h-full opacity-30"></div>
+<div class="bg-secondary/10 w-1.5 h-full opacity-30"></div>
+<div class="bg-secondary/10 w-1.5 h-full opacity-30"></div>
+<div class="bg-secondary/10 w-1.5 h-full opacity-30"></div>
+<div class="bg-secondary/10 w-1.5 h-full opacity-30"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Machine 4: Alert -->
+<div class="bg-white border border-error rounded-lg overflow-hidden flex flex-col transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+<div class="p-md flex justify-between items-center bg-error-container border-b border-error">
+<div>
+<h4 class="font-bold text-error">CNC-04</h4>
+<span class="text-[10px] text-error font-data-mono">Precision Grinder</span>
+</div>
+<span class="px-2 py-1 bg-error text-white text-[10px] font-bold rounded uppercase">Critical</span>
+</div>
+<div class="p-md flex items-center gap-lg">
+<div class="relative w-16 h-16">
+<svg class="w-full h-full" viewbox="0 0 36 36">
+<circle cx="18" cy="18" fill="none" r="16" stroke="#ffdad6" stroke-width="3"></circle>
+<circle cx="18" cy="18" fill="none" r="16" stroke="#ba1a1a" stroke-dasharray="68, 100" stroke-linecap="round" stroke-width="3"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="text-[12px] font-black text-error">68%</span>
+</div>
+</div>
+<div class="flex-grow">
+<p class="text-[10px] font-bold text-error uppercase mb-2">High Vibration Detected</p>
+<div class="flex gap-0.5 h-8 items-end">
+<div class="bg-error/30 w-1.5 h-1/2"></div>
+<div class="bg-error/40 w-1.5 h-2/3"></div>
+<div class="bg-error/50 w-1.5 h-3/4"></div>
+<div class="bg-error/80 w-1.5 h-full animate-pulse"></div>
+<div class="bg-error w-1.5 h-full animate-pulse"></div>
+<div class="bg-error/80 w-1.5 h-full animate-pulse"></div>
+<div class="bg-error/40 w-1.5 h-2/3"></div>
+<div class="bg-error/20 w-1.5 h-1/2"></div>
+<div class="bg-error/30 w-1.5 h-2/3"></div>
+<div class="bg-error/60 w-1.5 h-3/4"></div>
+<div class="bg-error/90 w-1.5 h-full animate-pulse"></div>
+<div class="bg-error w-1.5 h-full animate-pulse"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Additional machines... -->
+<div class="bg-white border border-outline-variant rounded-lg overflow-hidden flex flex-col transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+<div class="p-md flex justify-between items-center bg-surface-container-low border-b border-outline-variant">
+<div>
+<h4 class="font-bold text-primary">PR-01</h4>
+<span class="text-[10px] text-on-surface-variant font-data-mono">3D Printer Array</span>
+</div>
+<span class="px-2 py-1 bg-tertiary-fixed-dim/10 text-tertiary-fixed-dim text-[10px] font-bold rounded uppercase">Active</span>
+</div>
+<div class="p-md flex items-center gap-lg">
+<div class="relative w-16 h-16">
+<svg class="w-full h-full" viewbox="0 0 36 36">
+<circle cx="18" cy="18" fill="none" r="16" stroke="#e2e8f0" stroke-width="3"></circle>
+<circle cx="18" cy="18" fill="none" r="16" stroke="#091426" stroke-dasharray="88, 100" stroke-linecap="round" stroke-width="3"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="text-[12px] font-black">88%</span>
+</div>
+</div>
+<div class="flex-grow">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase mb-2">24h Load Map</p>
+<div class="flex gap-0.5 h-8 items-end">
+<div class="bg-primary/20 w-1.5 h-1/2"></div>
+<div class="bg-primary/30 w-1.5 h-2/3"></div>
+<div class="bg-primary/50 w-1.5 h-3/4"></div>
+<div class="bg-primary/80 w-1.5 h-full"></div>
+<div class="bg-primary/40 w-1.5 h-1/2"></div>
+<div class="bg-primary/60 w-1.5 h-2/3"></div>
+<div class="bg-primary/80 w-1.5 h-3/4"></div>
+<div class="bg-primary w-1.5 h-full"></div>
+<div class="bg-primary/90 w-1.5 h-5/6"></div>
+<div class="bg-primary w-1.5 h-full"></div>
+<div class="bg-primary/80 w-1.5 h-3/4"></div>
+<div class="bg-primary/40 w-1.5 h-1/2"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white border border-outline-variant rounded-lg overflow-hidden flex flex-col transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+<div class="p-md flex justify-between items-center bg-surface-container-low border-b border-outline-variant">
+<div>
+<h4 class="font-bold text-primary">WLD-02</h4>
+<span class="text-[10px] text-on-surface-variant font-data-mono">Laser Welder</span>
+</div>
+<span class="px-2 py-1 bg-tertiary-fixed-dim/10 text-tertiary-fixed-dim text-[10px] font-bold rounded uppercase">Active</span>
+</div>
+<div class="p-md flex items-center gap-lg">
+<div class="relative w-16 h-16">
+<svg class="w-full h-full" viewbox="0 0 36 36">
+<circle cx="18" cy="18" fill="none" r="16" stroke="#e2e8f0" stroke-width="3"></circle>
+<circle cx="18" cy="18" fill="none" r="16" stroke="#091426" stroke-dasharray="75, 100" stroke-linecap="round" stroke-width="3"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="text-[12px] font-black">75%</span>
+</div>
+</div>
+<div class="flex-grow">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase mb-2">24h Load Map</p>
+<div class="flex gap-0.5 h-8 items-end">
+<div class="bg-primary/20 w-1.5 h-1/2"></div>
+<div class="bg-primary/30 w-1.5 h-2/3"></div>
+<div class="bg-primary/50 w-1.5 h-3/4"></div>
+<div class="bg-primary/80 w-1.5 h-full"></div>
+<div class="bg-primary w-1.5 h-full"></div>
+<div class="bg-primary/80 w-1.5 h-3/4"></div>
+<div class="bg-primary/40 w-1.5 h-1/2"></div>
+<div class="bg-primary/60 w-1.5 h-2/3"></div>
+<div class="bg-primary/80 w-1.5 h-3/4"></div>
+<div class="bg-primary w-1.5 h-full"></div>
+<div class="bg-primary/90 w-1.5 h-5/6"></div>
+<div class="bg-primary w-1.5 h-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Maintenance Timeline -->
+<div class="bg-white border border-outline-variant rounded-lg p-lg shadow-sm w-full mb-xl">
+<div class="flex justify-between items-center mb-lg">
+<h3 class="font-headline-sm text-headline-sm text-primary">Maintenance Timeline (7 Days)</h3>
+<div class="flex gap-sm">
+<button class="p-2 border border-outline-variant rounded hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[18px]">chevron_left</span></button>
+<button class="p-2 border border-outline-variant rounded hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[18px]">chevron_right</span></button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<div class="min-w-[800px]">
+<div class="flex border-b border-outline-variant pb-2 mb-2">
+<div class="w-40 shrink-0 font-bold text-[10px] uppercase text-on-surface-variant">Asset Name</div>
+<div class="flex-grow flex gantt-grid">
+<div class="w-1/7 flex-1 text-center font-bold text-[10px] uppercase text-on-surface-variant border-l border-outline-variant">Mon 15</div>
+<div class="w-1/7 flex-1 text-center font-bold text-[10px] uppercase text-on-surface-variant border-l border-outline-variant">Tue 16</div>
+<div class="w-1/7 flex-1 text-center font-bold text-[10px] uppercase text-on-surface-variant border-l border-outline-variant">Wed 17</div>
+<div class="w-1/7 flex-1 text-center font-bold text-[10px] uppercase text-on-surface-variant border-l border-outline-variant">Thu 18</div>
+<div class="w-1/7 flex-1 text-center font-bold text-[10px] uppercase text-on-surface-variant border-l border-outline-variant">Fri 19</div>
+<div class="w-1/7 flex-1 text-center font-bold text-[10px] uppercase text-on-surface-variant border-l border-outline-variant">Sat 20</div>
+<div class="w-1/7 flex-1 text-center font-bold text-[10px] uppercase text-on-surface-variant border-l border-outline-variant">Sun 21</div>
+</div>
+</div>
+<div class="flex py-3 border-b border-outline-variant/30 items-center">
+<div class="w-40 shrink-0 font-data-mono text-[12px]">ARM-09</div>
+<div class="flex-grow flex relative h-4 bg-surface-container-low rounded-full overflow-hidden">
+<div class="absolute left-0 w-[28%] h-full bg-secondary"></div>
+</div>
+</div>
+<div class="flex py-3 border-b border-outline-variant/30 items-center">
+<div class="w-40 shrink-0 font-data-mono text-[12px]">CNC-04</div>
+<div class="flex-grow flex relative h-4 bg-surface-container-low rounded-full overflow-hidden">
+<div class="absolute left-[42%] w-[15%] h-full bg-error"></div>
+</div>
+</div>
+<div class="flex py-3 border-b border-outline-variant/30 items-center">
+<div class="w-40 shrink-0 font-data-mono text-[12px]">PR-01</div>
+<div class="flex-grow flex relative h-4 bg-surface-container-low rounded-full overflow-hidden">
+<div class="absolute left-[70%] w-[10%] h-full bg-secondary"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="mt-auto pt-lg border-t border-outline-variant flex justify-between items-center text-on-surface-variant text-[12px] pb-lg">
+<p>© 2024 Industrial Logic Operations</p>
+<div class="flex items-center gap-sm">
+<span class="w-2 h-2 bg-tertiary-fixed-dim rounded-full animate-pulse"></span>
+<p>Live Feed Active • Refreshed 10:42 AM</p>
+</div>
+</footer>
+</div>
+<!-- Right Sidebar: Alerts & Activity -->
+<aside class="w-[320px] shrink-0 border-l border-outline-variant bg-white p-md flex flex-col gap-lg hidden xl:flex h-full">
+<!-- Critical Alerts Panel -->
+<section class="shrink-0">
+<h3 class="font-label-lg text-label-lg uppercase tracking-wider text-on-surface-variant mb-md flex items-center gap-2">
+<span class="material-symbols-outlined text-error text-[18px]" style="font-variation-settings: 'FILL' 1;">warning</span>
+                    Critical Alerts
+                </h3>
+<div class="space-y-sm">
+<div class="bg-error-container p-md rounded-lg border border-error/20">
+<div class="flex justify-between items-start mb-1">
+<span class="font-bold text-error text-body-sm">CNC-04: High Vibration</span>
+<span class="text-[10px] text-error opacity-70">2m ago</span>
+</div>
+<p class="text-[12px] text-on-error-container leading-relaxed">Spindle vibration exceeded threshold (12.4mm/s). Immediate inspection required.</p>
+<div class="mt-sm flex gap-2">
+<button class="bg-error text-white px-3 py-1 text-[10px] font-bold rounded uppercase">Dispatch Tech</button>
+<button class="bg-white/50 text-error border border-error/30 px-3 py-1 text-[10px] font-bold rounded uppercase">Acknowledge</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Recent Activity Log -->
+<section class="flex-grow flex flex-col overflow-hidden">
+<h3 class="font-label-lg text-label-lg uppercase tracking-wider text-on-surface-variant mb-md flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">history</span>
+                    Recent Activity
+                </h3>
+<div class="space-y-md overflow-y-auto pr-2 custom-scrollbar">
+<div class="flex gap-md">
+<div class="relative">
+<div class="w-2 h-2 bg-tertiary-fixed-dim rounded-full mt-2 relative z-10"></div>
+<div class="absolute top-2 bottom-[-24px] left-[3px] w-[1.5px] bg-outline-variant"></div>
+</div>
+<div>
+<p class="text-body-sm font-bold text-primary">ARM-09 Maintenance Start</p>
+<p class="text-[11px] text-on-surface-variant">Routine hydraulic fluid replacement initiated by User: J. Doe.</p>
+<p class="text-[10px] font-data-mono text-outline mt-1">10:35 AM</p>
+</div>
+</div>
+<div class="flex gap-md">
+<div class="relative">
+<div class="w-2 h-2 bg-secondary rounded-full mt-2 relative z-10"></div>
+<div class="absolute top-2 bottom-[-24px] left-[3px] w-[1.5px] bg-outline-variant"></div>
+</div>
+<div>
+<p class="text-body-sm font-bold text-primary">CNC-02 Status Change</p>
+<p class="text-[11px] text-on-surface-variant">System transitioned from Active to Idle. Queue cleared.</p>
+<p class="text-[10px] font-data-mono text-outline mt-1">10:12 AM</p>
+</div>
+</div>
+<div class="flex gap-md">
+<div class="relative">
+<div class="w-2 h-2 bg-tertiary-fixed-dim rounded-full mt-2 relative z-10"></div>
+<div class="absolute top-2 bottom-[-24px] left-[3px] w-[1.5px] bg-outline-variant"></div>
+</div>
+<div>
+<p class="text-body-sm font-bold text-primary">PR-01 Batch Completed</p>
+<p class="text-[11px] text-on-surface-variant">Batch ID #9822 successfully completed (48/48 parts).</p>
+<p class="text-[10px] font-data-mono text-outline mt-1">09:45 AM</p>
+</div>
+</div>
+<div class="flex gap-md">
+<div class="relative">
+<div class="w-2 h-2 bg-secondary rounded-full mt-2 relative z-10"></div>
+</div>
+<div>
+<p class="text-body-sm font-bold text-primary">System Login</p>
+<p class="text-[11px] text-on-surface-variant">Administrator session started from Terminal-12.</p>
+<p class="text-[10px] font-data-mono text-outline mt-1">09:00 AM</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Quick Stats -->
+<div class="shrink-0 bg-surface-container p-md rounded-lg">
+<p class="text-[10px] font-bold uppercase text-on-surface-variant mb-2">Connected Nodes</p>
+<div class="flex justify-between items-end">
+<span class="text-headline-md font-headline-md text-primary">42/45</span>
+<span class="text-[10px] text-tertiary-fixed-dim font-bold mb-1">93.3% Online</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full mt-2 overflow-hidden">
+<div class="bg-primary h-full w-[93%]"></div>
+</div>
+</div>
+</aside>
+</div>
+</div>
+</body></html>

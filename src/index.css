@@ -35,106 +35,158 @@
   --font-body-lg: 'Inter', sans-serif;
   --font-data-mono-lg: 'JetBrains Mono', monospace;
   --font-headline-md: 'Inter', sans-serif;
-
-  /* demand-match-flow HSL Palette Mapped to Hex Colors */
-  --color-primary: #182c47; /* HSL 215 50% 18% (Deep Navy) */
+  /* Industrial Logic Design Tokens */
+  --color-primary: #091426;
   --color-on-primary: #ffffff;
-  --color-primary-container: #e2eafc; /* HSL 215 50% 92% */
-  --color-on-primary-container: #182c47;
-  
-  --color-secondary: #475569; /* Slate 600 */
+  --color-primary-container: #1e293b;
+  --color-on-primary-container: #8590a6;
+  --color-inverse-primary: #bcc7de;
+  --color-secondary: #515f74;
   --color-on-secondary: #ffffff;
-  --color-secondary-container: #f1f5f9; /* Slate 100 */
-  --color-on-secondary-container: #1e293b; /* Slate 800 */
-  
-  --color-tertiary: #0f172a;
+  --color-secondary-container: #d5e3fc;
+  --color-on-secondary-container: #57657a;
+  --color-tertiary: #00190e;
   --color-on-tertiary: #ffffff;
-  --color-tertiary-container: #f8fafc;
-  --color-on-tertiary-container: #0f172a;
-  
-  --color-error: #ef4444; /* Red 500 */
+  --color-tertiary-container: #00301e;
+  --color-on-tertiary-container: #00a472;
+  --color-error: #ba1a1a;
   --color-on-error: #ffffff;
-  --color-error-container: #fee2e2;
-  --color-on-error-container: #991b1b;
-  
-  --color-background: #f8fafc; /* HSL 210 20% 98% (Light Gray-Slate) */
-  --color-on-background: #0f172a;
-  
-  --color-surface: #ffffff;
-  --color-surface-dim: #f1f5f9;
-  --color-surface-bright: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-background: #f7f9fb;
+  --color-on-background: #191c1e;
+  --color-surface: #f7f9fb;
+  --color-surface-dim: #d8dadc;
+  --color-surface-bright: #f7f9fb;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f8fafc;
-  --color-surface-container: #f1f5f9;
-  --color-surface-container-high: #e2e8f0;
-  --color-surface-container-highest: #cbd5e1;
-  --color-on-surface: #0f172a;
-  --color-on-surface-variant: #64748b;
-  --color-inverse-surface: #1e293b;
-  --color-inverse-on-surface: #f8fafc;
-  --color-outline: #cbd5e1;
-  --color-outline-variant: #e2e8f0;
-  --color-surface-tint: #182c47;
+  --color-surface-container-low: #f2f4f6;
+  --color-surface-container: #eceef0;
+  --color-surface-container-high: #e6e8ea;
+  --color-surface-container-highest: #e0e3e5;
+  --color-on-surface: #191c1e;
+  --color-on-surface-variant: #45474c;
+  --color-inverse-surface: #2d3133;
+  --color-inverse-on-surface: #eff1f3;
+  --color-outline: #75777d;
+  --color-outline-variant: #c5c6cd;
+  --color-surface-variant: #e0e3e5;
+  --color-surface-tint: #545f73;
+
+  --color-primary-fixed: #d8e3fb;
+  --color-primary-fixed-dim: #bcc7de;
+  --color-on-primary-fixed: #111c2d;
+  --color-on-primary-fixed-variant: #3c475a;
+  --color-secondary-fixed: #d5e3fc;
+  --color-secondary-fixed-dim: #b9c7df;
+  --color-on-secondary-fixed: #0d1c2e;
+  --color-on-secondary-fixed-variant: #3a485b;
+  --color-tertiary-fixed: #6ffbbe;
+  --color-tertiary-fixed-dim: #4edea3;
+  --color-on-tertiary-fixed: #002113;
+  --color-on-tertiary-fixed-variant: #005236;
 }
 
-/* Typography styles matching ATS Design System */
+/* Typography styles matching Industrial Logic System */
 .font-headline-lg {
   font-family: 'Inter', sans-serif;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  line-height: 36px;
+  line-height: 32px;
 }
 .font-headline-md {
   font-family: 'Inter', sans-serif;
   font-size: 20px;
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
   line-height: 28px;
+}
+.font-headline-sm {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
 }
 .font-body-lg {
   font-family: 'Inter', sans-serif;
-  font-size: 15px;
-  font-weight: 450;
-  line-height: 22px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
 }
 .font-body-md {
   font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 450;
-  line-height: 18px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
 }
-.font-data-mono-lg {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 16px;
-  font-weight: 550;
-  line-height: 22px;
+.font-body-sm {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
 }
-.font-data-mono-md {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  font-weight: 550;
-  line-height: 18px;
-}
-.font-label-caps {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 650;
+.font-label-lg {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   letter-spacing: 0.05em;
-  line-height: 14px;
-  text-transform: uppercase;
+  line-height: 20px;
+}
+.font-label-md {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  line-height: 16px;
+}
+.font-data-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
 }
 
 .material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 450, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   vertical-align: middle;
 }
 
-/* Status Caps indicators */
-.status-bar-active { border-top: 3px solid #182c47; }
-.status-bar-critical { border-top: 3px solid #ef4444; }
-.status-bar-warning { border-top: 3px solid #f59e0b; }
-.status-bar-neutral { border-top: 3px solid #cbd5e1; }
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #c5c6cd;
+  transition: .4s;
+  border-radius: 34px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: #00a472;
+}
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
 
 html, body {
   margin: 0;

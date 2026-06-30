@@ -9,6 +9,9 @@ import { MasterData } from './components/MasterData';
 import { AiReports } from './components/AiReports';
 import { AuditLogs } from './components/AuditLogs';
 import { Login } from './components/Login';
+import { ExecutiveDashboard } from './components/ExecutiveDashboard';
+import { PlantMap } from './components/PlantMap';
+import { AlertCenter } from './components/AlertCenter';
 
 function MainAppContent() {
   const { token, logout } = useApp();
@@ -54,6 +57,10 @@ function MainAppContent() {
             setSelectedLineId={setSelectedLineId} 
           />
         );
+      case 'executive':
+        return <ExecutiveDashboard setActiveTab={setActiveTab} />;
+      case 'plant_map':
+        return <PlantMap setActiveTab={setActiveTab} setSelectedLineId={setSelectedLineId} />;
       case 'shift_planner':
         return (
           <ShiftPlanner 
@@ -66,6 +73,8 @@ function MainAppContent() {
         return <SkillMatrix />;
       case 'analytics':
         return <Analytics />;
+      case 'alerts':
+        return <AlertCenter setActiveTab={setActiveTab} />;
       case 'master_data':
         return <MasterData />;
       case 'ai_reports':

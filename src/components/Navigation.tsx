@@ -28,30 +28,30 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
     { id: 'analytics', name: 'Skill Gap Analysis', icon: 'analytics', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
     { id: 'master_data', name: 'Master Data Setup', icon: 'database', roles: ['Plant Admin', 'HR / Training Coordinator'] },
     { id: 'ai_reports', name: 'AI Predictive Reports', icon: 'psychology', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
-    { id: 'audit_logs', name: 'Audit Logs & Reports', icon: 'terminal', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
+    { id: 'audit_logs', name: 'Audit Logs & Reports', icon: 'terminal', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] }
   ];
 
   const visibleTabs = tabs.filter(t => t.roles.includes(role));
 
   return (
-    <aside className="w-64 bg-[#182c47] text-[#e2eafc] flex flex-col h-full shrink-0 select-none z-40 border-r border-[#293e5d]/60 shadow-md">
+    <aside className="w-64 bg-primary text-on-primary flex flex-col h-full shrink-0 select-none z-40 border-r border-outline-variant shadow-md">
       {/* Header Section */}
-      <div className="p-5 border-b border-[#293e5d]/60 flex flex-col">
+      <div className="p-5 border-b border-outline-variant flex flex-col bg-primary">
         <div className="flex items-center gap-2.5 mb-1">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#14b8a6] shadow-premium-sm text-white">
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#14b8a6] text-white">
             <span className="material-symbols-outlined text-white text-base">factory</span>
           </div>
           <div>
             <div className="font-headline-md text-sm text-white font-bold tracking-tight">Plant Ops</div>
-            <div className="font-label-caps text-[8px] text-[#94a3b8] tracking-wider">Kolkata Plant • Roster</div>
+            <div className="font-label-caps text-[8px] text-on-primary-container tracking-wider">Kolkata Plant • Roster</div>
           </div>
         </div>
 
         {/* Profile Card / ID Badge */}
-        <div className="mt-4 flex flex-col gap-2.5 p-3 bg-[#293e5d]/30 border border-[#293e5d]/50 rounded-xl">
+        <div className="mt-4 flex flex-col gap-2.5 p-3 bg-primary-container/30 border border-outline-variant rounded-xl">
           <div className="flex items-center gap-3">
             <img 
-              className="w-10 h-10 rounded-lg border border-[#293e5d]/70 object-cover shadow-premium-sm" 
+              className="w-10 h-10 rounded-lg border border-outline-variant object-cover shadow-sm" 
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdgJNACyT_CWwq_Gk3iuVS92due0LKPya-WGA-i8hJezbLXHIbSSgaqAiE9jFCILMbJLRHkU-9ztYRluhVrrHFICR7BGLMengv2pLiAeSPLSIO-H_pkmel5pdMoHxmvyx0iHojUCAXXY8esSQ4dKcLXZGr0QvPRtAgq0HSRrbzJSTjNh-9pURuUUo78Vf8VLEL0quupTsh13jqWlak_S4EOXEzgsGfFQSgK97F7vrEn9JnRbSDcrn_ZxHtwuc982ituyVcJs-KpA" 
               alt="User avatar"
             />
@@ -59,7 +59,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
               <p className="font-body-md text-xs font-bold text-white truncate">
                 {user?.name || 'Unknown User'}
               </p>
-              <p className="font-label-caps text-[8px] text-[#94a3b8]/75 truncate mt-0.5">
+              <p className="font-label-caps text-[8px] text-on-primary-container truncate mt-0.5">
                 {role}
               </p>
             </div>
@@ -68,7 +68,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 py-4 px-3 overflow-y-auto custom-scrollbar flex flex-col gap-1">
+      <nav className="flex-1 py-4 px-3 overflow-y-auto custom-scrollbar flex flex-col gap-1 bg-primary">
         {visibleTabs.map(tab => {
           const isActive = activeTab === tab.id;
           return (
@@ -77,8 +77,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-3 px-4 py-2.5 transition-all duration-150 rounded-xl text-left font-body-md cursor-pointer w-full ${
                 isActive
-                  ? 'text-white font-bold bg-[#293e5d] shadow-premium-sm border-l-4 border-[#14b8a6]'
-                  : 'text-[#e2eafc]/80 hover:text-white hover:bg-[#293e5d]/40 border-l-4 border-transparent'
+                  ? 'text-white font-bold bg-on-primary-fixed-variant shadow-sm border-l-4 border-[#14b8a6]'
+                  : 'text-on-primary-container hover:text-white hover:bg-primary-container border-l-4 border-transparent'
               }`}
             >
               <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>{tab.icon}</span>
@@ -94,26 +94,25 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
         
         <button
           onClick={logout}
-          className="flex items-center gap-3 px-4 py-2.5 mt-4 transition-all duration-150 rounded-xl text-left font-body-md text-rose-350 hover:text-white hover:bg-rose-950/25 cursor-pointer border-l-4 border-transparent"
+          className="flex items-center gap-3 px-4 py-2.5 mt-4 transition-all duration-150 rounded-xl text-left font-body-md text-error hover:text-white hover:bg-error-container/20 cursor-pointer border-l-4 border-transparent"
         >
           <span className="material-symbols-outlined text-lg">logout</span>
           <span className="font-label-caps text-[10px] tracking-wider">Logout System</span>
         </button>
       </nav>
 
-
       {/* Master Data Quick Config Panel */}
       {(role === 'Plant Admin' || role === 'HR / Training Coordinator') && (
-        <div className="px-3 pb-3">
+        <div className="px-3 pb-3 bg-primary">
           <button
             onClick={() => setMasterDataOpen(prev => !prev)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-[#293e5d]/40 hover:bg-[#293e5d]/60 transition-all cursor-pointer group"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-primary-container/40 hover:bg-primary-container/60 transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>database</span>
-              <span className="font-label-caps text-[9px] text-[#94a3b8] tracking-widest font-bold">MASTER DATA</span>
+              <span className="font-label-caps text-[9px] text-on-primary-container tracking-widest font-bold">MASTER DATA</span>
             </div>
-            <span className={`material-symbols-outlined text-xs text-[#94a3b8] transition-transform duration-200 ${masterDataOpen ? 'rotate-180' : ''}`}>expand_more</span>
+            <span className={`material-symbols-outlined text-xs text-on-primary-container transition-transform duration-200 ${masterDataOpen ? 'rotate-180' : ''}`}>expand_more</span>
           </button>
 
           {masterDataOpen && (
@@ -121,49 +120,49 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
               {/* Associates */}
               <button
                 onClick={() => { setActiveTab('master_data'); localStorage.setItem('master_data_sub_tab', 'associates'); }}
-                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-[#293e5d]/60 ${activeTab === 'master_data' ? 'border-[#293e5d]/80 bg-[#293e5d]/50' : 'border-[#293e5d]/40 bg-[#182c47]'}`}
+                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-primary-container/60 ${activeTab === 'master_data' ? 'border-outline bg-primary-container/50' : 'border-outline-variant bg-primary'}`}
               >
                 <div className="flex items-center justify-between w-full">
                   <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>groups</span>
                   <span className="text-white font-mono font-bold text-sm leading-none">{associates?.length ?? 0}</span>
                 </div>
-                <span className="font-label-caps text-[8px] text-[#94a3b8] tracking-wider leading-tight">Associates</span>
+                <span className="font-label-caps text-[8px] text-on-primary-container tracking-wider leading-tight">Associates</span>
               </button>
 
               {/* Workstations */}
               <button
                 onClick={() => { setActiveTab('master_data'); localStorage.setItem('master_data_sub_tab', 'workstations'); }}
-                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-[#293e5d]/60 ${activeTab === 'master_data' ? 'border-[#293e5d]/80 bg-[#293e5d]/50' : 'border-[#293e5d]/40 bg-[#182c47]'}`}
+                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-primary-container/60 ${activeTab === 'master_data' ? 'border-outline bg-primary-container/50' : 'border-outline-variant bg-primary'}`}
               >
                 <div className="flex items-center justify-between w-full">
                   <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>precision_manufacturing</span>
                   <span className="text-white font-mono font-bold text-sm leading-none">{workstations?.length ?? 0}</span>
                 </div>
-                <span className="font-label-caps text-[8px] text-[#94a3b8] tracking-wider leading-tight">Workstations</span>
+                <span className="font-label-caps text-[8px] text-on-primary-container tracking-wider leading-tight">Workstations</span>
               </button>
 
               {/* Skills */}
               <button
                 onClick={() => { setActiveTab('master_data'); localStorage.setItem('master_data_sub_tab', 'skills'); }}
-                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-[#293e5d]/60 ${activeTab === 'master_data' ? 'border-[#293e5d]/80 bg-[#293e5d]/50' : 'border-[#293e5d]/40 bg-[#182c47]'}`}
+                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-primary-container/60 ${activeTab === 'master_data' ? 'border-outline bg-primary-container/50' : 'border-outline-variant bg-primary'}`}
               >
                 <div className="flex items-center justify-between w-full">
                   <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span>
                   <span className="text-white font-mono font-bold text-sm leading-none">{skills?.length ?? 0}</span>
                 </div>
-                <span className="font-label-caps text-[8px] text-[#94a3b8] tracking-wider leading-tight">Skills</span>
+                <span className="font-label-caps text-[8px] text-on-primary-container tracking-wider leading-tight">Skills</span>
               </button>
 
               {/* Production Lines */}
               <button
                 onClick={() => { setActiveTab('master_data'); localStorage.setItem('master_data_sub_tab', 'lines'); }}
-                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-[#293e5d]/60 ${activeTab === 'master_data' ? 'border-[#293e5d]/80 bg-[#293e5d]/50' : 'border-[#293e5d]/40 bg-[#182c47]'}`}
+                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-primary-container/60 ${activeTab === 'master_data' ? 'border-outline bg-primary-container/50' : 'border-outline-variant bg-primary'}`}
               >
                 <div className="flex items-center justify-between w-full">
                   <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>conveyor_belt</span>
                   <span className="text-white font-mono font-bold text-sm leading-none">{productionLines?.length ?? 0}</span>
                 </div>
-                <span className="font-label-caps text-[8px] text-[#94a3b8] tracking-wider leading-tight">Prod. Lines</span>
+                <span className="font-label-caps text-[8px] text-on-primary-container tracking-wider leading-tight">Prod. Lines</span>
               </button>
             </div>
           )}
@@ -171,15 +170,15 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
       )}
 
       {/* Footer Section */}
-      <div className="mt-auto p-4 border-t border-[#293e5d]/50 bg-[#12243d]">
+      <div className="mt-auto p-4 border-t border-outline-variant bg-[#050b18]">
         <div className="flex items-center justify-between mb-1 px-1">
-          <span className="font-label-caps text-[8px] text-[#94a3b8] tracking-widest font-bold">OPERATIONS NOMINAL</span>
+          <span className="font-label-caps text-[8px] text-on-primary-container tracking-widest font-bold">OPERATIONS NOMINAL</span>
           <div className="relative flex items-center justify-center h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#14b8a6]"></span>
           </div>
         </div>
-        <div className="text-[8px] text-[#94a3b8]/70 text-center font-mono leading-none">
+        <div className="text-[8px] text-on-primary-container/70 text-center font-mono leading-none">
           PEPSICO KOLKATA PORTAL
         </div>
       </div>

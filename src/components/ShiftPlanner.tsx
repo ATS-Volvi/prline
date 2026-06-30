@@ -53,7 +53,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
   if (!currentLine) {
     return (
       <div className="flex-1 h-full flex items-center justify-center bg-background">
-        <div className="text-center p-8 bg-white border border-slate-200 rounded-xl shadow-premium-sm">
+        <div className="text-center p-8 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-premium-sm">
           <span className="material-symbols-outlined text-4xl text-primary animate-spin">sync</span>
           <p className="mt-4 text-xs font-bold text-secondary uppercase tracking-wider">Loading Shift Planner...</p>
         </div>
@@ -203,7 +203,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                   }
                 }}
                 disabled={currentLine.status !== 'ACTIVE'}
-                className="bg-surface border border-primary text-primary px-3 py-2 font-label-caps text-[10px] font-bold rounded-lg hover:bg-slate-50 transition-colors active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                className="bg-surface border border-primary text-primary px-3 py-2 font-label-caps text-[10px] font-bold rounded-lg hover:bg-surface-container-low transition-colors active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap"
               >
                 Save Configuration
               </button>
@@ -221,7 +221,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
           {/* Grid Layout (Matching Mockup look: bold stage numbers, outline-variant containers, and thick black left borders) */}
           <section className="flex-1 overflow-y-auto custom-scrollbar pr-1">
             {activeWS.length === 0 ? (
-              <div className="bg-white border border-dashed border-outline rounded-lg p-12 flex flex-col items-center justify-center text-secondary gap-3">
+              <div className="bg-surface-container-lowest border border-dashed border-outline rounded-lg p-12 flex flex-col items-center justify-center text-secondary gap-3">
                 <span className="material-symbols-outlined text-3xl text-amber-500 animate-pulse">construction</span>
                 <span className="text-xs font-bold uppercase font-label-caps">No workstations configured for this production line.</span>
                 <button
@@ -360,7 +360,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
         </div>
 
         {/* Right Sidebar available personnel (Tabbed: Available List & Clock-in Daily Records) */}
-        <aside className="w-80 bg-white border border-outline flex flex-col rounded-lg shadow-lg overflow-hidden shrink-0">
+        <aside className="w-80 bg-surface-container-lowest border border-outline flex flex-col rounded-lg shadow-lg overflow-hidden shrink-0">
           <div className="p-md bg-surface-container border-b border-outline">
             <h3 className="font-headline-md text-sm font-bold text-on-surface">Available Personnel</h3>
             <p className="font-label-caps text-[9px] text-secondary font-bold uppercase tracking-wider mt-0.5">
@@ -394,7 +394,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                 placeholder={rightTab === 'personnel' ? "Search skills or ID..." : "Search associate..."}
                 value={rightTab === 'personnel' ? personnelSearch : attendanceSearch}
                 onChange={(e) => rightTab === 'personnel' ? setPersonnelSearch(e.target.value) : setAttendanceSearch(e.target.value)}
-                className="w-full bg-white border border-outline rounded-lg text-xs py-1.5 pl-3 pr-8 focus:ring-0 focus:outline-none"
+                className="w-full bg-surface-container-lowest border border-outline rounded-lg text-xs py-1.5 pl-3 pr-8 focus:ring-0 focus:outline-none"
               />
               <span className="material-symbols-outlined absolute right-2.5 top-2 text-secondary text-sm">search</span>
             </div>
@@ -427,7 +427,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                     .map(s => s.skillId);
 
                   return (
-                    <div key={assoc.id} className="bg-surface-container-lowest border border-outline p-sm rounded-lg flex flex-col gap-sm hover:bg-slate-50 transition-colors group">
+                    <div key={assoc.id} className="bg-surface-container-lowest border border-outline p-sm rounded-lg flex flex-col gap-sm hover:bg-surface-container-low transition-colors group">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-xs">
                           <div className="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center font-bold text-on-secondary-container text-xs shrink-0 font-mono">
@@ -479,7 +479,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                   return (
                     <div key={assoc.id} className="p-2 bg-surface-container-lowest border border-outline rounded-lg flex items-center justify-between">
                       <div className="flex gap-2 overflow-hidden items-center">
-                        <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs uppercase text-secondary shrink-0 font-mono">
+                        <div className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center font-bold text-xs uppercase text-secondary shrink-0 font-mono">
                           {initials}
                         </div>
                         <div className="overflow-hidden">
@@ -494,7 +494,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                           className={`w-5 h-5 rounded flex items-center justify-center cursor-pointer border ${
                             isPresent 
                               ? 'bg-emerald-500 border-emerald-500 text-white font-bold' 
-                              : 'bg-white border-slate-200 text-slate-400 hover:bg-emerald-50'
+                              : 'bg-surface-container-lowest border-outline-variant text-slate-400 hover:bg-tertiary-fixed-dim/20'
                           }`}
                           title="Mark Present"
                         >
@@ -505,7 +505,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                           className={`w-5 h-5 rounded flex items-center justify-center cursor-pointer border ${
                             isAbsent 
                               ? 'bg-rose-500 border-rose-500 text-white font-bold' 
-                              : 'bg-white border-slate-200 text-slate-400 hover:bg-rose-50'
+                              : 'bg-surface-container-lowest border-outline-variant text-slate-400 hover:bg-rose-50'
                           }`}
                           title="Mark Absent"
                         >
@@ -534,8 +534,8 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
       {/* Auto-Allocation Success Modal */}
       {showAutoSuccessModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-96 p-5.5 rounded-xl shadow-2xl flex flex-col items-center text-center gap-4 border border-slate-200 animate-slide-up">
-            <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
+          <div className="bg-surface-container-lowest w-96 p-5.5 rounded-xl shadow-2xl flex flex-col items-center text-center gap-4 border border-outline-variant animate-slide-up">
+            <div className="w-12 h-12 bg-tertiary-fixed-dim/20 border border-outline-variant text-emerald-600 rounded-full flex items-center justify-center">
               <span className="material-symbols-outlined text-2xl">check_circle</span>
             </div>
             <div>
@@ -557,9 +557,9 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
       {/* Manual Allocation Drawer/Modal */}
       {assigningWSId && currentWS && (
         <div className="fixed inset-0 bg-black/50 z-45 flex items-center justify-center p-4">
-          <div className="bg-white w-[480px] max-w-full min-h-[400px] max-h-[85vh] rounded-xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-slide-up">
+          <div className="bg-surface-container-lowest w-[480px] max-w-full min-h-[400px] max-h-[85vh] rounded-xl shadow-2xl flex flex-col overflow-hidden border border-outline-variant animate-slide-up">
             {/* Modal Header */}
-            <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+            <div className="p-4 bg-surface-container-low border-b border-outline-variant flex justify-between items-center">
               <div>
                 <h3 className="font-bold text-xs text-primary uppercase tracking-wider font-label-caps">Staff Workstation</h3>
                 <p className="text-[10px] text-secondary font-bold mt-1 font-mono uppercase leading-tight">
@@ -571,7 +571,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                   const wsCurrentCount = allocations.filter(a => a.date === selectedDate && a.shiftId === selectedShiftId && a.workstationId === currentWS.id).length;
                   const slotsLeft = wsCapacity - wsCurrentCount;
                   return (
-                    <span className={`mt-1.5 inline-flex items-center gap-1 text-[8.5px] font-bold font-mono px-1.5 py-0.5 rounded border ${slotsLeft > 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
+                    <span className={`mt-1.5 inline-flex items-center gap-1 text-[8.5px] font-bold font-mono px-1.5 py-0.5 rounded border ${slotsLeft > 0 ? 'bg-tertiary-fixed-dim/20 text-on-tertiary-fixed-variant border-outline-variant' : 'bg-secondary-container text-on-secondary-container border-outline-variant'}`}>
                       <span className="material-symbols-outlined text-[10px]">group</span>
                       {wsCurrentCount}/{wsCapacity} staffed • {slotsLeft > 0 ? `${slotsLeft} slot${slotsLeft > 1 ? 's' : ''} open` : 'At capacity — swap only'}
                     </span>
@@ -580,7 +580,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
               </div>
               <button 
                 onClick={handleCloseAssignModal}
-                className="p-1 hover:bg-slate-200 rounded text-secondary transition-colors cursor-pointer flex items-center justify-center"
+                className="p-1 hover:bg-surface-container-high rounded text-secondary transition-colors cursor-pointer flex items-center justify-center"
               >
                 <span className="material-symbols-outlined text-sm">close</span>
               </button>
@@ -591,12 +591,12 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
               
               {/* Eligible list */}
               <div>
-                <h4 className="text-[8.5px] font-label-caps text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded font-bold tracking-wider mb-2 border border-emerald-100 flex justify-between items-center">
+                <h4 className="text-[8.5px] font-label-caps text-emerald-800 bg-tertiary-fixed-dim/20 px-2.5 py-1 rounded font-bold tracking-wider mb-2 border border-outline-variant flex justify-between items-center">
                   <span>Eligible Operators</span>
                   <span className="font-mono text-[9px] font-bold bg-emerald-600 text-white px-1.5 py-0.2 rounded">{eligibility.eligible.length}</span>
                 </h4>
                 {eligibility.eligible.length === 0 ? (
-                  <div className="text-xs text-secondary/70 italic p-4 text-center border border-dashed border-slate-200 rounded-lg">
+                  <div className="text-xs text-secondary/70 italic p-4 text-center border border-dashed border-outline-variant rounded-lg">
                     No compliant operators available. Override below if necessary.
                   </div>
                 ) : (
@@ -607,7 +607,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                         <button
                           key={associate.id}
                           onClick={() => handleDirectAssign(associate.id)}
-                          className="w-full p-3 bg-white hover:bg-emerald-50/20 hover:border-emerald-300 border border-slate-200 rounded-lg flex justify-between items-center text-xs transition-all text-left cursor-pointer shadow-sm"
+                          className="w-full p-3 bg-surface-container-lowest hover:bg-tertiary-fixed-dim/20/20 hover:border-emerald-300 border border-outline-variant rounded-lg flex justify-between items-center text-xs transition-all text-left cursor-pointer shadow-sm"
                         >
                           <div>
                             <div className="font-bold text-on-surface flex items-center gap-1.5">
@@ -619,11 +619,11 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                               )}
                             </div>
                             <div className="text-[10px] text-secondary font-mono mt-0.5">
-                              {associate.id} • {associate.category} • Has: <span className="font-bold text-emerald-700">{skillLevel}</span>
+                              {associate.id} • {associate.category} • Has: <span className="font-bold text-on-tertiary-fixed-variant">{skillLevel}</span>
                             </div>
                           </div>
                           <div className="flex items-center gap-1">
-                            <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded font-mono border border-emerald-200/50">
+                            <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded font-mono border border-outline-variant/50">
                               SCORE: {score}
                             </span>
                             <span className="material-symbols-outlined text-emerald-600 text-sm">chevron_right</span>
@@ -637,7 +637,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
 
               {/* Ineligible List */}
               <div>
-                <h4 className="text-[8.5px] font-label-caps text-red-800 bg-red-50 px-2.5 py-1 rounded font-bold tracking-wider mb-2 border border-red-100 flex justify-between items-center">
+                <h4 className="text-[8.5px] font-label-caps text-red-800 bg-error-container px-2.5 py-1 rounded font-bold tracking-wider mb-2 border border-outline-variant flex justify-between items-center">
                   <span>Requires Override</span>
                   <span className="font-mono text-[9px] font-bold bg-red-600 text-white px-1.5 py-0.2 rounded">{eligibility.ineligible.length}</span>
                 </h4>
@@ -646,14 +646,14 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                     <button
                       key={associate.id}
                       onClick={() => handleStartOverride(associate.id)}
-                      className="w-full p-3 bg-white hover:bg-amber-50/40 hover:border-amber-300 border border-slate-200 rounded-lg flex justify-between items-center text-xs transition-all text-left cursor-pointer shadow-sm"
+                      className="w-full p-3 bg-surface-container-lowest hover:bg-secondary-container/40 hover:border-amber-300 border border-outline-variant rounded-lg flex justify-between items-center text-xs transition-all text-left cursor-pointer shadow-sm"
                     >
                       <div>
                         <div className="font-bold text-on-surface">{associate.name}</div>
                         <div className="text-[10px] text-[#475569] font-mono mt-0.5">{associate.id} • {associate.category}</div>
                       </div>
                       <div className="flex items-center gap-1.5 text-right">
-                        <span className="text-[8px] bg-red-50 text-red-700 border border-red-100 font-medium px-2 py-0.5 rounded leading-normal">
+                        <span className="text-[8px] bg-error-container text-on-error-container border border-outline-variant font-medium px-2 py-0.5 rounded leading-normal">
                           {reason}
                         </span>
                         <span className="material-symbols-outlined text-amber-500 text-sm">warning</span>
@@ -667,39 +667,39 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
 
             {/* Override Confirmation Panel */}
             {overrideAssocId && (
-              <div className="p-4 bg-amber-50 border-t border-amber-200 flex flex-col gap-3 shadow-inner">
-                <div className="flex items-start gap-2">
-                  <span className="material-symbols-outlined text-amber-600 text-lg shrink-0">warning</span>
+              <div className="p-4 bg-surface-container-low border-t border-outline-variant flex flex-col gap-3">
+                <div className="p-3 bg-[#FFFBEB] border border-[#FDE68A] rounded-lg flex gap-2 items-start">
+                  <span className="material-symbols-outlined text-[#D97706] text-lg shrink-0 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
                   <div>
-                    <h4 className="text-xs font-bold text-amber-900 leading-tight">Compliance Override Triggered</h4>
-                    <p className="text-[10px] text-amber-800 mt-1">
-                      Allocating **{associates.find(a => a.id === overrideAssocId)?.name}** requires supervisor verification.
+                    <h4 className="text-xs font-bold text-[#92400E] leading-tight">Compliance Override Triggered</h4>
+                    <p className="text-[10px] text-[#B45309] mt-0.5">
+                      Allocating <strong className="font-bold">{associates.find(a => a.id === overrideAssocId)?.name}</strong> requires supervisor justification. This action will be audited.
                     </p>
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
-                    <label className="text-[8.5px] font-bold text-amber-900 block mb-1 font-label-caps">REASON CODE</label>
+                    <label className="text-[8.5px] font-bold text-primary block mb-1 font-label-caps uppercase tracking-wider">Reason Code</label>
                     <select
                       value={overrideReason}
                       onChange={(e) => setOverrideReason(e.target.value)}
-                      className="w-full p-1 px-1.5 bg-white border border-amber-300 rounded text-[10px] font-bold focus:outline-none text-on-surface"
+                      className="w-full p-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-[10px] font-bold focus:ring-2 focus:ring-primary text-on-surface"
                     >
-                      <option value="EMERGENCY_COVER">EMERGENCY_COVER - Urgent shift cover</option>
-                      <option value="SUPERVISOR_APPROVED">SUPERVISOR_APPROVED - Supervisor present</option>
-                      <option value="TRAINING_UNDERSTUDY">TRAINING_UNDERSTUDY - Supervised learning</option>
-                      <option value="MAINTENANCE_SHORTAGE">MAINTENANCE_SHORTAGE - Machinery breakdown cover</option>
+                      <option value="EMERGENCY_COVER">Emergency Labor Shortage</option>
+                      <option value="SUPERVISOR_APPROVED">Supervised Training Session</option>
+                      <option value="TRAINING_UNDERSTUDY">Critical Production Deadline</option>
+                      <option value="MAINTENANCE_SHORTAGE">Interim Skill Certification</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-[8.5px] font-bold text-amber-900 block mb-1 font-label-caps">JUSTIFICATION</label>
+                    <label className="text-[8.5px] font-bold text-primary block mb-1 font-label-caps uppercase tracking-wider">Justification</label>
                     <input
                       type="text"
-                      placeholder="Comment..."
+                      placeholder="Supervisor notes..."
                       value={customReasonText}
                       onChange={(e) => setCustomReasonText(e.target.value)}
-                      className="w-full p-1.5 px-2 bg-white border border-amber-300 rounded text-[10px] focus:outline-none text-on-surface"
+                      className="w-full p-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-[10px] focus:ring-2 focus:ring-primary text-on-surface"
                     />
                   </div>
                 </div>
@@ -707,14 +707,14 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                 <div className="flex justify-end gap-3 mt-1.5">
                   <button
                     onClick={() => setOverrideAssocId(null)}
-                    className="px-3 py-1 text-xs font-bold text-amber-850 hover:underline cursor-pointer"
+                    className="px-3 py-1 text-xs font-bold text-secondary hover:text-primary hover:underline cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleConfirmOverride}
                     disabled={!customReasonText.trim()}
-                    className="px-4 py-1.5 bg-amber-600 text-white rounded font-bold text-[9px] font-label-caps tracking-wider hover:bg-amber-700 disabled:opacity-50 cursor-pointer"
+                    className="px-4 py-2 bg-[#D97706] hover:bg-[#B45309] active:bg-[#92400E] text-white rounded-lg font-bold text-[9px] font-label-caps tracking-wider disabled:opacity-50 cursor-pointer transition-all active:scale-[0.98]"
                   >
                     CONFIRM OVERRIDE
                   </button>

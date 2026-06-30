@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Deployment Audit Log - Industrial Logic</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#45474c",
+                        "surface-container-low": "#f2f4f6",
+                        "on-error-container": "#93000a",
+                        "on-background": "#191c1e",
+                        "tertiary": "#00190e",
+                        "on-error": "#ffffff",
+                        "surface-variant": "#e0e3e5",
+                        "primary-fixed-dim": "#bcc7de",
+                        "on-secondary-container": "#57657a",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#c5c6cd",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "surface": "#f7f9fb",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "on-primary-fixed": "#111c2d",
+                        "on-surface": "#191c1e",
+                        "on-primary-container": "#8590a6",
+                        "inverse-primary": "#bcc7de",
+                        "on-tertiary": "#ffffff",
+                        "background": "#f7f9fb",
+                        "secondary": "#515f74",
+                        "tertiary-container": "#00301e",
+                        "surface-container-high": "#e6e8ea",
+                        "surface-bright": "#f7f9fb",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "surface-container": "#eceef0",
+                        "primary-container": "#1e293b",
+                        "inverse-surface": "#2d3133",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#002113",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-tertiary-container": "#00a472",
+                        "secondary-container": "#d5e3fc",
+                        "tertiary-fixed": "#6ffbbe",
+                        "primary": "#091426",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "surface-dim": "#d8dadc",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#3c475a",
+                        "primary-fixed": "#d8e3fb",
+                        "secondary-fixed": "#d5e3fc",
+                        "surface-tint": "#545f73",
+                        "outline": "#75777d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "lg": "24px",
+                        "gutter-mobile": "12px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "md": "16px",
+                        "margin-mobile": "16px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "data-mono": ["JetBrains Mono"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+        .high-density-table tr:nth-child(even):not(.override-row) { background-color: #F8FAFC; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- SideNavBar Anchor -->
+<aside class="h-screen w-64 fixed left-0 top-0 border-r border-outline-variant bg-surface flex flex-col py-4 gap-1 z-50">
+<div class="px-6 mb-8">
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary">Industrial Logic</h1>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Workforce Management</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-lg mx-2 transition-colors duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-lg text-label-lg">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-lg mx-2 transition-colors duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-lg text-label-lg">Associates</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-lg mx-2 transition-colors duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined">precision_manufacturing</span>
+<span class="font-label-lg text-label-lg">Workstations</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-lg mx-2 transition-colors duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-label-lg text-label-lg">Skills</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-lg mx-2 transition-colors duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="font-label-lg text-label-lg">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-lg mx-2 transition-colors duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined">manage_accounts</span>
+<span class="font-label-lg text-label-lg">User Management</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-lg mx-2 transition-colors duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-lg text-label-lg">Availability</span>
+</a>
+</nav>
+<div class="px-4 py-4 mt-auto">
+<div class="bg-surface-container border border-outline-variant rounded-lg p-3 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold">JD</div>
+<div class="overflow-hidden">
+<p class="text-label-md font-bold truncate">John Doe</p>
+<p class="text-[10px] text-on-surface-variant truncate">System Admin</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopNavBar Anchor -->
+<header class="fixed top-0 right-0 left-64 h-16 bg-surface-container-lowest border-b border-outline-variant flex justify-between items-center px-lg z-40">
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">Industrial Logic</span>
+<div class="h-6 w-[1px] bg-outline-variant mx-2"></div>
+<span class="font-body-md text-body-md text-on-surface-variant">Audit Trail & Compliance</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<input class="w-64 bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-body-md focus:ring-2 focus:ring-primary transition-all" placeholder="Global search logs..." type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant scale-90">search</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors duration-150">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors duration-150">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-64 pt-16 p-lg bg-surface min-h-screen">
+<!-- Page Header -->
+<div class="flex justify-between items-end mb-xl">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary mb-1">Deployment Audit Log</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Comprehensive history of workforce allocations and compliance overrides.</p>
+</div>
+<div class="flex gap-sm">
+<button class="flex items-center gap-2 px-4 py-2 border border-outline bg-white text-on-surface font-bold text-label-lg rounded-lg hover:bg-surface-container-low transition-all active:scale-95">
+<span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+                    Export PDF
+                </button>
+<button class="flex items-center gap-2 px-4 py-2 border border-outline bg-white text-on-surface font-bold text-label-lg rounded-lg hover:bg-surface-container-low transition-all active:scale-95">
+<span class="material-symbols-outlined text-[20px]">table_view</span>
+                    Export Excel
+                </button>
+</div>
+</div>
+<!-- Filter Bar -->
+<div class="bg-white border border-outline-variant rounded-xl p-md mb-lg shadow-sm">
+<div class="flex flex-wrap items-center gap-lg">
+<div class="flex flex-col gap-1">
+<label class="text-[10px] font-bold uppercase text-on-surface-variant px-1">Date Range</label>
+<div class="relative">
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-body-md w-64 focus:border-primary focus:ring-0 transition-colors" type="text" value="Oct 20, 2023 - Oct 27, 2023"/>
+<span class="material-symbols-outlined absolute left-3 top-2 text-on-surface-variant">calendar_today</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[10px] font-bold uppercase text-on-surface-variant px-1">Machine/Workstation</label>
+<select class="px-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-body-md w-56 focus:border-primary focus:ring-0 appearance-none">
+<option>All Workstations</option>
+<option>CNC-Milling-01</option>
+<option>Lathe-Precision-04</option>
+<option>Assembly-Line-Alpha</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[10px] font-bold uppercase text-on-surface-variant px-1">Allocated By</label>
+<select class="px-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-body-md w-56 focus:border-primary focus:ring-0 appearance-none">
+<option>All Supervisors</option>
+<option>Sarah Jenkins</option>
+<option>Michael Chen</option>
+<option>Alex Rodriguez</option>
+</select>
+</div>
+<div class="flex items-center gap-3 mt-4">
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#059669]"></div>
+<span class="ms-3 text-label-lg font-bold text-on-surface">Show Overrides Only</span>
+</label>
+</div>
+<div class="ml-auto flex gap-2 self-end">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+<button class="bg-primary text-white font-bold px-6 py-2 rounded-lg hover:bg-primary-container transition-all active:scale-95 shadow-sm">
+                        Apply Filters
+                    </button>
+</div>
+</div>
+</div>
+<!-- Data Table Container -->
+<div class="bg-white border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse high-density-table">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="px-lg py-4 font-label-lg text-label-lg text-on-surface-variant">Date/Time</th>
+<th class="px-lg py-4 font-label-lg text-label-lg text-on-surface-variant">Associate</th>
+<th class="px-lg py-4 font-label-lg text-label-lg text-on-surface-variant">Machine</th>
+<th class="px-lg py-4 font-label-lg text-label-lg text-on-surface-variant">Shift</th>
+<th class="px-lg py-4 font-label-lg text-label-lg text-on-surface-variant">Skill Level</th>
+<th class="px-lg py-4 font-label-lg text-label-lg text-on-surface-variant">Allocated By</th>
+<th class="px-lg py-4 font-label-lg text-label-lg text-on-surface-variant">Status</th>
+</tr>
+</thead>
+<tbody class="text-body-md text-on-surface">
+<!-- Standard Row -->
+<tr class="border-b border-outline-variant hover:bg-surface-container transition-colors">
+<td class="px-lg py-3 whitespace-nowrap">
+<p class="font-data-mono text-data-mono">2023-10-27</p>
+<p class="text-body-sm text-on-surface-variant">06:02:14 AM</p>
+</td>
+<td class="px-lg py-3">
+<div class="font-bold">Robert Miller</div>
+<div class="text-body-sm text-on-surface-variant font-data-mono">ID: IL-9923</div>
+</td>
+<td class="px-lg py-3">
+<div class="font-bold">CNC-Milling-01</div>
+<div class="text-body-sm text-on-surface-variant">Floor Sector A</div>
+</td>
+<td class="px-lg py-3">
+<span class="bg-surface-container-high px-3 py-1 rounded-full text-label-md font-bold">Shift A</span>
+</td>
+<td class="px-lg py-3">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="font-bold">Expert</span>
+</div>
+</td>
+<td class="px-lg py-3">Sarah Jenkins</td>
+<td class="px-lg py-3">
+<span class="text-on-surface-variant text-label-md font-bold uppercase tracking-tight flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+                                    Standard
+                                </span>
+</td>
+</tr>
+<!-- Override Row -->
+<tr class="override-row border-b border-outline-variant bg-orange-50 hover:bg-orange-100 transition-colors">
+<td class="px-lg py-3 whitespace-nowrap">
+<p class="font-data-mono text-data-mono">2023-10-27</p>
+<p class="text-body-sm text-on-surface-variant">06:15:33 AM</p>
+</td>
+<td class="px-lg py-3">
+<div class="font-bold">James Wilson</div>
+<div class="text-body-sm text-on-surface-variant font-data-mono">ID: IL-4482</div>
+</td>
+<td class="px-lg py-3">
+<div class="font-bold">Lathe-Precision-04</div>
+<div class="text-body-sm text-on-surface-variant">Floor Sector B</div>
+</td>
+<td class="px-lg py-3">
+<span class="bg-surface-container-high px-3 py-1 rounded-full text-label-md font-bold">Shift A</span>
+</td>
+<td class="px-lg py-3">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-amber-500"></span>
+<span class="font-bold">Trainee</span>
+</div>
+</td>
+<td class="px-lg py-3">Sarah Jenkins</td>
+<td class="px-lg py-3">
+<div class="flex flex-col">
+<span class="text-amber-700 text-label-md font-bold uppercase tracking-tight flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">warning</span>
+                                        Override
+                                    </span>
+<span class="text-[10px] font-data-mono font-bold text-amber-800 bg-amber-200/50 px-1.5 py-0.5 rounded self-start mt-1">OC-04: EMERGENCY COVER</span>
+</div>
+</td>
+</tr>
+<!-- Standard Row -->
+<tr class="border-b border-outline-variant hover:bg-surface-container transition-colors">
+<td class="px-lg py-3 whitespace-nowrap">
+<p class="font-data-mono text-data-mono">2023-10-26</p>
+<p class="text-body-sm text-on-surface-variant">14:00:05 PM</p>
+</td>
+<td class="px-lg py-3">
+<div class="font-bold">Elena Vance</div>
+<div class="text-body-sm text-on-surface-variant font-data-mono">ID: IL-1029</div>
+</td>
+<td class="px-lg py-3">
+<div class="font-bold">Assembly-Line-Alpha</div>
+<div class="text-body-sm text-on-surface-variant">Main Hall</div>
+</td>
+<td class="px-lg py-3">
+<span class="bg-surface-container-high px-3 py-1 rounded-full text-label-md font-bold">Shift B</span>
+</td>
+<td class="px-lg py-3">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-blue-500"></span>
+<span class="font-bold">Certified</span>
+</div>
+</td>
+<td class="px-lg py-3">Michael Chen</td>
+<td class="px-lg py-3">
+<span class="text-on-surface-variant text-label-md font-bold uppercase tracking-tight flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+                                    Standard
+                                </span>
+</td>
+</tr>
+<!-- Override Row -->
+<tr class="override-row border-b border-outline-variant bg-orange-50 hover:bg-orange-100 transition-colors">
+<td class="px-lg py-3 whitespace-nowrap">
+<p class="font-data-mono text-data-mono">2023-10-26</p>
+<p class="text-body-sm text-on-surface-variant">22:30:11 PM</p>
+</td>
+<td class="px-lg py-3">
+<div class="font-bold">David Kim</div>
+<div class="text-body-sm text-on-surface-variant font-data-mono">ID: IL-5561</div>
+</td>
+<td class="px-lg py-3">
+<div class="font-bold">Laser-Cutter-X</div>
+<div class="text-body-sm text-on-surface-variant">Floor Sector C</div>
+</td>
+<td class="px-lg py-3">
+<span class="bg-surface-container-high px-3 py-1 rounded-full text-label-md font-bold">Shift C</span>
+</td>
+<td class="px-lg py-3">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="font-bold">Expert</span>
+</div>
+</td>
+<td class="px-lg py-3">Alex Rodriguez</td>
+<td class="px-lg py-3">
+<div class="flex flex-col">
+<span class="text-amber-700 text-label-md font-bold uppercase tracking-tight flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">warning</span>
+                                        Override
+                                    </span>
+<span class="text-[10px] font-data-mono font-bold text-amber-800 bg-amber-200/50 px-1.5 py-0.5 rounded self-start mt-1">OC-02: CROSS-TRAIN REQ</span>
+</div>
+</td>
+</tr>
+<!-- Standard Row -->
+<tr class="border-b border-outline-variant hover:bg-surface-container transition-colors">
+<td class="px-lg py-3 whitespace-nowrap">
+<p class="font-data-mono text-data-mono">2023-10-26</p>
+<p class="text-body-sm text-on-surface-variant">22:35:45 PM</p>
+</td>
+<td class="px-lg py-3">
+<div class="font-bold">Sophia Martinez</div>
+<div class="text-body-sm text-on-surface-variant font-data-mono">ID: IL-8822</div>
+</td>
+<td class="px-lg py-3">
+<div class="font-bold">Packaging-Station-01</div>
+<div class="text-body-sm text-on-surface-variant">Outbound</div>
+</td>
+<td class="px-lg py-3">
+<span class="bg-surface-container-high px-3 py-1 rounded-full text-label-md font-bold">Shift C</span>
+</td>
+<td class="px-lg py-3">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-blue-500"></span>
+<span class="font-bold">Operator</span>
+</div>
+</td>
+<td class="px-lg py-3">Alex Rodriguez</td>
+<td class="px-lg py-3">
+<span class="text-on-surface-variant text-label-md font-bold uppercase tracking-tight flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+                                    Standard
+                                </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer/Pagination -->
+<div class="bg-surface-container-low border-t border-outline-variant px-lg py-3 flex justify-between items-center">
+<p class="text-body-sm text-on-surface-variant">Showing 1 to 5 of 124 deployments</p>
+<div class="flex items-center gap-1">
+<button class="p-1 rounded-lg hover:bg-surface-container-high text-on-surface-variant transition-colors disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-primary text-white font-bold text-label-md">1</button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container-high font-bold text-label-md">2</button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container-high font-bold text-label-md">3</button>
+<span class="px-2">...</span>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container-high font-bold text-label-md">25</button>
+<button class="p-1 rounded-lg hover:bg-surface-container-high text-on-surface-variant transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Simple logic for the toggle interaction (Visual only)
+        const toggle = document.querySelector('input[type="checkbox"]');
+        const rows = document.querySelectorAll('tbody tr');
+        
+        toggle?.addEventListener('change', (e) => {
+            rows.forEach(row => {
+                if (e.target.checked) {
+                    if (!row.classList.contains('override-row')) {
+                        row.classList.add('hidden');
+                    }
+                } else {
+                    row.classList.remove('hidden');
+                }
+            });
+        });
+
+        // Hover row subtle effect
+        rows.forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.style.boxShadow = 'inset 4px 0 0 0 #1e293b';
+            });
+            row.addEventListener('mouseleave', () => {
+                row.style.boxShadow = 'none';
+            });
+        });
+    </script>
+</body></html>
