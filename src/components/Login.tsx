@@ -43,7 +43,7 @@ export const Login: React.FC = () => {
         else if (selectedRole === 'HR / Training Coordinator') userType = 'sec_admin';
         else if (selectedRole === 'Plant Manager') userType = 'manager';
 
-        const res = await window.fetch('/api/v1/auth/signup', {
+        const res = await window.fetch(`${import.meta.env.VITE_API_URL || ''}/api/v1/auth/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, email, password, userType }),
@@ -66,7 +66,7 @@ export const Login: React.FC = () => {
         setPassword('');
         setViewMode('login');
       } else if (viewMode === 'forgot') {
-        const res = await window.fetch('/api/v1/auth/forgetPassword', {
+        const res = await window.fetch(`${import.meta.env.VITE_API_URL || ''}/api/v1/auth/forgetPassword`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email }),
@@ -90,7 +90,7 @@ export const Login: React.FC = () => {
           throw new Error('Passwords do not match');
         }
 
-        const res = await window.fetch(`/api/v1/auth/updatePassword?token=${encodeURIComponent(resetToken || '')}`, {
+        const res = await window.fetch(`${import.meta.env.VITE_API_URL || ''}/api/v1/auth/updatePassword?token=${encodeURIComponent(resetToken || '')}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password }),
@@ -117,7 +117,7 @@ export const Login: React.FC = () => {
         // Login flow — use window.fetch to bypass AppContext interceptor
         let res: Response;
         try {
-          res = await window.fetch('/api/v1/auth/login', {
+          res = await window.fetch(`${import.meta.env.VITE_API_URL || ''}/api/v1/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
