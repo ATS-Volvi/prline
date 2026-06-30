@@ -518,7 +518,7 @@ export const SkillMatrix: React.FC = () => {
                   
                   if (bulkCsvText.includes("workstation_id")) {
                     try {
-                      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/v1/workstations/bulk-import`, {
+                      const res = await fetch("/api/v1/workstations/bulk-import", {
                         method: "POST",
                         headers: { 
                           "Content-Type": "application/json", 
