@@ -1327,7 +1327,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     try {
-      const res = await fetch("http://localhost:5505/api/v1/attendance", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5505"}/api/v1/attendance`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ date, shiftId, associateId, status, markedBy: 'R. Sharma' })
