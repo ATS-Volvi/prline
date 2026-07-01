@@ -1,8 +1,10 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
-@theme {
+:root {
   /* Spacing configurations */
   --spacing-base-unit: 4px;
   --spacing-gutter: 16px;
