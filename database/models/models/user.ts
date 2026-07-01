@@ -34,7 +34,8 @@ User.init({
     },
     userId:{
         type:DataTypes.UUID,
-        unique:true
+        primaryKey:true,
+        defaultValue:DataTypes.UUIDV4
     },
     isVerified:{
         type:DataTypes.BOOLEAN,
