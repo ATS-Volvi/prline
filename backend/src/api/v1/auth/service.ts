@@ -21,18 +21,24 @@ class MainAuthService{
         data.password=hashedPassword
         const result = await MainAuthDatabase.createUser(data)
 
-        // Try to send verification email; if SMTP not configured, auto-verify the user
-        try {
-            const encryptedEmail=generateToken(email,"30d")
-            const emailBody=verifyEmail(`${variables.BASE_URL}/api/v1/auth/verifyEmail?token=${encodeURIComponent(encryptedEmail)}`)
-            const emailSent = await sendEmail(result.email,"Email Verification",emailBody)
-            if (!emailSent) {
-                // Email not configured (dev mode) — auto-verify so the user can log in immediately
-                await MainAuthDatabase.verifyEmail(email)
-            }
-        } catch {
-            await MainAuthDatabase.verifyEmail(email)
+        // Send verification email in the background so it doesn't block the HTTP response
+        const encryptedEmail = generateToken(email, "30d");
+        const emailBody = verifyEmail(`${variables.BASE_URL}/api/v1/auth/verifyEmail?token=${encodeURIComponent(encryptedEmail)}`);
+        
+        // Auto-verify if credentials are mock/default to avoid blocking users
+        if (variables.WORKSPACE_EMAIL === 'admin@pepsico.com') {
+            MainAuthDatabase.verifyEmail(email).catch(err => console.error("Error auto-verifying user:", err));
+        } else {
+            sendEmail(result.email, "Email Verification", emailBody).then(emailSent => {
+                if (!emailSent) {
+                    MainAuthDatabase.verifyEmail(email).catch(err => console.error("Error auto-verifying user:", err));
+                }
+            }).catch(err => {
+                console.error("Error in background email task:", err);
+                MainAuthDatabase.verifyEmail(email).catch(e => console.error("Error auto-verifying user:", e));
+            });
         }
+
         return {
             data:{userId:result.userId,name:result.name,email:result.email},
         }
