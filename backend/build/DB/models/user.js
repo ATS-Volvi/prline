@@ -23,6 +23,11 @@ User.init({
     isVerified: {
         type: sequelize_1.DataTypes.BOOLEAN,
         defaultValue: false
+    },
+    userType: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'reviewer'
     }
 }, { sequelize: dbConn_1.sequelize, tableName: "users" });
 exports.default = User;

@@ -1,5 +1,5 @@
 import { variables } from "../../../../config/envLoader";
-import { ILogin, IUser } from "../../../../DB/interfaces/user";
+import { ILogin, IUser } from "../../../../../database/interfaces/user";
 import { forgetPasswordMail, verifyEmail } from "../../../../utils/emailTemplates";
 import { createError } from "../../../../utils/errors/createError";
 import { hashPassword, matchHash } from "../../../../utils/hashPwd";

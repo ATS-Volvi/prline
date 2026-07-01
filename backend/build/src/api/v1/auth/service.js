@@ -31,17 +31,21 @@ class MainAuthService {
             const hashedPassword = yield (0, hashPwd_1.hashPassword)(password);
             data.password = hashedPassword;
             const result = yield database_1.default.createUser(data);
-            // const accessToken=signJwt({
-            //     name:name,
-            //     userId:result.userId,
-            //     email:result.email
-            // },"7d")
-            const encryptedEmail = (0, resetPassword_1.generateToken)(email, "30d");
-            const emailBody = (0, emailTemplates_1.verifyEmail)(`${envLoader_1.variables.BASE_URL}/api/v1/auth/verifyEmail?token=${encodeURIComponent(encryptedEmail)}`);
-            yield (0, mailer_1.sendEmail)(result.email, "Email Verification", emailBody, next);
+            // Try to send verification email; if SMTP not configured, auto-verify the user
+            try {
+                const encryptedEmail = (0, resetPassword_1.generateToken)(email, "30d");
+                const emailBody = (0, emailTemplates_1.verifyEmail)(`${envLoader_1.variables.BASE_URL}/api/v1/auth/verifyEmail?token=${encodeURIComponent(encryptedEmail)}`);
+                const emailSent = yield (0, mailer_1.sendEmail)(result.email, "Email Verification", emailBody);
+                if (!emailSent) {
+                    // Email not configured (dev mode) — auto-verify so the user can log in immediately
+                    yield database_1.default.verifyEmail(email);
+                }
+            }
+            catch (_a) {
+                yield database_1.default.verifyEmail(email);
+            }
             return {
                 data: { userId: result.userId, name: result.name, email: result.email },
-                // accessToken: accessToken
             };
         });
     }
@@ -61,10 +65,11 @@ class MainAuthService {
             const accessToken = (0, jwtUtils_1.signJwt)({
                 name: user.name,
                 email: user.email,
-                userId: user.userId
+                userId: user.userId,
+                userType: user.userType
             }, 7);
             return {
-                data: { userId: user.userId, email: user.email, name: user.name },
+                data: { userId: user.userId, email: user.email, name: user.name, userType: user.userType },
                 accessToken: accessToken
             };
         });
@@ -92,7 +97,12 @@ class MainAuthService {
             const token = (0, resetPassword_1.generateToken)(email, "10m");
             const emailBody = (0, emailTemplates_1.forgetPasswordMail)(token);
             console.log("Encrypted token : ", token);
-            yield (0, mailer_1.sendEmail)(email, "Reset Password Link", emailBody, next);
+            try {
+                yield (0, mailer_1.sendEmail)(email, "Reset Password Link", emailBody, next);
+            }
+            catch (emailErr) {
+                return next((0, createError_1.createError)({ status: 400, message: "Error sending mail" }));
+            }
             return true;
         });
     }

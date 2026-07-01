@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuditLog = exports.Allocation = exports.LeaveRecord = exports.AssociateSkill = exports.Associate = exports.Shift = exports.Workstation = exports.ProductionLine = exports.Skill = void 0;
+exports.AttendanceRecord = exports.AuditLog = exports.Allocation = exports.LeaveRecord = exports.AssociateSkill = exports.Associate = exports.Shift = exports.Workstation = exports.ProductionLine = exports.Skill = void 0;
 const sequelize_1 = require("sequelize");
 const dbConn_1 = require("../../config/dbConn");
 // 1. SKILL MODEL
@@ -53,7 +53,8 @@ Associate.init({
     name: { type: sequelize_1.DataTypes.STRING, allowNull: false },
     category: { type: sequelize_1.DataTypes.STRING, allowNull: false },
     joiningDate: { type: sequelize_1.DataTypes.STRING, allowNull: false },
-    status: { type: sequelize_1.DataTypes.STRING, allowNull: false }
+    status: { type: sequelize_1.DataTypes.STRING, allowNull: false },
+    plantIdRef: { type: sequelize_1.DataTypes.STRING, allowNull: true }
 }, { sequelize: dbConn_1.sequelize, tableName: 'associates', timestamps: false });
 // 6. ASSOCIATE SKILL MODEL (Junction Table)
 class AssociateSkill extends sequelize_1.Model {
@@ -105,7 +106,30 @@ AuditLog.init({
     details: { type: sequelize_1.DataTypes.TEXT, allowNull: false },
     userId: { type: sequelize_1.DataTypes.STRING, allowNull: false },
     userRole: { type: sequelize_1.DataTypes.STRING, allowNull: false }
-}, { sequelize: dbConn_1.sequelize, tableName: 'audit_logs', timestamps: false });
+}, {
+    sequelize: dbConn_1.sequelize,
+    tableName: 'audit_logs',
+    timestamps: false,
+    hooks: {
+        beforeUpdate: () => { throw new Error("Audit logs are read-only and immutable."); },
+        beforeDestroy: () => { throw new Error("Audit logs are read-only and immutable."); },
+        beforeBulkUpdate: () => { throw new Error("Audit logs are read-only and immutable."); },
+        beforeBulkDestroy: () => { throw new Error("Audit logs are read-only and immutable."); }
+    }
+});
+// 10. ATTENDANCE RECORD MODEL
+class AttendanceRecord extends sequelize_1.Model {
+}
+exports.AttendanceRecord = AttendanceRecord;
+AttendanceRecord.init({
+    id: { type: sequelize_1.DataTypes.STRING, primaryKey: true },
+    date: { type: sequelize_1.DataTypes.STRING, allowNull: false },
+    shiftId: { type: sequelize_1.DataTypes.STRING, allowNull: false },
+    associateId: { type: sequelize_1.DataTypes.STRING, allowNull: false },
+    status: { type: sequelize_1.DataTypes.STRING, allowNull: false, defaultValue: 'present' },
+    markedBy: { type: sequelize_1.DataTypes.STRING, allowNull: false },
+    timestamp: { type: sequelize_1.DataTypes.STRING, allowNull: false }
+}, { sequelize: dbConn_1.sequelize, tableName: 'attendance_records', timestamps: false });
 // Relationships
 ProductionLine.hasMany(Workstation, { foreignKey: 'lineId', as: 'workstations', onDelete: 'CASCADE' });
 Workstation.belongsTo(ProductionLine, { foreignKey: 'lineId', as: 'productionLine' });
@@ -123,3 +147,5 @@ Workstation.hasMany(Allocation, { foreignKey: 'workstationId', as: 'allocations'
 Allocation.belongsTo(Workstation, { foreignKey: 'workstationId', as: 'workstation' });
 Shift.hasMany(Allocation, { foreignKey: 'shiftId', as: 'allocations', onDelete: 'CASCADE' });
 Allocation.belongsTo(Shift, { foreignKey: 'shiftId', as: 'shift' });
+Associate.hasMany(AttendanceRecord, { foreignKey: 'associateId', as: 'attendanceRecords', onDelete: 'CASCADE' });
+AttendanceRecord.belongsTo(Associate, { foreignKey: 'associateId', as: 'associate' });

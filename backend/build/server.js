@@ -68,28 +68,16 @@ class Server {
             this.app.set('trust proxy', true);
             this.app.set('case sensitive routing', true);
             const corsOptions = {
-                origin: process.env.CORS_ALLOW_ORIGIN || '*',
-                methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+                origin: [
+                    process.env.FRONTEND_URL,
+                    'http://localhost:5173',
+                    'http://localhost:5174'
+                ].filter(Boolean),
+                credentials: true,
+                methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS', 'PATCH'],
+                allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-Client-Type']
             };
-            this.app.all('/*', function (request, response, next) {
-                response.header('Access-Control-Allow-Origin', '*');
-                response.header('Access-Control-Allow-Headers', 'X-Requested-With');
-                next();
-            });
             this.app.use((0, cors_1.default)(corsOptions));
-            this.app.all('*', (request, response, next) => {
-                logger_1.default === null || logger_1.default === void 0 ? void 0 : logger_1.default.debug(JSON.stringify({
-                    type: 'CORS',
-                    hostname: request.hostname,
-                    path: request.url,
-                    // isAllowed:req.hostname.includes(variables.CORS_ALLOWED as string)
-                }), response.header('Access-Control-Allow-Origin', request.get('origin') ||
-                    'http://localhost:5173' ||
-                    'http://localhost:5505' ||
-                    request.get('host') ||
-                    `${request.protocol}://${request.hostname}`), response.header('Access-Control-Allow-Credentials', 'true'), response.header('Access-Control-Allow-Headers', 'Content-Type,Content-Length,Authorization,Accept,X-Requested-With,sentry-trace,X-Client-Type'), response.header('Access-Control-Allow-Methods', 'PUT,POST,GET,DELETE,OPTIONS,PATCH'));
-                return next();
-            });
             this.app.use(express_1.default.json({ limit: '50mb' }));
             this.app.use(express_1.default.urlencoded({ limit: '50mb' }));
         });

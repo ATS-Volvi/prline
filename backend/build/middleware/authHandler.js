@@ -18,7 +18,6 @@ const createError_1 = require("../utils/errors/createError");
 class AuthHandler {
     static authMiddleware(request, response, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            let authData;
             if (!request.headers.authorization) {
                 return next((0, createError_1.createError)({ status: 401, message: "need signin" }));
             }
@@ -27,24 +26,20 @@ class AuthHandler {
                 return next((0, createError_1.createError)({ status: 401, message: "need signin" }));
             }
             const jwtSecret = envLoader_1.variables.JWT_SECRET;
-            let decodedToken;
-            jsonwebtoken_1.default.verify(token, jwtSecret, (err, decoded) => {
-                if (!err) {
-                    decodedToken = decoded;
-                    authData = {
-                        isAuth: true,
-                        name: decodedToken.name,
-                        userType: decodedToken.userType,
-                        userId: decodedToken.userId,
-                        email: decodedToken.email
-                    };
-                }
-                else {
-                    return next((0, createError_1.createError)({ status: 401, message: "need signin" }));
-                }
-                request.authData = authData;
-            });
-            return next();
+            try {
+                const decodedToken = jsonwebtoken_1.default.verify(token, jwtSecret);
+                request.authData = {
+                    isAuth: true,
+                    name: decodedToken.name,
+                    userType: decodedToken.userType,
+                    userId: decodedToken.userId,
+                    email: decodedToken.email
+                };
+                return next();
+            }
+            catch (err) {
+                return next((0, createError_1.createError)({ status: 401, message: "need signin" }));
+            }
         });
     }
 }

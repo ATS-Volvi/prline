@@ -12,6 +12,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const buffer_1 = __importDefault(require("buffer"));
+if (!buffer_1.default.SlowBuffer) {
+    buffer_1.default.SlowBuffer = buffer_1.default.Buffer;
+}
 const envLoader_1 = require("./config/envLoader");
 const server_1 = __importDefault(require("./server"));
 const start = () => __awaiter(void 0, void 0, void 0, function* () {

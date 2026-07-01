@@ -24,12 +24,13 @@ class MainAuthDatabase {
     }
     static createUser(data) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { name, email, password } = data;
+            const { name, email, password, userType } = data;
             const newUser = new user_1.default({
                 name: name,
                 email: email,
                 password: password,
-                isVerified: false
+                isVerified: false,
+                userType: userType || 'reviewer'
             });
             const result = yield newUser.save();
             return result;

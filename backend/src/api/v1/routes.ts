@@ -10,29 +10,17 @@ import {
   Allocation,
   AuditLog,
   AttendanceRecord
-} from "../../../DB/models/models";
+} from "../../../../database/models/models";
 import AuthHandler from "../../../middleware/authHandler";
 import UserTypeHandler from "../../../middleware/getUserType";
+import { logAction } from "../../../services/auditService";
+import * as allocationController from "../../../controllers/allocationController";
+import * as dataController from "../../../controllers/dataController";
 
 const router = Router();
 
-// Helper to log audit actions
-const logAction = async (actionType: string, details: string, userId = "admin-user", userRole = "Plant Admin") => {
-  try {
-    await AuditLog.create({
-      id: `LOG-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      timestamp: new Date().toISOString(),
-      actionType,
-      details,
-      userId,
-      userRole
-    });
-  } catch (error) {
-    console.error("Audit log error:", error);
-  }
-};
 
-// 1. GET FULL APP STATE
+// 1. GET FULL APP STATE (Deprecated, keeping for backwards compatibility)
 router.get("/state", AuthHandler.authMiddleware, async (req: Request, res: Response) => {
   try {
     const associates = await Associate.findAll();
@@ -68,6 +56,18 @@ router.get("/state", AuthHandler.authMiddleware, async (req: Request, res: Respo
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+// Granular GET Endpoints
+router.get("/associates", AuthHandler.authMiddleware, dataController.getAssociates);
+router.get("/skills", AuthHandler.authMiddleware, dataController.getSkills);
+router.get("/associate-skills", AuthHandler.authMiddleware, dataController.getAssociateSkills);
+router.get("/workstations", AuthHandler.authMiddleware, dataController.getWorkstations);
+router.get("/production-lines", AuthHandler.authMiddleware, dataController.getProductionLines);
+router.get("/shifts", AuthHandler.authMiddleware, dataController.getShifts);
+router.get("/allocations", AuthHandler.authMiddleware, dataController.getAllocations);
+router.get("/audit-logs", AuthHandler.authMiddleware, dataController.getAuditLogs);
+router.get("/leave", AuthHandler.authMiddleware, dataController.getLeaveRecords);
+
 
 // 2. ASSOCIATES CRUD
 router.post("/associates", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
@@ -326,205 +326,15 @@ router.delete("/leave/:id", AuthHandler.authMiddleware, UserTypeHandler.checkSec
 });
 
 // 5. MANUAL ALLOCATE & DEALLOCATE
-router.post("/allocation/allocate", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, async (req: Request, res: Response) => {
-  try {
-    const { date, shiftId, lineId, workstationId, associateId, overrideReason } = req.body;
-    
-    const ws = await Workstation.findByPk(workstationId);
-    if (!ws) {
-      res.status(404).json({ success: false, message: "Workstation not found." });
-      return;
-    }
-
-    // 1. Clear any existing allocation for this specific associate on this date and shift (prevent double allocation)
-    await Allocation.destroy({ where: { date, shiftId, associateId } });
-
-    // 2. Check capacity
-    const currentCount = await Allocation.count({ where: { date, shiftId, workstationId } });
-    if (currentCount >= ws.maxStaffCount) {
-      res.status(400).json({ success: false, message: `Workstation is already at full capacity (${ws.maxStaffCount}/${ws.maxStaffCount} operators allocated).` });
-      return;
-    }
-
-    const newAlloc = await Allocation.create({
-      id: `A-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      date,
-      shiftId,
-      lineId,
-      workstationId,
-      associateId,
-      allocatedBy: "Supervisor",
-      overrideReasonCode: overrideReason,
-      timestamp: new Date().toISOString()
-    });
-
-    const assoc = await Associate.findByPk(associateId);
-    const action = overrideReason ? "OVERRIDE_ALLOCATION" : "ALLOCATION_CONFIRMED";
-    const details = overrideReason 
-      ? `OVERRIDE: ${assoc?.get('name')} assigned to ${ws?.get('name')} (Reason: ${overrideReason}).`
-      : `Staffed workstation ${ws?.get('name')} with ${assoc?.get('name')}.`;
-
-    await logAction(action, details);
-    res.json({ success: true, allocation: newAlloc });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-router.post("/allocation/deallocate", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, async (req: Request, res: Response) => {
-  try {
-    const { date, shiftId, workstationId, lineId, associateId } = req.body;
-    const ws = await Workstation.findByPk(workstationId);
-
-    const whereClause: any = { date, shiftId, workstationId };
-    if (associateId) {
-      whereClause.associateId = associateId;
-    }
-    await Allocation.destroy({ where: whereClause });
-
-    const suffix = associateId ? ` operator ID ${associateId}` : "";
-    await logAction("ALLOCATION_CONFIRMED", `Deallocated${suffix} from station ${ws?.get('name')} on Line ${lineId.replace('LINE-', '')}.`);
-    res.json({ success: true });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+router.post("/allocation/allocate", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, allocationController.allocate);
+router.post("/allocation/deallocate", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, allocationController.deallocate);
 
 // 6. CLEAR ALL ALLOCATIONS
-router.post("/allocation/clear", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, async (req: Request, res: Response) => {
-  try {
-    const { date, shiftId, lineId } = req.body;
-    await Allocation.destroy({ where: { date, shiftId, lineId } });
-    await logAction("ALLOCATION_CONFIRMED", `Cleared all allocations for Line ${lineId.replace('LINE-', '')} for Shift ${shiftId.replace('SHIFT-', '')}.`);
-    res.json({ success: true });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+router.post("/allocation/clear", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, allocationController.clear);
 
 // 7. OPTIMIZED AUTO-ALLOCATION ALGORITHM
-const SKILL_LEVEL_VALUE: Record<string, number> = {
-  'Trainee': 1,
-  'Operator': 2,
-  'Certified': 3,
-  'Expert': 4
-};
+router.post("/allocation/auto-allocate", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, allocationController.autoAllocateController);
 
-router.post("/allocation/auto-allocate", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, async (req: Request, res: Response) => {
-  try {
-    const { date, shiftId, lineId } = req.body;
-    const lineWS = await Workstation.findAll({ where: { lineId } });
-    if (lineWS.length === 0) {
-      res.json({ success: false, allocatedCount: 0 });
-      return;
-    }
-
-    // Clear existing allocations for this shift/line/date
-    await Allocation.destroy({ where: { date, shiftId, lineId } });
-
-    // Fetch all needed records for auto-solving
-    const associates = await Associate.findAll({ where: { status: 'Active' } });
-    const associateSkills = await AssociateSkill.findAll();
-    const leaveRecords = await LeaveRecord.findAll({ where: { date } });
-    const allAllocations = await Allocation.findAll({ where: { date } });
-
-    const currentSolveAllocations: any[] = [];
-    let count = 0;
-
-    // Workstations sorted by skill difficulty descending
-    const sortedWS = [...lineWS].sort((a, b) => {
-      const scoreA = SKILL_LEVEL_VALUE[a.minSkillLevel] || 1;
-      const scoreB = SKILL_LEVEL_VALUE[b.minSkillLevel] || 1;
-      return scoreB - scoreA;
-    });
-
-    // Workload balancer count helper
-    const getWorkloadCount = (assocId: string) => {
-      const dbCount = allAllocations.filter(a => a.associateId === assocId && a.shiftId !== shiftId).length;
-      const solveCount = currentSolveAllocations.filter(a => a.associateId === assocId).length;
-      return dbCount + solveCount;
-    };
-
-    // Check if employee is scheduled anywhere else on same date
-    const isEmployeeScheduledOnDate = (assocId: string) => {
-      const dbScheduled = allAllocations.some(a => a.associateId === assocId);
-      const solveScheduled = currentSolveAllocations.some(a => a.associateId === assocId);
-      return dbScheduled || solveScheduled;
-    };
-
-    for (const ws of sortedWS) {
-      const reqSkill = ws.requiredSkillId;
-      const minLvlValue = SKILL_LEVEL_VALUE[ws.minSkillLevel] || 1;
-      const capacity = ws.maxStaffCount || 1;
-
-      for (let slot = 0; slot < capacity; slot++) {
-        const candidates: { associate: Associate; level: string; score: number }[] = [];
-
-        for (const assoc of associates) {
-          // Double-scheduling check: is this employee already scheduled on this day?
-          if (isEmployeeScheduledOnDate(assoc.id)) continue;
-
-          // Leave check
-          const onLeave = leaveRecords.some(l => l.associateId === assoc.id && (l.shiftId === 'ALL' || l.shiftId === shiftId));
-          if (onLeave) continue;
-
-          // Skill check
-          const aSkill = associateSkills.find(s => s.associateId === assoc.id && s.skillId === reqSkill);
-          if (!aSkill) continue;
-
-          // Expiry check
-          if (new Date(aSkill.expiryDate) < new Date(date)) continue;
-
-          // Level checks
-          const skillLvlValue = SKILL_LEVEL_VALUE[aSkill.level] || 1;
-          if (skillLvlValue < minLvlValue) continue;
-
-          // Compute Base Score: compatibility weights
-          let score = skillLvlValue * 10;
-          if (assoc.category === 'Company') score += 5;
-          else if (assoc.category === 'Contract') score += 3;
-          else score += 1;
-
-          // Workload balancer penalty: Subtract 15 points per existing assignment
-          const workload = getWorkloadCount(assoc.id);
-          score -= workload * 15;
-
-          candidates.push({ associate: assoc, level: aSkill.level, score });
-        }
-
-        // Sort candidates by score descending
-        candidates.sort((a, b) => b.score - a.score);
-
-        // Staff the best fit candidate
-        if (candidates.length > 0) {
-          const best = candidates[0].associate;
-          const newAlloc = {
-            id: `A-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-            date,
-            shiftId,
-            lineId,
-            workstationId: ws.id,
-            associateId: best.id,
-            allocatedBy: "Auto System",
-            overrideReasonCode: null,
-            timestamp: new Date().toISOString()
-          };
-          await Allocation.create(newAlloc);
-          currentSolveAllocations.push(newAlloc);
-          count++;
-        } else {
-          // No more eligible candidates for this workstation's slot capacity
-          break;
-        }
-      }
-    }
-
-    await logAction("ALLOCATION_CONFIRMED", `Auto-allocated ${count} workstations for Line ${lineId.replace('LINE-', '')} (Shift ${shiftId.replace('SHIFT-', '')}).`);
-    res.json({ success: true, allocatedCount: count });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
 
 // 8. BULK IMPORT CSV
 router.post("/associates/bulk-import", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {

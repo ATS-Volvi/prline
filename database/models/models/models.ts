@@ -135,7 +135,16 @@ Allocation.init({
   allocatedBy: { type: DataTypes.STRING, allowNull: false },
   overrideReasonCode: { type: DataTypes.STRING, allowNull: true },
   timestamp: { type: DataTypes.STRING, allowNull: false }
-}, { sequelize, tableName: 'allocations', timestamps: false });
+}, { 
+  sequelize, 
+  tableName: 'allocations', 
+  timestamps: false,
+  indexes: [
+    { fields: ['date'] },
+    { fields: ['shiftId'] },
+    { fields: ['date', 'shiftId'] }
+  ]
+});
 
 // 9. AUDIT LOG MODEL
 export class AuditLog extends Model {

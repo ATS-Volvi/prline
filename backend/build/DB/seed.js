@@ -8,10 +8,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.seedDatabase = void 0;
 const dbConn_1 = require("../config/dbConn");
 const models_1 = require("./models/models");
+const user_1 = __importDefault(require("./models/user"));
+const hashPwd_1 = require("../utils/hashPwd");
 const skillsData = [
     { id: 'BLADE_OPT', name: 'Blade Operation', description: 'Slicing blade calibration and replacement' },
     { id: 'HYGIENE_L2', name: 'Food Hygiene L2', description: 'Advanced food safety and sanitation protocols' },
@@ -45,39 +50,39 @@ const shiftsData = [
     { id: 'SHIFT-C', name: 'Shift C', timings: '22:00 - 06:00', workingDays: JSON.stringify(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']) },
 ];
 const associatesData = [
-    { id: 'EMP101', name: 'A. Chen', category: 'Contract', joiningDate: '2025-01-10', status: 'Active' },
-    { id: 'EMP102', name: 'S. Miller', category: 'Company', joiningDate: '2024-05-12', status: 'Active' },
-    { id: 'EMP103', name: 'D. Petrova', category: 'NTCI', joiningDate: '2025-03-20', status: 'Active' },
-    { id: 'EMP104', name: 'J. Doe', category: 'Contract', joiningDate: '2025-02-15', status: 'Active' },
-    { id: 'EMP105', name: 'M. Kumar', category: 'Contract', joiningDate: '2024-11-01', status: 'Active' },
-    { id: 'EMP106', name: 'R. Patel', category: 'Company', joiningDate: '2023-08-15', status: 'Active' },
-    { id: 'EMP107', name: 'L. Wong', category: 'Contract', joiningDate: '2025-04-10', status: 'Active' },
-    { id: 'EMP108', name: 'K. Sato', category: 'Contract', joiningDate: '2024-01-20', status: 'Inactive' },
-    { id: 'EMP109', name: 'B. Jackson', category: 'Contract', joiningDate: '2024-09-05', status: 'Active' },
-    { id: 'EMP110', name: 'N. Diaz', category: 'Company', joiningDate: '2022-12-01', status: 'Active' },
-    { id: 'EMP111', name: 'T. Al-Farsi', category: 'NTCI', joiningDate: '2025-05-18', status: 'Active' },
-    { id: 'EMP112', name: 'S. O\'Connor', category: 'Contract', joiningDate: '2024-02-28', status: 'Active' },
-    { id: 'EMP113', name: 'H. Tanaka', category: 'Company', joiningDate: '2024-07-22', status: 'Active' },
-    { id: 'EMP114', name: 'A. Mbaye', category: 'Contract', joiningDate: '2025-05-01', status: 'Active' },
+    { id: 'EMP101', name: 'A. Chen', category: 'Contract', joiningDate: '2025-01-10', status: 'Active', plantIdRef: 'PID-101' },
+    { id: 'EMP102', name: 'S. Miller', category: 'Company', joiningDate: '2024-05-12', status: 'Active', plantIdRef: 'PID-102' },
+    { id: 'EMP103', name: 'D. Petrova', category: 'NTCI', joiningDate: '2025-03-20', status: 'Active', plantIdRef: 'PID-103' },
+    { id: 'EMP104', name: 'J. Doe', category: 'Contract', joiningDate: '2025-02-15', status: 'Active', plantIdRef: 'PID-104' },
+    { id: 'EMP105', name: 'M. Kumar', category: 'Contract', joiningDate: '2024-11-01', status: 'Active', plantIdRef: 'PID-105' },
+    { id: 'EMP106', name: 'R. Patel', category: 'Company', joiningDate: '2023-08-15', status: 'Active', plantIdRef: 'PID-106' },
+    { id: 'EMP107', name: 'L. Wong', category: 'Contract', joiningDate: '2025-04-10', status: 'Active', plantIdRef: 'PID-107' },
+    { id: 'EMP108', name: 'K. Sato', category: 'Contract', joiningDate: '2024-01-20', status: 'Inactive', plantIdRef: 'PID-108' },
+    { id: 'EMP109', name: 'B. Jackson', category: 'Contract', joiningDate: '2024-09-05', status: 'Active', plantIdRef: 'PID-109' },
+    { id: 'EMP110', name: 'N. Diaz', category: 'Company', joiningDate: '2022-12-01', status: 'Active', plantIdRef: 'PID-110' },
+    { id: 'EMP111', name: 'T. Al-Farsi', category: 'NTCI', joiningDate: '2025-05-18', status: 'Active', plantIdRef: 'PID-111' },
+    { id: 'EMP112', name: 'S. O\'Connor', category: 'Contract', joiningDate: '2024-02-28', status: 'Active', plantIdRef: 'PID-112' },
+    { id: 'EMP113', name: 'H. Tanaka', category: 'Company', joiningDate: '2024-07-22', status: 'Active', plantIdRef: 'PID-113' },
+    { id: 'EMP114', name: 'A. Mbaye', category: 'Contract', joiningDate: '2025-05-01', status: 'Active', plantIdRef: 'PID-114' },
     // Expanded pool (18 more associates to cover 30+)
-    { id: 'EMP115', name: 'Rajesh Sen', category: 'Contract', joiningDate: '2024-03-10', status: 'Active' },
-    { id: 'EMP116', name: 'Priya Das', category: 'Company', joiningDate: '2025-05-15', status: 'Active' },
-    { id: 'EMP117', name: 'S. Roy', category: 'Contract', joiningDate: '2025-06-01', status: 'Active' },
-    { id: 'EMP118', name: 'R. Chatterjee', category: 'Company', joiningDate: '2023-12-05', status: 'Active' },
-    { id: 'EMP119', name: 'M. Das', category: 'Contract', joiningDate: '2025-02-22', status: 'Active' },
-    { id: 'EMP120', name: 'N. Paul', category: 'NTCI', joiningDate: '2025-07-01', status: 'Active' },
-    { id: 'EMP121', name: 'K. Sato-Ghosh', category: 'Company', joiningDate: '2024-08-14', status: 'Active' },
-    { id: 'EMP122', name: 'P. Halder', category: 'Contract', joiningDate: '2025-01-20', status: 'Active' },
-    { id: 'EMP123', name: 'S. Dutta', category: 'Contract', joiningDate: '2025-03-11', status: 'Active' },
-    { id: 'EMP124', name: 'A. Samanta', category: 'Company', joiningDate: '2023-10-18', status: 'Active' },
-    { id: 'EMP125', name: 'T. Saha', category: 'Contract', joiningDate: '2025-05-20', status: 'Active' },
-    { id: 'EMP126', name: 'S. Chakraborty', category: 'NTCI', joiningDate: '2025-04-12', status: 'Active' },
-    { id: 'EMP127', name: 'G. Mukherjee', category: 'Company', joiningDate: '2024-11-22', status: 'Active' },
-    { id: 'EMP128', name: 'R. Ganguly', category: 'Contract', joiningDate: '2025-06-05', status: 'Active' },
-    { id: 'EMP129', name: 'V. Mehta', category: 'Company', joiningDate: '2024-01-10', status: 'Active' },
-    { id: 'EMP130', name: 'P. Sharma', category: 'Contract', joiningDate: '2025-02-15', status: 'Active' },
-    { id: 'EMP131', name: 'B. Sengupta', category: 'Company', joiningDate: '2024-05-15', status: 'Active' },
-    { id: 'EMP132', name: 'J. Banerjee', category: 'Contract', joiningDate: '2025-07-20', status: 'Active' },
+    { id: 'EMP115', name: 'Rajesh Sen', category: 'Contract', joiningDate: '2024-03-10', status: 'Active', plantIdRef: 'PID-115' },
+    { id: 'EMP116', name: 'Priya Das', category: 'Company', joiningDate: '2025-05-15', status: 'Active', plantIdRef: 'PID-116' },
+    { id: 'EMP117', name: 'S. Roy', category: 'Contract', joiningDate: '2025-06-01', status: 'Active', plantIdRef: 'PID-117' },
+    { id: 'EMP118', name: 'R. Chatterjee', category: 'Company', joiningDate: '2023-12-05', status: 'Active', plantIdRef: 'PID-118' },
+    { id: 'EMP119', name: 'M. Das', category: 'Contract', joiningDate: '2025-02-22', status: 'Active', plantIdRef: 'PID-119' },
+    { id: 'EMP120', name: 'N. Paul', category: 'NTCI', joiningDate: '2025-07-01', status: 'Active', plantIdRef: 'PID-120' },
+    { id: 'EMP121', name: 'K. Sato-Ghosh', category: 'Company', joiningDate: '2024-08-14', status: 'Active', plantIdRef: 'PID-121' },
+    { id: 'EMP122', name: 'P. Halder', category: 'Contract', joiningDate: '2025-01-20', status: 'Active', plantIdRef: 'PID-122' },
+    { id: 'EMP123', name: 'S. Dutta', category: 'Contract', joiningDate: '2025-03-11', status: 'Active', plantIdRef: 'PID-123' },
+    { id: 'EMP124', name: 'A. Samanta', category: 'Company', joiningDate: '2023-10-18', status: 'Active', plantIdRef: 'PID-124' },
+    { id: 'EMP125', name: 'T. Saha', category: 'Contract', joiningDate: '2025-05-20', status: 'Active', plantIdRef: 'PID-125' },
+    { id: 'EMP126', name: 'S. Chakraborty', category: 'NTCI', joiningDate: '2025-04-12', status: 'Active', plantIdRef: 'PID-126' },
+    { id: 'EMP127', name: 'G. Mukherjee', category: 'Company', joiningDate: '2024-11-22', status: 'Active', plantIdRef: 'PID-127' },
+    { id: 'EMP128', name: 'R. Ganguly', category: 'Contract', joiningDate: '2025-06-05', status: 'Active', plantIdRef: 'PID-128' },
+    { id: 'EMP129', name: 'V. Mehta', category: 'Company', joiningDate: '2024-01-10', status: 'Active', plantIdRef: 'PID-129' },
+    { id: 'EMP130', name: 'P. Sharma', category: 'Contract', joiningDate: '2025-02-15', status: 'Active', plantIdRef: 'PID-130' },
+    { id: 'EMP131', name: 'B. Sengupta', category: 'Company', joiningDate: '2024-05-15', status: 'Active', plantIdRef: 'PID-131' },
+    { id: 'EMP132', name: 'J. Banerjee', category: 'Contract', joiningDate: '2025-07-20', status: 'Active', plantIdRef: 'PID-132' },
 ];
 const associateSkillsData = [
     // A. Chen
@@ -177,6 +182,42 @@ const seedDatabase = () => __awaiter(void 0, void 0, void 0, function* () {
         // Seed AssociateSkills
         yield models_1.AssociateSkill.bulkCreate(associateSkillsData);
         console.log("Associate skills seeded.");
+        // Seed Default Testing Users
+        const hashedAdminPassword = yield (0, hashPwd_1.hashPassword)('AdminPassword123');
+        const hashedSupervisorPassword = yield (0, hashPwd_1.hashPassword)('SupervisorPassword123');
+        const hashedHRPassword = yield (0, hashPwd_1.hashPassword)('HRPassword123');
+        const hashedManagerPassword = yield (0, hashPwd_1.hashPassword)('ManagerPassword123');
+        yield user_1.default.bulkCreate([
+            {
+                name: 'A. Mukhopadhyay',
+                email: 'admin@pepsico.com',
+                password: hashedAdminPassword,
+                isVerified: true,
+                userType: 'pri_admin'
+            },
+            {
+                name: 'R. Sharma',
+                email: 'supervisor@pepsico.com',
+                password: hashedSupervisorPassword,
+                isVerified: true,
+                userType: 'reviewer'
+            },
+            {
+                name: 'P. Banerjee',
+                email: 'hr@pepsico.com',
+                password: hashedHRPassword,
+                isVerified: true,
+                userType: 'sec_admin'
+            },
+            {
+                name: 'S. Chatterjee',
+                email: 'manager@pepsico.com',
+                password: hashedManagerPassword,
+                isVerified: true,
+                userType: 'manager'
+            }
+        ]);
+        console.log("Default users seeded.");
         console.log("Database Seeding Completed Successfully.");
     }
     catch (error) {

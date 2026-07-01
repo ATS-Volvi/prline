@@ -58,7 +58,7 @@ const forgetPasswordMail = (token) => {
               <p>
                 Don't worry, we've got you covered! Click the button below to reset your password.
               </p>
-              <a href="https://vulcans.in/reset-password?email=${token}" class="button">Reset Password</a>
+              <a href="http://localhost:5173/reset-password?token=${token}" class="button">Reset Password</a>
               <p>If you didn't request this, you can safely ignore this email.</p>
             </div>
           </body>

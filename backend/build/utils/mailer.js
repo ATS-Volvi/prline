@@ -15,18 +15,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendEmail = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const envLoader_1 = require("../config/envLoader");
-const createError_1 = require("./errors/createError");
 const sendEmail = (reciever, subject, body, next) => __awaiter(void 0, void 0, void 0, function* () {
     const transporter = nodemailer_1.default.createTransport({
         host: 'smtp.gmail.com',
         port: 587,
-        secure: false, // true for 465, false for other ports
+        secure: false,
         auth: {
-            user: envLoader_1.variables.WORKSPACE_EMAIL, // Your full Google Workspace email address
-            pass: envLoader_1.variables.WORKSPACE_PASSWORD, // Google Workspace password
+            user: envLoader_1.variables.WORKSPACE_EMAIL,
+            pass: envLoader_1.variables.WORKSPACE_PASSWORD,
         },
         tls: {
-            rejectUnauthorized: false, // Bypass SSL certificate validation
+            rejectUnauthorized: true,
         },
     });
     const hasHTMLTags = /<[a-z][\s\S]*>/i.test(body);
@@ -38,7 +37,7 @@ const sendEmail = (reciever, subject, body, next) => __awaiter(void 0, void 0, v
     }
     catch (error) {
         console.error('Error sending email:', error);
-        return next((0, createError_1.createError)({ status: 400, message: "Error sending mail" }));
+        return false;
     }
 });
 exports.sendEmail = sendEmail;

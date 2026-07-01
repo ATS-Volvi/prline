@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   type Associate,
   type Skill,
@@ -94,157 +95,48 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-// Initial Seed Data
-const initialSkills: Skill[] = [
-  { id: 'BLADE_OPT', name: 'Blade Operation', description: 'Slicing blade calibration and replacement' },
-  { id: 'HYGIENE_L2', name: 'Food Hygiene L2', description: 'Advanced food safety and sanitation protocols' },
-  { id: 'HEAT_SAFETY', name: 'High-Temp Safety', description: 'Thermal fryer safety and emergency protocols' },
-  { id: 'OIL_MGMT', name: 'Oil Management', description: 'Frying oil testing, filtration, and recycling' },
-  { id: 'SPICE_MIX', name: 'Spice Blending', description: 'Flavour dusting calibration and seasoning control' },
-  { id: 'MECH_OP', name: 'Mechanical Operation', description: 'Packaging and bagging line mechanical configuration' },
-  { id: 'QA_L1', name: 'Quality Assurance L1', description: 'Moisture, salt, and thickness packaging QA' },
-  { id: 'CHEM_CERT', name: 'Quality Lab Chemist', description: 'Lab-grade chemical inspection and acidity titration' },
-];
-
-const initialProductionLines: ProductionLine[] = [
-  { id: 'LINE-01', name: 'Line 01 - Potato Chips (Classic)', currentProduct: 'Lays Classic Salted', status: 'ACTIVE' },
-  { id: 'LINE-02', name: 'Line 02 - Tortilla Chips (Zesty)', currentProduct: 'Doritos Cheese', status: 'ACTIVE' },
-  { id: 'LINE-03', name: 'Line 03 - Pretzels (Salted)', currentProduct: 'Rold Gold Twist', status: 'MAINTENANCE' },
-  { id: 'LINE-04', name: 'Line 04 - Extruded Snacks', currentProduct: 'Cheetos Puffs', status: 'IDLE' },
-];
-
-const initialWorkstations: Workstation[] = [
-  // Line 01
-  { id: 'WS-101', name: 'Slicing & Washing', lineId: 'LINE-01', requiredSkillId: 'BLADE_OPT', minSkillLevel: 'Operator', maxStaffCount: 1 },
-  { id: 'WS-102', name: 'High-Temp Frying', lineId: 'LINE-01', requiredSkillId: 'HEAT_SAFETY', minSkillLevel: 'Certified', maxStaffCount: 1 },
-  { id: 'WS-103', name: 'Flavor Application', lineId: 'LINE-01', requiredSkillId: 'SPICE_MIX', minSkillLevel: 'Operator', maxStaffCount: 1 },
-  { id: 'WS-104', name: 'Auto-Bagging', lineId: 'LINE-01', requiredSkillId: 'MECH_OP', minSkillLevel: 'Operator', maxStaffCount: 1 },
-  { id: 'WS-105', name: 'Quality Lab Check', lineId: 'LINE-01', requiredSkillId: 'CHEM_CERT', minSkillLevel: 'Certified', maxStaffCount: 1 },
-  
-  // Line 02
-  { id: 'WS-201', name: 'Milling & Shearing', lineId: 'LINE-02', requiredSkillId: 'MECH_OP', minSkillLevel: 'Operator', maxStaffCount: 1 },
-  { id: 'WS-202', name: 'Baking Oven Operator', lineId: 'LINE-02', requiredSkillId: 'HEAT_SAFETY', minSkillLevel: 'Operator', maxStaffCount: 1 },
-  { id: 'WS-203', name: 'Seasoning Tumbler', lineId: 'LINE-02', requiredSkillId: 'SPICE_MIX', minSkillLevel: 'Trainee', maxStaffCount: 1 },
-  { id: 'WS-204', name: 'Multi-Packer Unit', lineId: 'LINE-02', requiredSkillId: 'QA_L1', minSkillLevel: 'Operator', maxStaffCount: 1 },
-];
-
-const initialShifts: Shift[] = [
-  { id: 'SHIFT-A', name: 'Shift A', timings: '06:00 - 14:00', workingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] },
-  { id: 'SHIFT-B', name: 'Shift B', timings: '14:00 - 22:00', workingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] },
-  { id: 'SHIFT-C', name: 'Shift C', timings: '22:00 - 06:00', workingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] },
-];
-
-const initialAssociates: Associate[] = [
-  { id: 'EMP101', name: 'A. Chen', category: 'Contract', joiningDate: '2025-01-10', status: 'Active' },
-  { id: 'EMP102', name: 'S. Miller', category: 'Company', joiningDate: '2024-05-12', status: 'Active' },
-  { id: 'EMP103', name: 'D. Petrova', category: 'NTCI', joiningDate: '2025-03-20', status: 'Active' },
-  { id: 'EMP104', name: 'J. Doe', category: 'Contract', joiningDate: '2025-02-15', status: 'Active' },
-  { id: 'EMP105', name: 'M. Kumar', category: 'Contract', joiningDate: '2024-11-01', status: 'Active' },
-  { id: 'EMP106', name: 'R. Patel', category: 'Company', joiningDate: '2023-08-15', status: 'Active' },
-  { id: 'EMP107', name: 'L. Wong', category: 'Contract', joiningDate: '2025-04-10', status: 'Active' },
-  { id: 'EMP108', name: 'K. Sato', category: 'Contract', joiningDate: '2024-01-20', status: 'Inactive' },
-  { id: 'EMP109', name: 'B. Jackson', category: 'Contract', joiningDate: '2024-09-05', status: 'Active' },
-  { id: 'EMP110', name: 'N. Diaz', category: 'Company', joiningDate: '2022-12-01', status: 'Active' },
-  { id: 'EMP111', name: 'T. Al-Farsi', category: 'NTCI', joiningDate: '2025-05-18', status: 'Active' },
-  { id: 'EMP112', name: 'S. O\'Connor', category: 'Contract', joiningDate: '2024-02-28', status: 'Active' },
-  { id: 'EMP113', name: 'H. Tanaka', category: 'Company', joiningDate: '2024-07-22', status: 'Active' },
-  { id: 'EMP114', name: 'A. Mbaye', category: 'Contract', joiningDate: '2025-05-01', status: 'Active' },
-];
-
-const initialAssociateSkills: AssociateSkill[] = [
-  // A. Chen
-  { associateId: 'EMP101', skillId: 'BLADE_OPT', level: 'Certified', trainingDate: '2025-01-15', certifiedBy: 'T. Supervisor', expiryDate: '2026-12-31', reCertificationRequired: false },
-  { associateId: 'EMP101', skillId: 'QA_L1', level: 'Operator', trainingDate: '2025-02-10', certifiedBy: 'Q. Manager', expiryDate: '2026-06-30', reCertificationRequired: false },
-  
-  // S. Miller
-  { associateId: 'EMP102', skillId: 'HEAT_SAFETY', level: 'Certified', trainingDate: '2025-05-20', certifiedBy: 'Safety Board', expiryDate: '2026-10-15', reCertificationRequired: false },
-  { associateId: 'EMP102', skillId: 'MECH_OP', level: 'Expert', trainingDate: '2024-06-01', certifiedBy: 'M. Plant', expiryDate: '2027-06-01', reCertificationRequired: false },
-  { associateId: 'EMP102', skillId: 'OIL_MGMT', level: 'Certified', trainingDate: '2025-02-20', certifiedBy: 'M. Plant', expiryDate: '2026-08-20', reCertificationRequired: false },
-
-  // D. Petrova
-  { associateId: 'EMP103', skillId: 'CHEM_CERT', level: 'Expert', trainingDate: '2025-03-25', certifiedBy: 'Lab Director', expiryDate: '2027-03-25', reCertificationRequired: false },
-  { associateId: 'EMP103', skillId: 'HYGIENE_L2', level: 'Certified', trainingDate: '2025-04-01', certifiedBy: 'QA Dept', expiryDate: '2026-04-01', reCertificationRequired: false },
-
-  // J. Doe
-  { associateId: 'EMP104', skillId: 'SPICE_MIX', level: 'Operator', trainingDate: '2025-02-20', certifiedBy: 'Line Chief', expiryDate: '2026-02-20', reCertificationRequired: false },
-  { associateId: 'EMP104', skillId: 'HYGIENE_L2', level: 'Operator', trainingDate: '2025-03-01', certifiedBy: 'QA Dept', expiryDate: '2026-03-01', reCertificationRequired: false },
-
-  // M. Kumar
-  { associateId: 'EMP105', skillId: 'BLADE_OPT', level: 'Operator', trainingDate: '2024-11-10', certifiedBy: 'T. Supervisor', expiryDate: '2025-11-10', reCertificationRequired: true }, // Expired!
-  { associateId: 'EMP105', skillId: 'HYGIENE_L2', level: 'Expert', trainingDate: '2024-11-15', certifiedBy: 'QA Dept', expiryDate: '2026-11-15', reCertificationRequired: false },
-
-  // R. Patel
-  { associateId: 'EMP106', skillId: 'OIL_MGMT', level: 'Operator', trainingDate: '2024-09-01', certifiedBy: 'M. Plant', expiryDate: '2026-09-01', reCertificationRequired: false },
-  { associateId: 'EMP106', skillId: 'HEAT_SAFETY', level: 'Trainee', trainingDate: '2024-10-01', certifiedBy: 'Safety Board', expiryDate: '2025-04-01', reCertificationRequired: true }, // Expired!
-
-  // L. Wong
-  { associateId: 'EMP107', skillId: 'MECH_OP', level: 'Operator', trainingDate: '2025-04-12', certifiedBy: 'M. Plant', expiryDate: '2026-04-12', reCertificationRequired: false },
-  { associateId: 'EMP107', skillId: 'QA_L1', level: 'Operator', trainingDate: '2025-04-15', certifiedBy: 'QA Dept', expiryDate: '2026-04-15', reCertificationRequired: false },
-
-  // K. Sato
-  { associateId: 'EMP108', skillId: 'SPICE_MIX', level: 'Trainee', trainingDate: '2024-02-01', certifiedBy: 'Line Chief', expiryDate: '2025-02-01', reCertificationRequired: true },
-
-  // B. Jackson
-  { associateId: 'EMP109', skillId: 'MECH_OP', level: 'Expert', trainingDate: '2024-09-10', certifiedBy: 'M. Plant', expiryDate: '2026-09-10', reCertificationRequired: false },
-
-  // N. Diaz
-  { associateId: 'EMP110', skillId: 'HEAT_SAFETY', level: 'Expert', trainingDate: '2023-12-15', certifiedBy: 'Safety Board', expiryDate: '2026-12-15', reCertificationRequired: false },
-  { associateId: 'EMP110', skillId: 'OIL_MGMT', level: 'Expert', trainingDate: '2024-01-10', certifiedBy: 'M. Plant', expiryDate: '2027-01-10', reCertificationRequired: false },
-
-  // T. Al-Farsi
-  { associateId: 'EMP111', skillId: 'CHEM_CERT', level: 'Certified', trainingDate: '2025-05-20', certifiedBy: 'Lab Director', expiryDate: '2026-05-20', reCertificationRequired: false },
-
-  // S. O'Connor (expiring in 5 days)
-  { associateId: 'EMP112', skillId: 'BLADE_OPT', level: 'Expert', trainingDate: '2025-06-29', certifiedBy: 'T. Supervisor', expiryDate: '2026-06-30', reCertificationRequired: false }, // Near expiry relative to current date (2026-06-25)
-  
-  // H. Tanaka
-  { associateId: 'EMP113', skillId: 'SPICE_MIX', level: 'Certified', trainingDate: '2024-07-25', certifiedBy: 'Line Chief', expiryDate: '2026-07-25', reCertificationRequired: false },
-  
-  // A. Mbaye
-  { associateId: 'EMP114', skillId: 'HYGIENE_L2', level: 'Operator', trainingDate: '2025-05-05', certifiedBy: 'QA Dept', expiryDate: '2026-05-05', reCertificationRequired: true }, // Expired
-];
-
-// Compute today's date string dynamically so seed data always matches the current day
-const _seedToday = new Date().toISOString().split('T')[0];
-const _seedTs = (hhmm: string) => `${_seedToday}T${hhmm}:00Z`;
-
-const initialLeaveRecords: LeaveRecord[] = [
-  { id: 'L-01', associateId: 'EMP104', date: _seedToday, shiftId: 'ALL' }, // J. Doe on leave today
-];
-
-const initialAllocations: Allocation[] = [
-  { id: 'A-01', date: _seedToday, shiftId: 'SHIFT-A', lineId: 'LINE-01', workstationId: 'WS-101', associateId: 'EMP101', allocatedBy: 'R. Sharma', overrideReasonCode: null, timestamp: _seedTs('05:45') },
-  { id: 'A-02', date: _seedToday, shiftId: 'SHIFT-A', lineId: 'LINE-01', workstationId: 'WS-102', associateId: 'EMP102', allocatedBy: 'R. Sharma', overrideReasonCode: null, timestamp: _seedTs('05:46') },
-  { id: 'A-03', date: _seedToday, shiftId: 'SHIFT-A', lineId: 'LINE-01', workstationId: 'WS-103', associateId: 'EMP113', allocatedBy: 'R. Sharma', overrideReasonCode: null, timestamp: _seedTs('05:47') },
-];
-
-const initialAuditLogs: AuditLog[] = [
-  { id: 'LOG-01', timestamp: _seedTs('05:45'), actionType: 'ALLOCATION_CONFIRMED', details: 'A. Chen (EMP101) allocated to Slicing & Washing (WS-101) on Line 01 for Shift A.', userId: 'EMP102', userRole: 'Production Supervisor' },
-  { id: 'LOG-02', timestamp: _seedTs('05:46'), actionType: 'ALLOCATION_CONFIRMED', details: 'S. Miller (EMP102) allocated to High-Temp Frying (WS-102) on Line 01 for Shift A.', userId: 'EMP102', userRole: 'Production Supervisor' },
-  { id: 'LOG-03', timestamp: _seedTs('05:47'), actionType: 'ALLOCATION_CONFIRMED', details: 'H. Tanaka (EMP113) allocated to Flavor Application (WS-103) on Line 01 for Shift A.', userId: 'EMP102', userRole: 'Production Supervisor' },
-];
-
-const SKILL_LEVEL_VALUE: Record<SkillLevel, number> = {
-  'Trainee': 1,
-  'Operator': 2,
-  'Certified': 3,
-  'Expert': 4,
-};
+// Initial Seed Data (Fallback)
+const initialSkills: Skill[] = [];
+const initialProductionLines: ProductionLine[] = [];
+const initialWorkstations: Workstation[] = [];
+const initialShifts: Shift[] = [];
+const initialAssociates: Associate[] = [];
+const initialAssociateSkills: AssociateSkill[] = [];
+const initialLeaveRecords: LeaveRecord[] = [];
+const initialAllocations: Allocation[] = [];
+const initialAuditLogs: AuditLog[] = [];
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const queryClient = useQueryClient();
   const [role, setRole] = useState<UserRole>('Production Supervisor');
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<{ name: string; email: string; userId: string } | null>(null);
-  const [associates, setAssociates] = useState<Associate[]>([]);
-  const [skills, setSkills] = useState<Skill[]>([]);
-  const [associateSkills, setAssociateSkills] = useState<AssociateSkill[]>([]);
-  const [workstations, setWorkstations] = useState<Workstation[]>([]);
-  const [productionLines, setProductionLines] = useState<ProductionLine[]>([]);
-  const [shifts, setShifts] = useState<Shift[]>([]);
-  const [allocations, setAllocations] = useState<Allocation[]>([]);
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
-  const [leaveRecords, setLeaveRecords] = useState<LeaveRecord[]>([]);
-  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+
+  // Load from LocalStorage fallback on mount
+  useEffect(() => {
+    const storedToken = localStorage.getItem('pepsico_token');
+    const storedUser = localStorage.getItem('pepsico_user');
+    const storedRole = localStorage.getItem('pepsico_role');
+
+    if (storedToken && storedUser) {
+      setToken(storedToken);
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        setUser(null);
+      }
+    }
+
+    if (storedRole) {
+      try {
+        setRole(JSON.parse(storedRole) as UserRole);
+      } catch {
+        setRole(storedRole as UserRole);
+      }
+    } else {
+      setRole('Production Supervisor');
+    }
+  }, []);
 
   const handleLogin = (newToken: string, newUser: { name: string; email: string; userId: string }, newRole: UserRole) => {
     setToken(newToken);
@@ -280,89 +172,83 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return res;
   };
 
-  const fetchState = async () => {
-    try {
-      // skipLogoutOn401=true: if the stored token is expired, fall back gracefully
-      // instead of triggering an auto-logout that can race with manual login
-      const res = await fetch("/api/v1/state", {}, true);
-      if (res.status === 401) {
-        // Token expired — clear stale localStorage and fall through to local data
-        localStorage.removeItem('pepsico_token');
-        localStorage.removeItem('pepsico_user');
-        localStorage.removeItem('pepsico_role');
-        setToken(null);
-        setUser(null);
-        throw new Error('Token expired');
-      }
-      if (!res.ok) throw new Error("Backend response not OK");
-      const data = await res.json();
-      setAssociates(data.associates || []);
-      setSkills(data.skills || []);
-      setAssociateSkills(data.associateSkills || []);
-      setWorkstations(data.workstations || []);
-      setProductionLines(data.productionLines || []);
-      setShifts(data.shifts || []);
-      setAllocations(data.allocations || []);
-      setLeaveRecords(data.leaveRecords || []);
-      setAuditLogs(data.auditLogs || []);
-      setAttendanceRecords(data.attendanceRecords || []);
-    } catch (err) {
-      console.error("Failed to fetch state from backend, falling back to local storage:", err);
-      const loadData = <T,>(key: string, initial: T): T => {
-        const stored = localStorage.getItem(`pepsico_${key}`);
-        return stored ? JSON.parse(stored) : initial;
-      };
-      // Master data — safe to load from localStorage (doesn't have date-dependent rows)
-      setAssociates(loadData('associates', initialAssociates));
-      setSkills(loadData('skills', initialSkills));
-      setAssociateSkills(loadData('associateSkills', initialAssociateSkills));
-      setWorkstations(loadData('workstations', initialWorkstations));
-      setProductionLines(loadData('productionLines', initialProductionLines));
-      setShifts(loadData('shifts', initialShifts));
-      // Time-sensitive data — always use fresh dynamic seed so dates match today
-      // (stale localStorage cache from previous days would show 0% fill rate)
-      setAllocations(initialAllocations);
-      setAuditLogs(initialAuditLogs);
-      setLeaveRecords(initialLeaveRecords);
-      setAttendanceRecords([]);
-    }
-  };
+  // Queries
+  const createQuery = <T,>(key: string, url: string, fallbackData: T) => useQuery<T>({
+    queryKey: [key],
+    queryFn: async () => {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Failed to fetch ${key}`);
+      return res.json();
+    },
+    enabled: !!token,
+    initialData: fallbackData,
+  });
 
-  // Load from Backend or LocalStorage fallback on mount
-  useEffect(() => {
-    const storedToken = localStorage.getItem('pepsico_token');
-    const storedUser = localStorage.getItem('pepsico_user');
-    const storedRole = localStorage.getItem('pepsico_role');
+  const associatesQuery = createQuery('associates', '/api/v1/associates', initialAssociates);
+  const skillsQuery = createQuery('skills', '/api/v1/skills', initialSkills);
+  const associateSkillsQuery = createQuery('associateSkills', '/api/v1/associate-skills', initialAssociateSkills);
+  const workstationsQuery = createQuery('workstations', '/api/v1/workstations', initialWorkstations);
+  const productionLinesQuery = createQuery('productionLines', '/api/v1/production-lines', initialProductionLines);
+  const shiftsQuery = createQuery('shifts', '/api/v1/shifts', initialShifts);
+  const allocationsQuery = createQuery('allocations', '/api/v1/allocations', initialAllocations);
+  const leaveRecordsQuery = createQuery('leaveRecords', '/api/v1/leave', initialLeaveRecords);
+  const auditLogsQuery = createQuery('auditLogs', '/api/v1/audit-logs', initialAuditLogs);
+  const attendanceRecordsQuery = createQuery('attendanceRecords', '/api/v1/attendance', []);
 
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        setUser(null);
-      }
-    }
-
-    if (storedRole) {
-      try {
-        setRole(JSON.parse(storedRole) as UserRole);
-      } catch {
-        setRole(storedRole as UserRole);
-      }
-    } else {
-      setRole('Production Supervisor');
-    }
-  }, []);
-
-  // Fetch state on mount and whenever token changes
-  useEffect(() => {
-    fetchState();
-  }, [token]);
+  // Map to local variables for context
+  const associates = associatesQuery.data as Associate[];
+  const skills = skillsQuery.data as Skill[];
+  const associateSkills = associateSkillsQuery.data as AssociateSkill[];
+  const workstations = workstationsQuery.data as Workstation[];
+  const productionLines = productionLinesQuery.data as ProductionLine[];
+  const shifts = shiftsQuery.data as Shift[];
+  const allocations = allocationsQuery.data as Allocation[];
+  const leaveRecords = leaveRecordsQuery.data as LeaveRecord[];
+  const auditLogs = auditLogsQuery.data as AuditLog[];
+  const attendanceRecords = attendanceRecordsQuery.data as AttendanceRecord[];
 
   // Save to LocalStorage helper
   const saveData = <T,>(key: string, data: T) => {
     localStorage.setItem(`pepsico_${key}`, JSON.stringify(data));
   };
+
+  // Setters to bridge old useState code with React Query cache
+  const setAssociates = (updater: (prev: Associate[]) => Associate[]) => {
+    queryClient.setQueryData(['associates'], (old: Associate[] | undefined) => { const next = updater(old || initialAssociates); saveData('associates', next); return next; });
+  };
+  const setSkills = (updater: (prev: Skill[]) => Skill[]) => {
+    queryClient.setQueryData(['skills'], (old: Skill[] | undefined) => { const next = updater(old || initialSkills); saveData('skills', next); return next; });
+  };
+  const setAssociateSkills = (updater: (prev: AssociateSkill[]) => AssociateSkill[]) => {
+    queryClient.setQueryData(['associateSkills'], (old: AssociateSkill[] | undefined) => { const next = updater(old || initialAssociateSkills); saveData('associateSkills', next); return next; });
+  };
+  const setWorkstations = (updater: (prev: Workstation[]) => Workstation[]) => {
+    queryClient.setQueryData(['workstations'], (old: Workstation[] | undefined) => { const next = updater(old || initialWorkstations); saveData('workstations', next); return next; });
+  };
+  const setProductionLines = (updater: (prev: ProductionLine[]) => ProductionLine[]) => {
+    queryClient.setQueryData(['productionLines'], (old: ProductionLine[] | undefined) => { const next = updater(old || initialProductionLines); saveData('productionLines', next); return next; });
+  };
+  const setShifts = (updater: (prev: Shift[]) => Shift[]) => {
+    queryClient.setQueryData(['shifts'], (old: Shift[] | undefined) => { const next = updater(old || initialShifts); saveData('shifts', next); return next; });
+  };
+  const setAllocations = (updater: (prev: Allocation[]) => Allocation[]) => {
+    queryClient.setQueryData(['allocations'], (old: Allocation[] | undefined) => { const next = updater(old || initialAllocations); saveData('allocations', next); return next; });
+  };
+  const setLeaveRecords = (updater: (prev: LeaveRecord[]) => LeaveRecord[]) => {
+    queryClient.setQueryData(['leaveRecords'], (old: LeaveRecord[] | undefined) => { const next = updater(old || initialLeaveRecords); saveData('leaveRecords', next); return next; });
+  };
+  const setAuditLogs = (updater: (prev: AuditLog[]) => AuditLog[]) => {
+    queryClient.setQueryData(['auditLogs'], (old: AuditLog[] | undefined) => { const next = updater(old || initialAuditLogs); saveData('auditLogs', next); return next; });
+  };
+  const setAttendanceRecords = (updater: (prev: AttendanceRecord[]) => AttendanceRecord[]) => {
+    queryClient.setQueryData(['attendanceRecords'], (old: AttendanceRecord[] | undefined) => { const next = updater(old || []); saveData('attendanceRecords', next); return next; });
+  };
+
+  const fetchState = () => {
+    queryClient.invalidateQueries();
+  };
+
+
 
   const handleSetRole = (newRole: UserRole) => {
     setRole(newRole);
