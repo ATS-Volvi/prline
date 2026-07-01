@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { 
   Associate, Skill, AssociateSkill, Workstation, ProductionLine, 
   Shift, Allocation, AuditLog, LeaveRecord, AttendanceRecord 
-} from '@prline/database';
+} from '../../../database/models/models/models';
 import { catchAsync } from '../middleware/errorHandler';
 
 export const getAssociates = catchAsync(async (req: Request, res: Response) => {

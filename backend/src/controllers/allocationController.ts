@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Workstation, Allocation, Associate } from '@prline/database';
+import { Workstation, Allocation, Associate } from '../../../database/models/models/models';
 import { logAction } from '../services/auditService';
 import { autoAllocate } from '../services/allocationService';
 import { catchAsync } from '../middleware/errorHandler';

@@ -11,7 +11,7 @@ import {
   AuditLog,
   LeaveRecord as LeaveRecordType, // avoid clash if any
   AttendanceRecord
-} from "@prline/database";
+} from "../../../../database/models/models/models";
 import AuthHandler from "../../../middleware/authHandler";
 import UserTypeHandler from "../../../middleware/getUserType";
 import { logAction } from "../../../src/services/auditService";

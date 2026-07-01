@@ -1,4 +1,4 @@
-import { Associate, AssociateSkill, LeaveRecord, Allocation, Workstation } from "@prline/database";
+import { Associate, AssociateSkill, LeaveRecord, Allocation, Workstation } from "../../../database/models/models/models";
 import { logAction } from "./auditService";
 
 const SKILL_LEVEL_VALUE: Record<string, number> = {
