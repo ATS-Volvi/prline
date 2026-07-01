@@ -61,12 +61,21 @@ export default {
         xl: '0.75rem',
         full: '9999px',
       },
+      // Extended spacing — includes Tailwind v4 tokens (4.5, 3.5, margin-desktop, etc.)
       spacing: {
         xs: '4px',
         sm: '8px',
         md: '16px',
         lg: '24px',
         xl: '32px',
+        '3.5': '0.875rem',
+        '4.5': '1.125rem',
+        '0.5': '0.125rem',
+        '1.5': '0.375rem',
+        '2.5': '0.625rem',
+        'margin-desktop': '24px',
+        'gutter': '16px',
+        'touch-target': '48px',
       },
       fontFamily: {
         sans: ["Inter", "-apple-system", "Segoe UI", "Helvetica Neue", "sans-serif"],
