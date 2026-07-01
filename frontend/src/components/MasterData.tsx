@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import type { Associate, Workstation, AssociateCategory, SkillLevel, ProductionLine, LineStatus, Skill, Shift } from '../types';
 
@@ -33,8 +33,620 @@ export const MasterData: React.FC = () => {
     return (stored as any) || 'associates';
   });
 
+  // Profile View States
+  const [selectedAssociate, setSelectedAssociate] = useState<Associate | null>(null);
+  const [profileTab, setProfileTab] = useState<'skills' | 'certs' | 'training' | 'logs'>('skills');
+  const [selectedAssociateLogs, setSelectedAssociateLogs] = useState<PerformanceLog[]>([]);
+  const [showAddLogModal, setShowAddLogModal] = useState(false);
+  const [newLogType, setNewLogType] = useState<'Commendation' | 'Safety Note' | 'Attendance'>('Commendation');
+  const [newLogTitle, setNewLogTitle] = useState('');
+  const [newLogDesc, setNewLogDesc] = useState('');
+
+  interface PerformanceLog {
+    id: string;
+    associateId: string;
+    type: 'Commendation' | 'Safety Note' | 'Attendance';
+    title: string;
+    description: string;
+    date: string;
+    supervisor: string;
+  }
+
+  // Load logs on associate change
+  useEffect(() => {
+    if (selectedAssociate) {
+      const stored = localStorage.getItem(`perf_logs_${selectedAssociate.id}`);
+      if (stored) {
+        setSelectedAssociateLogs(JSON.parse(stored));
+      } else {
+        const defaults: PerformanceLog[] = [
+          {
+            id: 'log-1',
+            associateId: selectedAssociate.id,
+            type: 'Commendation',
+            title: 'Exceptional handling of frying unit calibration',
+            description: 'Exceptional handling of frying unit calibration during peak shift, preventing 2h of potential downtime.',
+            date: '2024-02-20',
+            supervisor: 'Sarah Miller'
+          },
+          {
+            id: 'log-2',
+            associateId: selectedAssociate.id,
+            type: 'Safety Note',
+            title: 'Reported worn seal on Seasoning Drum',
+            description: 'Reported a worn seal on Seasoning Drum S-04 before failure.',
+            date: '2024-01-12',
+            supervisor: 'Admin User'
+          },
+          {
+            id: 'log-3',
+            associateId: selectedAssociate.id,
+            type: 'Attendance',
+            title: 'Volunteered for overtime shift',
+            description: 'Volunteered for overtime shift on Kurkure Line A.',
+            date: '2023-12-05',
+            supervisor: 'James Dalton'
+          }
+        ];
+        setSelectedAssociateLogs(defaults);
+        localStorage.setItem(`perf_logs_${selectedAssociate.id}`, JSON.stringify(defaults));
+      }
+    }
+  }, [selectedAssociate]);
+
+  const handleAddLog = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newLogTitle || !newLogDesc || !selectedAssociate) return;
+
+    const newLog: PerformanceLog = {
+      id: 'log-' + Date.now(),
+      associateId: selectedAssociate.id,
+      type: newLogType,
+      title: newLogTitle,
+      description: newLogDesc,
+      date: new Date().toISOString().split('T')[0],
+      supervisor: role || 'Admin User'
+    };
+
+    const updated = [newLog, ...selectedAssociateLogs];
+    setSelectedAssociateLogs(updated);
+    localStorage.setItem(`perf_logs_${selectedAssociate.id}`, JSON.stringify(updated));
+
+    // Reset Form
+    setNewLogTitle('');
+    setNewLogDesc('');
+    setShowAddLogModal(false);
+  };
+
+  const getAvatarUrl = (name: string) => {
+    if (name.includes("Marcus") || name.includes("Chen")) {
+      return "https://lh3.googleusercontent.com/aida-public/AB6AXuDfI-JZyjb1pQwgoRAtI8MGXNX2TkA8IMEQGilu9TafNco6H0681KiHavWtbDCOinqxPmMVNW7cH2PGWBix5r5qN2C9dtJepLRZ5jQe-w5EM4EAd4HpvXjXE2ZjUfZ8L0JYCnIpFNelIEATQDAcZpx-hcSk2br-2DUV4G-gnc11DusyAddAz185_iYFO8pJdibyEO4J1XRizRZ5LQl04mYp3jucUv_Ldv1I8ajvM3NZ3OargpKyQvu6reWcSh6mOS_F6lv4y82etqE";
+    }
+    const malePortraits = [
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80"
+    ];
+    const femalePortraits = [
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80"
+    ];
+    const isFemale = name.match(/[aieou]$/i) || name.includes("Priya") || name.includes("S.") || name.includes("Petrova") || name.includes("L Wong") || name.includes("Miller");
+    const list = isFemale ? femalePortraits : malePortraits;
+    const hash = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return list[hash % list.length];
+  };
+
+  const getTenure = (joiningDateStr: string) => {
+    const joining = new Date(joiningDateStr);
+    const today = new Date();
+    const diffTime = today.getTime() - joining.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) return "New Joinee";
+    if (diffDays < 365) {
+      const months = Math.floor(diffDays / 30);
+      return `${months} Month${months !== 1 ? 's' : ''} Tenure`;
+    }
+    const years = (diffDays / 365).toFixed(1);
+    return `${years} Year${parseFloat(years) !== 1 ? 's' : ''} Tenure`;
+  };
+
+  const getSkillIcon = (id: string) => {
+    switch (id) {
+      case 'BLADE_OPT': return 'build';
+      case 'HYGIENE_L2': return 'clean_hands';
+      case 'HEAT_SAFETY': return 'local_fire_department';
+      case 'OIL_MGMT': return 'oil_barrel';
+      case 'SPICE_MIX': return 'restaurant';
+      case 'MECH_OP': return 'engineering';
+      case 'QA_L1': return 'rule';
+      case 'CHEM_CERT': return 'science';
+      default: return 'workspace_premium';
+    }
+  };
+
+  const renderAssociateProfile = (assoc: Associate) => {
+    const mySkills = associateSkills.filter(s => s.associateId === assoc.id);
+    const avatarUrl = getAvatarUrl(assoc.name);
+    const tenure = getTenure(assoc.joiningDate);
+    
+    // Check if employee is supervisor
+    const isSupervisor = assoc.category === 'Company' || assoc.name.includes("Miller") || assoc.name.includes("Sharma");
+    const designation = isSupervisor ? 'Line Supervisor' : 'Line Operator';
+    
+    // Attendance and OT Hours based on ID hash
+    const nameHash = assoc.name.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    const attendance = (97.5 + (nameHash % 25) / 10).toFixed(1);
+    const otHours = 80 + (nameHash % 80);
+    const productivity = "+" + (3.2 + (nameHash % 30) / 10).toFixed(1) + "%";
+
+    return (
+      <div className="flex-grow flex flex-col gap-6 select-text overflow-y-auto px-1 py-1 custom-scrollbar">
+        
+        {/* Breadcrumb / Back button bar */}
+        <div className="flex items-center gap-2 text-xs text-secondary mb-2">
+          <button 
+            type="button"
+            onClick={() => setSelectedAssociate(null)} 
+            className="hover:text-primary hover:underline font-bold flex items-center gap-1 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+            Associate Master
+          </button>
+          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+          <span className="font-bold text-primary font-mono">{assoc.name}</span>
+        </div>
+
+        {/* Profile Header Card */}
+        <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-premium-sm">
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <div className="w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden border-2 border-outline-variant shadow-premium-sm">
+                <img alt={assoc.name} className="w-full h-full object-cover" src={avatarUrl} />
+              </div>
+              {assoc.status === 'Active' && (
+                <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-1 rounded-lg border-2 border-surface-container-lowest shadow-premium-sm flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[14px] font-bold">verified</span>
+                </div>
+              )}
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-[#0F172A]">{assoc.name}</h1>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[11px] text-secondary">
+                <span className="font-mono bg-surface-container px-2 py-0.5 rounded text-on-surface-variant font-bold">{assoc.id}</span>
+                <span className="flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">badge</span>
+                  <span className="font-semibold">{designation}</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">location_on</span>
+                  <span className="font-semibold">Line B - Food Processing</span>
+                </span>
+              </div>
+              <div className="mt-3 flex gap-2">
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 shadow-premium-sm ${
+                  assoc.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-600 border-slate-200'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${assoc.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                  {assoc.status === 'Active' ? 'On Duty' : 'Off Duty'}
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full bg-slate-50 text-slate-700 text-[10px] font-bold border border-slate-200 shadow-premium-sm">
+                  {tenure}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-2.5 w-full md:w-auto">
+            <button 
+              type="button"
+              onClick={() => window.print()}
+              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 border border-outline-variant rounded-lg text-[10px] font-bold text-on-surface hover:bg-surface-container transition-colors shadow-premium-sm cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px]">ios_share</span>
+              Export Report
+            </button>
+            <button 
+              type="button"
+              onClick={() => startEditAssociate(assoc)}
+              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-primary text-white rounded-lg text-[10px] font-bold hover:bg-slate-900 transition-all active:scale-[0.98] shadow-premium-md cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px]">edit</span>
+              Edit Profile
+            </button>
+          </div>
+        </section>
+
+        {/* Tab Navigation */}
+        <nav className="border-b border-outline-variant mt-2">
+          <div className="flex gap-6 overflow-x-auto custom-scrollbar">
+            {(['skills', 'certs', 'training', 'logs'] as const).map(tab => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setProfileTab(tab)}
+                className={`pb-3 text-xs font-bold whitespace-nowrap transition-all cursor-pointer relative ${
+                  profileTab === tab ? 'text-primary' : 'text-secondary opacity-60 hover:opacity-100'
+                }`}
+              >
+                {tab === 'skills' ? 'Skills Matrix' : tab === 'certs' ? 'Certifications' : tab === 'training' ? 'Training History' : 'Performance Logs'}
+                {profileTab === tab && (
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"></div>
+                )}
+              </button>
+            ))}
+          </div>
+        </nav>
+
+        {/* Tab Content */}
+        <div className="flex-grow mt-2">
+          
+          {/* TAB: Skills Matrix */}
+          {profileTab === 'skills' && (
+            <div className="flex flex-col gap-6">
+              {mySkills.length === 0 ? (
+                <div className="p-8 border border-dashed border-outline-variant rounded-xl text-center text-secondary text-xs">
+                  No skills certified yet. Click "Edit Profile" to assign skills to this employee.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {mySkills.map(ms => {
+                    const sk = skills.find(s => s.id === ms.skillId);
+                    const icon = getSkillIcon(ms.skillId);
+                    
+                    // Proficiency bar calculations
+                    const barWidth = ms.level === 'Trainee' ? '30%' : ms.level === 'Operator' ? '60%' : ms.level === 'Certified' ? '85%' : '100%';
+                    const barColor = ms.level === 'Trainee' ? 'bg-amber-500' : ms.level === 'Operator' ? 'bg-blue-500' : ms.level === 'Certified' ? 'bg-indigo-650' : 'bg-emerald-500';
+                    const score = ms.level === 'Trainee' ? '30%' : ms.level === 'Operator' ? '60%' : ms.level === 'Certified' ? '85%' : '98%';
+
+                    return (
+                      <div key={ms.skillId} className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:border-primary transition-all group flex flex-col justify-between shadow-premium-sm">
+                        <div className="mb-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="p-2 bg-surface-container-low rounded-lg text-primary">
+                              <span className="material-symbols-outlined text-[20px]">{icon}</span>
+                            </div>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border ${
+                              ms.level === 'Expert' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
+                              ms.level === 'Certified' ? 'bg-indigo-50 text-indigo-850 border-indigo-250' :
+                              ms.level === 'Operator' ? 'bg-blue-50 text-blue-800 border-blue-200' :
+                              'bg-amber-50 text-amber-800 border-amber-250'
+                            }`}>
+                              {ms.level}
+                            </span>
+                          </div>
+                          <h3 className="font-bold text-sm text-[#0F172A] group-hover:text-primary transition-colors">{sk?.name || ms.skillId}</h3>
+                          <p className="text-[11px] text-secondary mt-1 leading-relaxed line-clamp-2">{sk?.description || 'Operational competence certificate.'}</p>
+                        </div>
+                        <div className="space-y-2 pt-3 border-t border-slate-100">
+                          <div className="flex justify-between text-[10px] font-bold text-slate-700">
+                            <span>Proficiency</span>
+                            <span className="font-mono">{score}</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+                            <div className={`h-full ${barColor} rounded-full`} style={{ width: barWidth }}></div>
+                          </div>
+                          <div className="flex justify-between items-center text-[10px] text-secondary pt-1.5">
+                            <span>Last Assessed:</span>
+                            <span className="font-mono font-bold text-[#0F172A]">{ms.trainingDate}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Operational Reliability Section */}
+              <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 flex flex-col md:flex-row gap-6 items-center justify-between shadow-premium-sm">
+                <div className="flex-grow w-full space-y-3">
+                  <h4 className="font-bold text-xs text-primary flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[16px] text-emerald-500 font-bold">verified_user</span>
+                    OPERATIONAL RELIABILITY INDEX
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1">
+                    <div>
+                      <p className="text-[10px] text-secondary">Attendance</p>
+                      <p className="font-headline-md text-sm font-bold text-[#0F172A]">{attendance}%</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-secondary">Safety Incidents</p>
+                      <p className="font-headline-md text-sm font-bold text-emerald-600">0</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-secondary">OT Hours</p>
+                      <p className="font-headline-md text-sm font-bold text-[#0F172A]">{otHours}h</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-secondary">Productivity</p>
+                      <p className="font-headline-md text-sm font-bold text-emerald-600">{productivity}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Circular Gauge visual representation */}
+                <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      className="text-slate-100"
+                      strokeWidth="3.5"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      className="text-emerald-500"
+                      strokeDasharray={`${attendance}, 100`}
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <div className="absolute text-[11px] font-bold font-mono text-primary">{attendance}%</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: Certifications */}
+          {profileTab === 'certs' && (
+            <div className="flex flex-col gap-6">
+              {mySkills.length === 0 ? (
+                <div className="p-8 border border-dashed border-outline-variant rounded-xl text-center text-secondary text-xs">
+                  No active certifications available. Click "Edit Profile" to map certified skills.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {mySkills.map(ms => {
+                    const sk = skills.find(s => s.id === ms.skillId);
+                    
+                    // Determine validity
+                    const isExpired = new Date(ms.expiryDate) < new Date();
+                    const isExpiringSoon = !isExpired && (new Date(ms.expiryDate).getTime() - new Date().getTime()) < (90 * 24 * 60 * 60 * 1000);
+                    const statusText = isExpired ? 'Expired' : isExpiringSoon ? 'Expiring Soon' : 'Valid';
+
+                    return (
+                      <div key={ms.skillId} className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:border-primary transition-all group flex flex-col justify-between shadow-premium-sm">
+                        <div>
+                          <div className="flex justify-between items-start mb-4">
+                            <div className={`p-2 rounded-lg ${isExpired ? 'bg-rose-50 text-rose-600' : isExpiringSoon ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                              <span className="material-symbols-outlined text-[20px]">workspace_premium</span>
+                            </div>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border ${
+                              isExpired ? 'bg-rose-50 text-rose-800 border-rose-200' :
+                              isExpiringSoon ? 'bg-amber-50 text-amber-800 border-amber-200' :
+                              'bg-emerald-50 text-emerald-800 border-emerald-200'
+                            }`}>
+                              {statusText}
+                            </span>
+                          </div>
+                          <h3 className="font-bold text-sm text-[#0F172A]">{sk?.name || ms.skillId} Certification</h3>
+                          <p className="text-[10px] text-secondary mt-1">ID: CRT-{assoc.id}-{ms.skillId}</p>
+                          <p className="text-[10px] text-secondary mt-1">Authority: {ms.certifiedBy || 'Safety Board'}</p>
+                        </div>
+                        <div className="space-y-1.5 pt-3.5 mt-4 border-t border-slate-100 text-[10px]">
+                          <div className="flex justify-between">
+                            <span className="text-secondary">Issued:</span>
+                            <span className="font-mono font-bold text-[#0F172A]">{ms.trainingDate}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-secondary">Expires:</span>
+                            <span className="font-mono font-bold text-[#0F172A]">{ms.expiryDate}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB: Training History */}
+          {profileTab === 'training' && (
+            <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-premium-sm">
+              <div className="relative border-l border-slate-200 pl-8 space-y-6">
+                
+                {/* Certified Skills Training timeline items */}
+                {mySkills.map(ms => {
+                  const sk = skills.find(s => s.id === ms.skillId);
+                  return (
+                    <div key={ms.skillId} className="relative">
+                      {/* Timeline dot */}
+                      <span className="absolute -left-10 top-1 w-4 h-4 rounded-full bg-emerald-500 border-4 border-surface-container-lowest shadow-premium-sm flex items-center justify-center"></span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-container-low/40 p-4 border border-outline-variant rounded-lg shadow-premium-sm">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-xs text-[#0F172A]">Advanced {sk?.name || ms.skillId} Training Course</h4>
+                            <span className="bg-emerald-50 text-emerald-800 border border-emerald-100 text-[8px] font-bold px-1.5 py-0.2 rounded uppercase">Completed</span>
+                          </div>
+                          <div className="flex gap-4 text-[10px] text-secondary mt-1">
+                            <span className="flex items-center gap-1 font-mono font-bold">
+                              <span className="material-symbols-outlined text-[12px]">calendar_today</span>
+                              {ms.trainingDate}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[12px]">schedule</span>
+                              4h Duration
+                            </span>
+                          </div>
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => alert("Verification code matches certificate id.")}
+                          className="text-primary hover:underline text-[10px] font-bold flex items-center gap-1 cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">description</span>
+                          View Certificate
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Default General Training timeline items */}
+                <div className="relative">
+                  <span className="absolute -left-10 top-1 w-4 h-4 rounded-full bg-emerald-500 border-4 border-surface-container-lowest shadow-premium-sm"></span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-container-low/40 p-4 border border-outline-variant rounded-lg shadow-premium-sm">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-xs text-[#0F172A]">General Safety & Plant Operations Induction</h4>
+                        <span className="bg-emerald-50 text-emerald-800 border border-emerald-100 text-[8px] font-bold px-1.5 py-0.2 rounded uppercase">Completed</span>
+                      </div>
+                      <div className="flex gap-4 text-[10px] text-secondary mt-1">
+                        <span className="flex items-center gap-1 font-mono font-bold">
+                          <span className="material-symbols-outlined text-[12px]">calendar_today</span>
+                          {assoc.joiningDate}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[12px]">schedule</span>
+                          2h Duration
+                        </span>
+                      </div>
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => alert("Verification code matches onboarding checklist.")}
+                      className="text-primary hover:underline text-[10px] font-bold flex items-center gap-1 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">description</span>
+                      View Checklist
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {/* TAB: Performance Logs */}
+          {profileTab === 'logs' && (
+            <div className="flex flex-col gap-6">
+              
+              <div className="flex justify-between items-center">
+                <h2 className="font-bold text-xs text-primary uppercase font-mono tracking-wider">Performance History</h2>
+                <button
+                  type="button"
+                  onClick={() => setShowAddLogModal(true)}
+                  className="py-1.5 px-3 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-900 flex items-center gap-1 shadow-premium-sm transition-all active:scale-[0.98] cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[14px]">add</span>
+                  Add Log Entry
+                </button>
+              </div>
+
+              {/* Logs List */}
+              {selectedAssociateLogs.length === 0 ? (
+                <div className="p-8 border border-dashed border-outline-variant rounded-xl text-center text-secondary text-xs">
+                  No performance history logs available for this associate.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {selectedAssociateLogs.map(log => {
+                    const isCommendation = log.type === 'Commendation';
+                    const isSafety = log.type === 'Safety Note';
+                    const typeColor = isCommendation ? 'bg-emerald-50 text-emerald-800 border-emerald-100' :
+                                      isSafety ? 'bg-blue-50 text-blue-800 border-blue-100' :
+                                      'bg-slate-50 text-slate-700 border-slate-200';
+                    return (
+                      <div key={log.id} className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 flex flex-col md:flex-row gap-4 items-start shadow-premium-sm">
+                        <div className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border shrink-0 ${typeColor}`}>
+                          {log.type}
+                        </div>
+                        <div className="flex-grow">
+                          <div className="flex justify-between items-start mb-1 gap-4">
+                            <h4 className="font-bold text-xs text-[#0F172A]">{log.title}</h4>
+                            <span className="text-[10px] font-mono font-bold text-secondary shrink-0">{log.date}</span>
+                          </div>
+                          <p className="text-xs text-secondary mt-1.5 italic font-medium">"{log.description}"</p>
+                          <div className="flex items-center gap-1 text-[10px] text-secondary mt-3 font-semibold">
+                            <span className="material-symbols-outlined text-[14px]">person</span>
+                            <span>Supervisor: {log.supervisor}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+        </div>
+
+        {/* Add Log Entry Overlay Modal */}
+        {showAddLogModal && (
+          <div className="fixed inset-0 bg-[#091426]/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-surface-container-lowest border border-outline-variant rounded-xl max-w-md w-full p-6 shadow-premium-lg flex flex-col gap-4 text-xs animate-slide-up select-text">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                <h3 className="font-bold text-sm text-primary uppercase font-mono tracking-wider">Add Performance Log</h3>
+                <button 
+                  type="button"
+                  onClick={() => setShowAddLogModal(false)}
+                  className="p-1 hover:bg-slate-100 rounded text-secondary cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px] font-bold">close</span>
+                </button>
+              </div>
+              <form onSubmit={handleAddLog} className="space-y-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-secondary uppercase text-[9px] font-mono tracking-wider">Log Type</label>
+                  <select
+                    value={newLogType}
+                    onChange={(e) => setNewLogType(e.target.value as any)}
+                    className="py-2 px-3 border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary bg-surface-container-lowest font-bold text-xs cursor-pointer shadow-premium-sm"
+                  >
+                    <option value="Commendation">Commendation</option>
+                    <option value="Safety Note">Safety Note</option>
+                    <option value="Attendance">Attendance</option>
+                  </select>
+                </div>
+                
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-secondary uppercase text-[9px] font-mono tracking-wider">Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={newLogTitle}
+                    onChange={(e) => setNewLogTitle(e.target.value)}
+                    placeholder="e.g. Completed Shift in High Heat Station"
+                    className="py-2 px-3 border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary bg-surface-container-low text-xs shadow-premium-sm"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-secondary uppercase text-[9px] font-mono tracking-wider">Description</label>
+                  <textarea
+                    required
+                    rows={3}
+                    value={newLogDesc}
+                    onChange={(e) => setNewLogDesc(e.target.value)}
+                    placeholder="Provide details about the log entry..."
+                    className="py-2 px-3 border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary bg-surface-container-low text-xs shadow-premium-sm"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-2 bg-primary text-white font-bold rounded-lg hover:bg-slate-900 transition-all shadow-premium-sm font-mono uppercase tracking-wider text-[10px] cursor-pointer"
+                >
+                  Save Log Entry
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+      </div>
+    );
+  };
+
   const changeSubTab = (tab: 'associates' | 'workstations' | 'skills' | 'lines' | 'shifts') => {
     setActiveSubTab(tab);
+    setSelectedAssociate(null);
     localStorage.setItem('master_data_sub_tab', tab);
   };
 
@@ -377,8 +989,11 @@ export const MasterData: React.FC = () => {
           
           {/* Sub-tab: Associates */}
           {activeSubTab === 'associates' && (
-            <>
-              <div className="flex justify-between items-center">
+            selectedAssociate ? (
+              renderAssociateProfile(selectedAssociate)
+            ) : (
+              <>
+                <div className="flex justify-between items-center">
                 <div>
                   <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">Associate List</h2>
                   <p className="text-[10px] text-secondary">Manage shift operators, contractors, and category classifications</p>
@@ -412,8 +1027,18 @@ export const MasterData: React.FC = () => {
                       const skillsCount = associateSkills.filter(s => s.associateId === assoc.id).length;
                       return (
                         <tr key={assoc.id} className="hover:bg-surface-container-low/50 transition-colors">
-                          <td className="p-3.5 font-mono font-bold text-primary">{assoc.id}</td>
-                          <td className="p-3.5 font-bold text-on-surface">{assoc.name}</td>
+                          <td 
+                            className="p-3.5 font-mono font-bold text-primary hover:underline cursor-pointer"
+                            onClick={() => { setSelectedAssociate(assoc); setProfileTab('skills'); }}
+                          >
+                            {assoc.id}
+                          </td>
+                          <td 
+                            className="p-3.5 font-bold text-on-surface hover:underline cursor-pointer"
+                            onClick={() => { setSelectedAssociate(assoc); setProfileTab('skills'); }}
+                          >
+                            {assoc.name}
+                          </td>
                           <td className="p-3.5 font-mono text-secondary font-semibold">{assoc.plantIdRef || 'N/A'}</td>
                           <td className="p-3.5 text-secondary font-medium">{assoc.category}</td>
                           <td className="p-3.5 font-mono text-secondary">{assoc.joiningDate}</td>
@@ -456,6 +1081,7 @@ export const MasterData: React.FC = () => {
                 </table>
               </div>
             </>
+            )
           )}
 
           {/* Sub-tab: Workstations */}
