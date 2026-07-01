@@ -106,6 +106,13 @@ const initialLeaveRecords: LeaveRecord[] = [];
 const initialAllocations: Allocation[] = [];
 const initialAuditLogs: AuditLog[] = [];
 
+const SKILL_LEVEL_VALUE: Record<SkillLevel, number> = {
+  'Trainee': 1,
+  'Operator': 2,
+  'Certified': 3,
+  'Expert': 4,
+};
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const queryClient = useQueryClient();
   const [role, setRole] = useState<UserRole>('Production Supervisor');
@@ -213,35 +220,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Setters to bridge old useState code with React Query cache
-  const setAssociates = (updater: (prev: Associate[]) => Associate[]) => {
-    queryClient.setQueryData(['associates'], (old: Associate[] | undefined) => { const next = updater(old || initialAssociates); saveData('associates', next); return next; });
+  const setAssociates = (updater: Associate[] | ((prev: Associate[]) => Associate[])) => {
+    queryClient.setQueryData(['associates'], (old: Associate[] | undefined) => { const next = typeof updater === 'function' ? updater(old || initialAssociates) : updater; saveData('associates', next); return next; });
   };
-  const setSkills = (updater: (prev: Skill[]) => Skill[]) => {
-    queryClient.setQueryData(['skills'], (old: Skill[] | undefined) => { const next = updater(old || initialSkills); saveData('skills', next); return next; });
+  const setSkills = (updater: Skill[] | ((prev: Skill[]) => Skill[])) => {
+    queryClient.setQueryData(['skills'], (old: Skill[] | undefined) => { const next = typeof updater === 'function' ? updater(old || initialSkills) : updater; saveData('skills', next); return next; });
   };
-  const setAssociateSkills = (updater: (prev: AssociateSkill[]) => AssociateSkill[]) => {
-    queryClient.setQueryData(['associateSkills'], (old: AssociateSkill[] | undefined) => { const next = updater(old || initialAssociateSkills); saveData('associateSkills', next); return next; });
+  const setAssociateSkills = (updater: AssociateSkill[] | ((prev: AssociateSkill[]) => AssociateSkill[])) => {
+    queryClient.setQueryData(['associateSkills'], (old: AssociateSkill[] | undefined) => { const next = typeof updater === 'function' ? updater(old || initialAssociateSkills) : updater; saveData('associateSkills', next); return next; });
   };
-  const setWorkstations = (updater: (prev: Workstation[]) => Workstation[]) => {
-    queryClient.setQueryData(['workstations'], (old: Workstation[] | undefined) => { const next = updater(old || initialWorkstations); saveData('workstations', next); return next; });
+  const setWorkstations = (updater: Workstation[] | ((prev: Workstation[]) => Workstation[])) => {
+    queryClient.setQueryData(['workstations'], (old: Workstation[] | undefined) => { const next = typeof updater === 'function' ? updater(old || initialWorkstations) : updater; saveData('workstations', next); return next; });
   };
-  const setProductionLines = (updater: (prev: ProductionLine[]) => ProductionLine[]) => {
-    queryClient.setQueryData(['productionLines'], (old: ProductionLine[] | undefined) => { const next = updater(old || initialProductionLines); saveData('productionLines', next); return next; });
+  const setProductionLines = (updater: ProductionLine[] | ((prev: ProductionLine[]) => ProductionLine[])) => {
+    queryClient.setQueryData(['productionLines'], (old: ProductionLine[] | undefined) => { const next = typeof updater === 'function' ? updater(old || initialProductionLines) : updater; saveData('productionLines', next); return next; });
   };
-  const setShifts = (updater: (prev: Shift[]) => Shift[]) => {
-    queryClient.setQueryData(['shifts'], (old: Shift[] | undefined) => { const next = updater(old || initialShifts); saveData('shifts', next); return next; });
+  const setShifts = (updater: Shift[] | ((prev: Shift[]) => Shift[])) => {
+    queryClient.setQueryData(['shifts'], (old: Shift[] | undefined) => { const next = typeof updater === 'function' ? updater(old || initialShifts) : updater; saveData('shifts', next); return next; });
   };
-  const setAllocations = (updater: (prev: Allocation[]) => Allocation[]) => {
-    queryClient.setQueryData(['allocations'], (old: Allocation[] | undefined) => { const next = updater(old || initialAllocations); saveData('allocations', next); return next; });
+  const setAllocations = (updater: Allocation[] | ((prev: Allocation[]) => Allocation[])) => {
+    queryClient.setQueryData(['allocations'], (old: Allocation[] | undefined) => { const next = typeof updater === 'function' ? updater(old || initialAllocations) : updater; saveData('allocations', next); return next; });
   };
-  const setLeaveRecords = (updater: (prev: LeaveRecord[]) => LeaveRecord[]) => {
-    queryClient.setQueryData(['leaveRecords'], (old: LeaveRecord[] | undefined) => { const next = updater(old || initialLeaveRecords); saveData('leaveRecords', next); return next; });
+  const setLeaveRecords = (updater: LeaveRecord[] | ((prev: LeaveRecord[]) => LeaveRecord[])) => {
+    queryClient.setQueryData(['leaveRecords'], (old: LeaveRecord[] | undefined) => { const next = typeof updater === 'function' ? updater(old || initialLeaveRecords) : updater; saveData('leaveRecords', next); return next; });
   };
-  const setAuditLogs = (updater: (prev: AuditLog[]) => AuditLog[]) => {
-    queryClient.setQueryData(['auditLogs'], (old: AuditLog[] | undefined) => { const next = updater(old || initialAuditLogs); saveData('auditLogs', next); return next; });
+  const setAuditLogs = (updater: AuditLog[] | ((prev: AuditLog[]) => AuditLog[])) => {
+    queryClient.setQueryData(['auditLogs'], (old: AuditLog[] | undefined) => { const next = typeof updater === 'function' ? updater(old || initialAuditLogs) : updater; saveData('auditLogs', next); return next; });
   };
-  const setAttendanceRecords = (updater: (prev: AttendanceRecord[]) => AttendanceRecord[]) => {
-    queryClient.setQueryData(['attendanceRecords'], (old: AttendanceRecord[] | undefined) => { const next = updater(old || []); saveData('attendanceRecords', next); return next; });
+  const setAttendanceRecords = (updater: AttendanceRecord[] | ((prev: AttendanceRecord[]) => AttendanceRecord[])) => {
+    queryClient.setQueryData(['attendanceRecords'], (old: AttendanceRecord[] | undefined) => { const next = typeof updater === 'function' ? updater(old || []) : updater; saveData('attendanceRecords', next); return next; });
   };
 
   const fetchState = () => {
