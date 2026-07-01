@@ -188,37 +188,38 @@ const associateSkillsData = [
   { associateId: 'EMP132', skillId: 'CHEM_CERT', level: 'Certified', trainingDate: '2025-07-20', certifiedBy: 'Lab Director', expiryDate: '2027-07-20' },
 ];
 
-export const seedDatabase = async () => {
+export const seedDatabase = async (targetUserId?: string) => {
   try {
-    console.log("Starting Database Sync and Seeding...");
+    if (targetUserId) {
+      console.log(`Seeding database for target userId: ${targetUserId}...`);
+
+      // Seed Skills scoped to user
+      await Skill.bulkCreate(skillsData.map(d => ({ ...d, userId: targetUserId })));
+
+      // Seed Lines scoped to user
+      await ProductionLine.bulkCreate(linesData.map(d => ({ ...d, userId: targetUserId })));
+
+      // Seed Workstations scoped to user
+      await Workstation.bulkCreate(workstationsData.map(d => ({ ...d, userId: targetUserId })));
+
+      // Seed Shifts scoped to user
+      await Shift.bulkCreate(shiftsData.map(d => ({ ...d, userId: targetUserId })));
+
+      // Seed Associates scoped to user
+      await Associate.bulkCreate(associatesData.map(d => ({ ...d, userId: targetUserId })));
+
+      // Seed AssociateSkills scoped to user
+      await AssociateSkill.bulkCreate(associateSkillsData.map(d => ({ ...d, userId: targetUserId })));
+
+      console.log(`Successfully seeded Kolkata Plant Snack factory for userId: ${targetUserId}.`);
+      return;
+    }
+
+    console.log("Starting Global Database Sync and Seeding...");
     
     // Sync tables with force: true to wipe existing and seed cleanly
     await sequelize.sync({ force: true });
     console.log("Database models synced successfully.");
-
-    // Seed Skills
-    await Skill.bulkCreate(skillsData);
-    console.log("Skills seeded.");
-
-    // Seed Lines
-    await ProductionLine.bulkCreate(linesData);
-    console.log("Production lines seeded.");
-
-    // Seed Workstations
-    await Workstation.bulkCreate(workstationsData);
-    console.log("Workstations seeded.");
-
-    // Seed Shifts
-    await Shift.bulkCreate(shiftsData);
-    console.log("Shifts seeded.");
-
-    // Seed Associates
-    await Associate.bulkCreate(associatesData);
-    console.log("Associates seeded.");
-
-    // Seed AssociateSkills
-    await AssociateSkill.bulkCreate(associateSkillsData);
-    console.log("Associate skills seeded.");
 
     // Seed Default Testing Users
     const hashedAdminPassword = await hashPassword('AdminPassword123');
@@ -226,7 +227,7 @@ export const seedDatabase = async () => {
     const hashedHRPassword = await hashPassword('HRPassword123');
     const hashedManagerPassword = await hashPassword('ManagerPassword123');
 
-    await User.bulkCreate([
+    const users = await User.bulkCreate([
       {
         name: 'A. Mukhopadhyay',
         email: 'admin@pepsico.com',
@@ -256,7 +257,12 @@ export const seedDatabase = async () => {
         userType: 'manager'
       }
     ]);
-    console.log("Default users seeded.");
+    console.log("Default users created. Seeding data for default users...");
+
+    // Seed data for each default user created
+    for (const u of users) {
+      await seedDatabase(u.userId);
+    }
 
     console.log("Database Seeding Completed Successfully.");
   } catch (error) {

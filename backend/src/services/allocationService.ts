@@ -8,18 +8,18 @@ const SKILL_LEVEL_VALUE: Record<string, number> = {
   'Expert': 4
 };
 
-export const autoAllocate = async (date: string, shiftId: string, lineId: string) => {
-  const lineWS = await Workstation.findAll({ where: { lineId } });
+export const autoAllocate = async (date: string, shiftId: string, lineId: string, userId?: string) => {
+  const lineWS = await Workstation.findAll({ where: { lineId, userId } });
   if (lineWS.length === 0) {
     return 0;
   }
 
-  await Allocation.destroy({ where: { date, shiftId, lineId } });
+  await Allocation.destroy({ where: { date, shiftId, lineId, userId } });
 
-  const associates = await Associate.findAll({ where: { status: 'Active' } });
-  const associateSkills = await AssociateSkill.findAll();
-  const leaveRecords = await LeaveRecord.findAll({ where: { date } });
-  const allAllocations = await Allocation.findAll({ where: { date } });
+  const associates = await Associate.findAll({ where: { status: 'Active', userId } });
+  const associateSkills = await AssociateSkill.findAll({ where: { userId } });
+  const leaveRecords = await LeaveRecord.findAll({ where: { date, userId } });
+  const allAllocations = await Allocation.findAll({ where: { date, userId } });
 
   const currentSolveAllocations: any[] = [];
   let count = 0;
@@ -81,6 +81,7 @@ export const autoAllocate = async (date: string, shiftId: string, lineId: string
         const best = candidates[0].associate;
         const newAlloc = {
           id: `A-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          userId,
           date,
           shiftId,
           lineId,
@@ -99,7 +100,7 @@ export const autoAllocate = async (date: string, shiftId: string, lineId: string
     }
   }
 
-  await logAction("ALLOCATION_CONFIRMED", `Auto-allocated ${count} workstations for Line ${lineId.replace('LINE-', '')} (Shift ${shiftId.replace('SHIFT-', '')}).`);
+  await logAction("ALLOCATION_CONFIRMED", `Auto-allocated ${count} workstations for Line ${lineId.replace('LINE-', '')} (Shift ${shiftId.replace('SHIFT-', '')}).`, userId, "reviewer");
   
   return count;
 };

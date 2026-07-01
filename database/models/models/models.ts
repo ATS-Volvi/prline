@@ -4,11 +4,13 @@ import { sequelize } from "../../config/dbConn";
 // 1. SKILL MODEL
 export class Skill extends Model {
   public id!: string;
+  public userId!: string;
   public name!: string;
   public description!: string;
 }
 Skill.init({
   id: { type: DataTypes.STRING, primaryKey: true },
+  userId: { type: DataTypes.STRING, primaryKey: true },
   name: { type: DataTypes.STRING, allowNull: false },
   description: { type: DataTypes.TEXT, allowNull: true }
 }, { sequelize, tableName: 'skills', timestamps: false });
@@ -16,12 +18,14 @@ Skill.init({
 // 2. PRODUCTION LINE MODEL
 export class ProductionLine extends Model {
   public id!: string;
+  public userId!: string;
   public name!: string;
   public currentProduct!: string;
   public status!: 'ACTIVE' | 'MAINTENANCE' | 'HALTED' | 'IDLE';
 }
 ProductionLine.init({
   id: { type: DataTypes.STRING, primaryKey: true },
+  userId: { type: DataTypes.STRING, primaryKey: true },
   name: { type: DataTypes.STRING, allowNull: false },
   currentProduct: { type: DataTypes.STRING, allowNull: false },
   status: { type: DataTypes.STRING, allowNull: false }
@@ -30,6 +34,7 @@ ProductionLine.init({
 // 3. WORKSTATION MODEL
 export class Workstation extends Model {
   public id!: string;
+  public userId!: string;
   public name!: string;
   public lineId!: string;
   public requiredSkillId!: string;
@@ -38,6 +43,7 @@ export class Workstation extends Model {
 }
 Workstation.init({
   id: { type: DataTypes.STRING, primaryKey: true },
+  userId: { type: DataTypes.STRING, primaryKey: true },
   name: { type: DataTypes.STRING, allowNull: false },
   lineId: { type: DataTypes.STRING, allowNull: false },
   requiredSkillId: { type: DataTypes.STRING, allowNull: false },
@@ -48,12 +54,14 @@ Workstation.init({
 // 4. SHIFT MODEL
 export class Shift extends Model {
   public id!: string;
+  public userId!: string;
   public name!: string;
   public timings!: string;
   public workingDays!: string; // Stored as serialized JSON array
 }
 Shift.init({
   id: { type: DataTypes.STRING, primaryKey: true },
+  userId: { type: DataTypes.STRING, primaryKey: true },
   name: { type: DataTypes.STRING, allowNull: false },
   timings: { type: DataTypes.STRING, allowNull: false },
   workingDays: { type: DataTypes.TEXT, allowNull: false }
@@ -62,6 +70,7 @@ Shift.init({
 // 5. ASSOCIATE MODEL
 export class Associate extends Model {
   public id!: string;
+  public userId!: string;
   public name!: string;
   public category!: 'Contract' | 'Company' | 'NTCI';
   public joiningDate!: string;
@@ -70,6 +79,7 @@ export class Associate extends Model {
 }
 Associate.init({
   id: { type: DataTypes.STRING, primaryKey: true },
+  userId: { type: DataTypes.STRING, primaryKey: true },
   name: { type: DataTypes.STRING, allowNull: false },
   category: { type: DataTypes.STRING, allowNull: false },
   joiningDate: { type: DataTypes.STRING, allowNull: false },
@@ -80,6 +90,7 @@ Associate.init({
 // 6. ASSOCIATE SKILL MODEL (Junction Table)
 export class AssociateSkill extends Model {
   public associateId!: string;
+  public userId!: string;
   public skillId!: string;
   public level!: 'Trainee' | 'Operator' | 'Certified' | 'Expert';
   public trainingDate!: string;
@@ -89,6 +100,7 @@ export class AssociateSkill extends Model {
 }
 AssociateSkill.init({
   associateId: { type: DataTypes.STRING, primaryKey: true },
+  userId: { type: DataTypes.STRING, primaryKey: true },
   skillId: { type: DataTypes.STRING, primaryKey: true },
   level: { type: DataTypes.STRING, allowNull: false },
   trainingDate: { type: DataTypes.STRING, allowNull: false },
@@ -100,6 +112,7 @@ AssociateSkill.init({
 // 7. LEAVE RECORD MODEL
 export class LeaveRecord extends Model {
   public id!: string;
+  public userId!: string;
   public associateId!: string;
   public date!: string;
   public shiftId!: string; // 'ALL' or specific shiftId
@@ -107,6 +120,7 @@ export class LeaveRecord extends Model {
 }
 LeaveRecord.init({
   id: { type: DataTypes.STRING, primaryKey: true },
+  userId: { type: DataTypes.STRING, primaryKey: true },
   associateId: { type: DataTypes.STRING, allowNull: false },
   date: { type: DataTypes.STRING, allowNull: false },
   shiftId: { type: DataTypes.STRING, allowNull: false },
@@ -116,6 +130,7 @@ LeaveRecord.init({
 // 8. ALLOCATION MODEL
 export class Allocation extends Model {
   public id!: string;
+  public userId!: string;
   public date!: string;
   public shiftId!: string;
   public lineId!: string;
@@ -127,6 +142,7 @@ export class Allocation extends Model {
 }
 Allocation.init({
   id: { type: DataTypes.STRING, primaryKey: true },
+  userId: { type: DataTypes.STRING, primaryKey: true },
   date: { type: DataTypes.STRING, allowNull: false },
   shiftId: { type: DataTypes.STRING, allowNull: false },
   lineId: { type: DataTypes.STRING, allowNull: false },
@@ -177,6 +193,7 @@ AuditLog.init({
 // 10. ATTENDANCE RECORD MODEL
 export class AttendanceRecord extends Model {
   public id!: string;
+  public userId!: string;
   public date!: string;
   public shiftId!: string;
   public associateId!: string;
@@ -186,6 +203,7 @@ export class AttendanceRecord extends Model {
 }
 AttendanceRecord.init({
   id: { type: DataTypes.STRING, primaryKey: true },
+  userId: { type: DataTypes.STRING, primaryKey: true },
   date: { type: DataTypes.STRING, allowNull: false },
   shiftId: { type: DataTypes.STRING, allowNull: false },
   associateId: { type: DataTypes.STRING, allowNull: false },

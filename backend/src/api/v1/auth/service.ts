@@ -21,6 +21,15 @@ class MainAuthService{
         data.password=hashedPassword
         const result = await MainAuthDatabase.createUser(data)
 
+        // Seed initial factory data for the newly registered user (tenant)
+        try {
+            const { seedDatabase } = await import('../../../../../database/models/seed');
+            await seedDatabase(result.userId);
+            console.log(`Auto-seeded default factory data for new user: ${result.userId}`);
+        } catch (seedErr) {
+            console.error(`Failed to auto-seed new user ${result.userId}:`, seedErr);
+        }
+
         // Send verification email in the background so it doesn't block the HTTP response
         const encryptedEmail = generateToken(email, "30d");
         const emailBody = verifyEmail(`${variables.BASE_URL}/api/v1/auth/verifyEmail?token=${encodeURIComponent(encryptedEmail)}`);

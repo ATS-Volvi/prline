@@ -6,32 +6,38 @@ import {
 import { catchAsync } from '../middleware/errorHandler';
 
 export const getAssociates = catchAsync(async (req: Request, res: Response) => {
-  const data = await Associate.findAll();
+  const userId = req.authData?.userId;
+  const data = await Associate.findAll({ where: { userId } });
   res.json(data);
 });
 
 export const getSkills = catchAsync(async (req: Request, res: Response) => {
-  const data = await Skill.findAll();
+  const userId = req.authData?.userId;
+  const data = await Skill.findAll({ where: { userId } });
   res.json(data);
 });
 
 export const getAssociateSkills = catchAsync(async (req: Request, res: Response) => {
-  const data = await AssociateSkill.findAll();
+  const userId = req.authData?.userId;
+  const data = await AssociateSkill.findAll({ where: { userId } });
   res.json(data);
 });
 
 export const getWorkstations = catchAsync(async (req: Request, res: Response) => {
-  const data = await Workstation.findAll();
+  const userId = req.authData?.userId;
+  const data = await Workstation.findAll({ where: { userId } });
   res.json(data);
 });
 
 export const getProductionLines = catchAsync(async (req: Request, res: Response) => {
-  const data = await ProductionLine.findAll();
+  const userId = req.authData?.userId;
+  const data = await ProductionLine.findAll({ where: { userId } });
   res.json(data);
 });
 
 export const getShifts = catchAsync(async (req: Request, res: Response) => {
-  const shiftsRaw = await Shift.findAll();
+  const userId = req.authData?.userId;
+  const shiftsRaw = await Shift.findAll({ where: { userId } });
   const data = shiftsRaw.map((s: any) => ({
     ...s.toJSON(),
     workingDays: JSON.parse(s.workingDays || "[]")
@@ -40,21 +46,25 @@ export const getShifts = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getAllocations = catchAsync(async (req: Request, res: Response) => {
-  const data = await Allocation.findAll();
+  const userId = req.authData?.userId;
+  const data = await Allocation.findAll({ where: { userId } });
   res.json(data);
 });
 
 export const getAuditLogs = catchAsync(async (req: Request, res: Response) => {
-  const data = await AuditLog.findAll({ order: [['timestamp', 'DESC']] });
+  const userId = req.authData?.userId;
+  const data = await AuditLog.findAll({ where: { userId }, order: [['timestamp', 'DESC']] });
   res.json(data);
 });
 
 export const getLeaveRecords = catchAsync(async (req: Request, res: Response) => {
-  const data = await LeaveRecord.findAll();
+  const userId = req.authData?.userId;
+  const data = await LeaveRecord.findAll({ where: { userId } });
   res.json(data);
 });
 
 export const getAttendanceRecords = catchAsync(async (req: Request, res: Response) => {
-  const data = await AttendanceRecord.findAll();
+  const userId = req.authData?.userId;
+  const data = await AttendanceRecord.findAll({ where: { userId } });
   res.json(data);
 });
