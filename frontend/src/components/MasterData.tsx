@@ -2,7 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import type { Associate, Workstation, AssociateCategory, SkillLevel, ProductionLine, LineStatus, Skill, Shift } from '../types';
 
-export const MasterData: React.FC = () => {
+interface MasterDataProps {
+  setSelectedLineId?: (id: string) => void;
+  setActiveTab?: (tab: string) => void;
+}
+
+export const MasterData: React.FC<MasterDataProps> = ({ setSelectedLineId, setActiveTab }) => {
   const {
     associates,
     workstations,
@@ -37,6 +42,12 @@ export const MasterData: React.FC = () => {
   // Profile View States
   const [selectedAssociate, setSelectedAssociate] = useState<Associate | null>(null);
   const [profileTab, setProfileTab] = useState<'skills' | 'certs' | 'training' | 'logs'>('skills');
+
+  // Team Directory States
+  const [associatesPage, setAssociatesPage] = useState(1);
+  const [selectedSkillFilter, setSelectedSkillFilter] = useState('All');
+  const [activeMenuAssocId, setActiveMenuAssocId] = useState<string | null>(null);
+  const [assocSearchQuery, setAssocSearchQuery] = useState('');
   const [selectedAssociateLogs, setSelectedAssociateLogs] = useState<PerformanceLog[]>([]);
   const [showAddLogModal, setShowAddLogModal] = useState(false);
   const [newLogType, setNewLogType] = useState<'Commendation' | 'Safety Note' | 'Attendance'>('Commendation');
@@ -1198,6 +1209,36 @@ export const MasterData: React.FC = () => {
   const canWriteAssociates = role === 'Plant Admin' || role === 'HR / Training Coordinator';
   const canWriteAllMasterData = role === 'Plant Admin';
 
+  const filteredAssociatesList = associates.filter(assoc => {
+    const searchLower = assocSearchQuery.toLowerCase();
+    const matchesSearch = 
+      assoc.name.toLowerCase().includes(searchLower) ||
+      assoc.id.toLowerCase().includes(searchLower) ||
+      (assoc.category && assoc.category.toLowerCase().includes(searchLower));
+      
+    if (!matchesSearch) return false;
+
+    if (selectedSkillFilter === 'All') return true;
+    
+    const skills = associateSkills.filter(s => s.associateId === assoc.id);
+    if (selectedSkillFilter === 'Welding') {
+      return skills.some(s => s.skillId.includes("BLADE") || s.skillId.includes("WLD"));
+    }
+    if (selectedSkillFilter === 'Assembly') {
+      return skills.some(s => s.skillId.includes("PACK") || s.skillId.includes("ARM"));
+    }
+    if (selectedSkillFilter === 'Quality Control') {
+      return skills.some(s => s.skillId.includes("QC"));
+    }
+    if (selectedSkillFilter === 'Maintenance') {
+      return skills.some(s => s.skillId.includes("MAINT"));
+    }
+    return true;
+  });
+
+  const totalPages = Math.ceil(filteredAssociatesList.length / 12) || 1;
+  const paginatedAssociates = filteredAssociatesList.slice((associatesPage - 1) * 12, associatesPage * 12);
+
   return (
     <div className="flex-1 h-full flex flex-col overflow-hidden bg-background select-none animate-fade-in">
       {/* Header */}
@@ -1264,94 +1305,372 @@ export const MasterData: React.FC = () => {
               renderAssociateProfile(selectedAssociate)
             ) : (
               <>
-                <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">Associate List</h2>
-                  <p className="text-[10px] text-secondary">Manage shift operators, contractors, and category classifications</p>
-                </div>
-                {canWriteAssociates && !isAddingAssoc && !editingAssoc && (
-                  <button
-                    onClick={() => { resetAssocForm(); setIsAddingAssoc(true); }}
-                    className="py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-905 flex items-center gap-1.5 cursor-pointer shadow-premium-md font-label-caps tracking-wider transition-all hover:scale-[1.02]"
-                  >
-                    <span className="material-symbols-outlined text-sm">person_add</span> ADD ASSOCIATE
-                  </button>
-                )}
-              </div>
+                <div className="flex justify-between items-center shrink-0">
+                  <div>
+                    <h2 className="text-sm font-bold text-primary uppercase font-mono tracking-wider">Team Directory</h2>
+                    <p className="text-[10px] text-secondary mt-0.5">Manage plant staff assignments and shift availability.</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 select-none">
+                    {/* Search Bar */}
+                    <div className="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant text-[11px] w-64 shadow-premium-sm">
+                      <span className="material-symbols-outlined text-secondary text-xs">search</span>
+                      <input
+                        type="text"
+                        value={assocSearchQuery}
+                        onChange={(e) => {
+                          setAssocSearchQuery(e.target.value);
+                          setAssociatesPage(1);
+                        }}
+                        placeholder="Search associates, ID, category..."
+                        className="bg-transparent border-none focus:outline-none focus:ring-0 text-[10px] w-full p-0 text-on-surface"
+                      />
+                    </div>
 
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-premium-sm">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-surface-container-low border-b border-outline-variant text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps">
-                      <th className="p-3.5">EMPLOYEE ID</th>
-                      <th className="p-3.5">NAME</th>
-                      <th className="p-3.5">PLANT ID REF</th>
-                      <th className="p-3.5">CATEGORY</th>
-                      <th className="p-3.5">JOINING DATE</th>
-                      <th className="p-3.5">SKILLS ROSTERED</th>
-                      <th className="p-3.5">STATUS</th>
-                      {canWriteAssociates && <th className="p-3.5 text-right">ACTIONS</th>}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {associates.map(assoc => {
-                      const skillsCount = associateSkills.filter(s => s.associateId === assoc.id).length;
-                      return (
-                        <tr key={assoc.id} className="hover:bg-surface-container-low/50 transition-colors">
-                          <td 
-                            className="p-3.5 font-mono font-bold text-primary hover:underline cursor-pointer"
-                            onClick={() => { setSelectedAssociate(assoc); setProfileTab('skills'); }}
-                          >
-                            {assoc.id}
-                          </td>
-                          <td 
-                            className="p-3.5 font-bold text-on-surface hover:underline cursor-pointer"
-                            onClick={() => { setSelectedAssociate(assoc); setProfileTab('skills'); }}
-                          >
-                            {assoc.name}
-                          </td>
-                          <td className="p-3.5 font-mono text-secondary font-semibold">{assoc.plantIdRef || 'N/A'}</td>
-                          <td className="p-3.5 text-secondary font-medium">{assoc.category}</td>
-                          <td className="p-3.5 font-mono text-secondary">{assoc.joiningDate}</td>
-                          <td className="p-3.5">
-                            <span className="bg-surface-container-low text-slate-700 font-bold px-2 py-0.5 rounded border border-outline-variant font-mono text-[9px] shadow-premium-sm">
-                              {skillsCount} Skills
-                            </span>
-                          </td>
-                          <td className="p-3.5">
-                            <span className={`px-2.5 py-0.5 rounded text-[8px] font-bold font-mono tracking-wider border shadow-premium-sm ${
-                              assoc.status === 'Active' ? 'bg-tertiary-fixed-dim/20 text-on-tertiary-fixed-variant border-outline-variant' : 'bg-surface-container-low text-slate-600 border-outline-variant'
-                            }`}>
-                              {assoc.status.toUpperCase()}
-                            </span>
-                          </td>
-                          {canWriteAssociates && (
-                            <td className="p-3.5 text-right select-none space-x-3">
+                    {canWriteAssociates && !isAddingAssoc && !editingAssoc && (
+                      <button
+                        onClick={() => { resetAssocForm(); setIsAddingAssoc(true); }}
+                        className="py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-900 flex items-center gap-1.5 cursor-pointer shadow-premium-md font-label-caps tracking-wider transition-all hover:scale-[1.02]"
+                      >
+                        <span className="material-symbols-outlined text-sm">person_add</span> ADD ASSOCIATE
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Summary Metrics Row */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 select-none shrink-0">
+                  <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+                    <div>
+                      <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Active Staff</p>
+                      <h3 className="text-base font-bold text-[#0F172A] mt-1">
+                        {associates.filter(a => a.status === 'Active').length} / {Math.max(140, associates.length)}
+                      </h3>
+                    </div>
+                    <span className="material-symbols-outlined text-primary text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>badge</span>
+                  </div>
+
+                  <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+                    <div>
+                      <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Shift Status</p>
+                      <h3 className="text-base font-bold text-emerald-600 mt-1 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                        Optimal
+                      </h3>
+                    </div>
+                    <span className="material-symbols-outlined text-emerald-500 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+                  </div>
+
+                  <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+                    <div>
+                      <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Open Stations</p>
+                      <h3 className="text-base font-bold text-[#0F172A] mt-1">
+                        {String(Math.max(0, workstations.length - allocations.filter(a => a.date === new Date().toISOString().split('T')[0] && a.shiftId === 'SHIFT-A').length)).padStart(2, '0')}
+                      </h3>
+                    </div>
+                    <span className="material-symbols-outlined text-secondary text-lg">desk</span>
+                  </div>
+
+                  <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+                    <div>
+                      <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Safety Score</p>
+                      <h3 className="text-base font-bold text-[#0F172A] mt-1">98.4%</h3>
+                    </div>
+                    <span className="material-symbols-outlined text-rose-500 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>shield</span>
+                  </div>
+                </div>
+
+                {/* Filters & pagination bar */}
+                <div className="bg-slate-50 border border-outline-variant rounded-lg p-3 flex justify-between items-center select-none shrink-0 shadow-premium-sm">
+                  {/* Category Filter Pills */}
+                  <div className="flex gap-2">
+                    {['All', 'Welding', 'Assembly', 'Quality Control', 'Maintenance'].map(pill => (
+                      <button
+                        key={pill}
+                        onClick={() => { setSelectedSkillFilter(pill); setAssociatesPage(1); }}
+                        className={`px-3 py-1 rounded-full text-[9px] font-bold border transition-all cursor-pointer ${
+                          selectedSkillFilter === pill 
+                            ? 'bg-primary text-white border-primary shadow-premium-sm' 
+                            : 'bg-white text-secondary border-outline-variant hover:text-primary'
+                        }`}
+                      >
+                        {pill}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Right pagination preview */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] text-secondary font-medium">
+                      Showing {filteredAssociatesList.length > 0 ? (associatesPage - 1) * 12 + 1 : 0}-{Math.min(associatesPage * 12, filteredAssociatesList.length)} of {filteredAssociatesList.length}
+                    </span>
+                    <div className="flex gap-1">
+                      <button
+                        disabled={associatesPage === 1}
+                        onClick={() => setAssociatesPage(p => Math.max(1, p - 1))}
+                        className="w-6 h-6 border border-outline-variant rounded flex items-center justify-center bg-white text-secondary hover:text-primary disabled:opacity-40 cursor-pointer shadow-premium-sm"
+                      >
+                        <span className="material-symbols-outlined text-sm font-bold">chevron_left</span>
+                      </button>
+                      <button
+                        disabled={associatesPage === totalPages}
+                        onClick={() => setAssociatesPage(p => Math.min(totalPages, p + 1))}
+                        className="w-6 h-6 border border-outline-variant rounded flex items-center justify-center bg-white text-secondary hover:text-primary disabled:opacity-40 cursor-pointer shadow-premium-sm"
+                      >
+                        <span className="material-symbols-outlined text-sm font-bold">chevron_right</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Team Roster Table Card */}
+                <div className="bg-white border border-outline-variant rounded-xl shadow-premium-sm flex-grow overflow-visible relative">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-surface-container-low border-b border-outline-variant text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps select-none">
+                        <th className="p-3.5">Associate</th>
+                        <th className="p-3.5">Skill Category</th>
+                        <th className="p-3.5">Assignment</th>
+                        <th className="p-3.5">Status</th>
+                        <th className="p-3.5 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {paginatedAssociates.map(assoc => {
+                        const skills = associateSkills.filter(s => s.associateId === assoc.id);
+                        
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        const allocation = allocations.find(a => a.associateId === assoc.id && a.date === todayStr && a.shiftId === 'SHIFT-A');
+                        
+                        let assignmentText = "Facility Wide";
+                        let assignmentIcon = "apartment";
+                        
+                        if (allocation) {
+                          const ws = workstations.find(w => w.id === allocation.workstationId);
+                          const line = productionLines.find(l => l.id === allocation.lineId);
+                          if (line) {
+                            assignmentText = line.name.replace("Line ", "Line A-").replace("0", "");
+                            assignmentIcon = "precision_manufacturing";
+                          } else if (ws) {
+                            assignmentText = ws.name;
+                            assignmentIcon = "desk";
+                          }
+                        }
+
+                        let categoryText = "FLOATING";
+                        let categoryBg = "bg-slate-50 text-secondary border-outline-variant";
+                        
+                        if (skills.length > 0) {
+                          const mainSkill = skills[0].skillId;
+                          if (mainSkill.includes("BLADE")) {
+                            categoryText = "WELDING";
+                            categoryBg = "bg-[#0f172a] text-slate-100 border-[#0f172a]";
+                          } else if (mainSkill.includes("PACK")) {
+                            categoryText = "ASSEMBLY";
+                            categoryBg = "bg-blue-100 text-blue-800 border-blue-200";
+                          } else if (mainSkill.includes("QC")) {
+                            categoryText = "QUALITY CONTROL";
+                            categoryBg = "bg-emerald-900 text-emerald-100 border-emerald-950";
+                          } else if (mainSkill.includes("MAINT")) {
+                            categoryText = "MAINTENANCE";
+                            categoryBg = "bg-rose-50 text-rose-700 border-rose-100";
+                          } else {
+                            categoryText = mainSkill.replace("_OPT", "").replace("_ENG", "");
+                            categoryBg = "bg-slate-100 text-slate-800 border-slate-200";
+                          }
+                        }
+
+                        return (
+                          <tr key={assoc.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="p-3.5">
+                              <div className="flex items-center gap-3">
+                                <img 
+                                  alt={assoc.name} 
+                                  className="w-8 h-8 rounded-full object-cover border border-outline-variant shadow-premium-sm cursor-pointer" 
+                                  src={getAvatarUrl(assoc.name)} 
+                                  onClick={() => { setSelectedAssociate(assoc); setProfileTab('skills'); }}
+                                />
+                                <div>
+                                  <div 
+                                    className="font-bold text-[#0F172A] hover:underline cursor-pointer"
+                                    onClick={() => { setSelectedAssociate(assoc); setProfileTab('skills'); }}
+                                  >
+                                    {assoc.name}
+                                  </div>
+                                  <div className="text-[9px] font-mono text-secondary font-semibold">ID: {assoc.id}</div>
+                                </div>
+                              </div>
+                            </td>
+                            
+                            <td className="p-3.5">
+                              <span className={`px-2.5 py-0.5 rounded text-[8px] font-bold font-mono tracking-wider border shadow-premium-sm uppercase ${categoryBg}`}>
+                                {categoryText}
+                              </span>
+                            </td>
+
+                            <td className="p-3.5 font-medium text-secondary">
+                              <div className="flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-secondary text-sm">{assignmentIcon}</span>
+                                <span>{assignmentText}</span>
+                              </div>
+                            </td>
+
+                            <td className="p-3.5">
                               <button
-                                onClick={() => startEditAssociate(assoc)}
-                                className="text-primary hover:underline font-bold text-[10px] cursor-pointer"
-                              >
-                                EDIT
-                              </button>
-                              <button
+                                type="button"
                                 onClick={() => {
-                                  if (window.confirm(`Delete ${assoc.name}? All skill mappings will be removed.`)) {
-                                    deleteAssociate(assoc.id);
+                                  if (role !== 'Plant Admin') {
+                                    alert("Access Denied: Only Plant Admins can toggle operator status.");
+                                    return;
                                   }
+                                  const newStatus = assoc.status === 'Active' ? 'Inactive' : 'Active';
+                                  updateAssociate({ ...assoc, status: newStatus }, associateSkills.filter(s => s.associateId === assoc.id).map(s => ({ skillId: s.skillId, level: s.level, expiryDate: s.expiryDate })));
                                 }}
-                                className="text-rose-600 hover:underline font-bold text-[10px] cursor-pointer"
+                                className={`w-8 h-4.5 rounded-full p-0.5 transition-colors duration-200 ease-in-out cursor-pointer relative shadow-premium-sm ${
+                                  assoc.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-200'
+                                }`}
                               >
-                                REMOVE
+                                <div className={`w-3.5 h-3.5 bg-white rounded-full transition-transform duration-200 ease-in-out shadow-premium-sm ${
+                                  assoc.status === 'Active' ? 'translate-x-3.5' : 'translate-x-0'
+                                }`} />
                               </button>
                             </td>
-                          )}
-                        </tr>
+
+                            <td className="p-3.5 text-right select-none relative">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveMenuAssocId(activeMenuAssocId === assoc.id ? null : assoc.id);
+                                }}
+                                className="p-1 hover:bg-slate-100 rounded-full transition-all text-secondary hover:text-primary cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-[18px]">more_vert</span>
+                              </button>
+
+                              {activeMenuAssocId === assoc.id && (
+                                <>
+                                  <div 
+                                    className="fixed inset-0 z-45" 
+                                    onClick={() => setActiveMenuAssocId(null)}
+                                  />
+                                  <div className="absolute right-3.5 top-11 bg-white border border-outline-variant rounded-xl shadow-premium-lg z-50 py-1.5 w-44 text-left animate-slide-up">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedAssociate(assoc);
+                                        setProfileTab('skills');
+                                        setActiveMenuAssocId(null);
+                                      }}
+                                      className="w-full px-4 py-2 hover:bg-slate-50 text-[10px] text-secondary hover:text-primary font-bold flex items-center gap-2 cursor-pointer"
+                                    >
+                                      <span className="material-symbols-outlined text-sm">badge</span>
+                                      View Profile
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        startEditAssociate(assoc);
+                                        setActiveMenuAssocId(null);
+                                      }}
+                                      className="w-full px-4 py-2 hover:bg-slate-50 text-[10px] text-secondary hover:text-primary font-bold flex items-center gap-2 cursor-pointer"
+                                    >
+                                      <span className="material-symbols-outlined text-sm">settings</span>
+                                      Edit Skills
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const activeLine = productionLines.find(l => l.status === 'ACTIVE');
+                                        if (activeLine) setSelectedLineId(activeLine.id);
+                                        setActiveTab('shift_planner');
+                                        setActiveMenuAssocId(null);
+                                      }}
+                                      className="w-full px-4 py-2 hover:bg-slate-50 text-[10px] text-secondary hover:text-primary font-bold flex items-center gap-2 cursor-pointer"
+                                    >
+                                      <span className="material-symbols-outlined text-sm">precision_manufacturing</span>
+                                      Assign Station
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        alert("Opening calendar to manage shift availability.");
+                                        setActiveMenuAssocId(null);
+                                      }}
+                                      className="w-full px-4 py-2 hover:bg-slate-50 text-[10px] text-secondary hover:text-primary font-bold flex items-center gap-2 cursor-pointer"
+                                    >
+                                      <span className="material-symbols-outlined text-sm">calendar_today</span>
+                                      Manage Availability
+                                    </button>
+
+                                    <div className="h-[1px] bg-slate-100 my-1" />
+
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (role !== 'Plant Admin') {
+                                          alert("Access Denied: Only Plant Admins can deactivate operators.");
+                                          return;
+                                        }
+                                        const newStatus = assoc.status === 'Active' ? 'Inactive' : 'Active';
+                                        updateAssociate({ ...assoc, status: newStatus }, associateSkills.filter(s => s.associateId === assoc.id).map(s => ({ skillId: s.skillId, level: s.level, expiryDate: s.expiryDate })));
+                                        setActiveMenuAssocId(null);
+                                      }}
+                                      className="w-full px-4 py-2 hover:bg-slate-50 text-[10px] text-secondary hover:text-primary font-bold flex items-center gap-2 cursor-pointer"
+                                    >
+                                      <span className="material-symbols-outlined text-sm">block</span>
+                                      {assoc.status === 'Active' ? 'Deactivate' : 'Activate'}
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (window.confirm(`Delete associate ${assoc.name}? This will permanently remove all records.`)) {
+                                          deleteAssociate(assoc.id);
+                                        }
+                                        setActiveMenuAssocId(null);
+                                      }}
+                                      className="w-full px-4 py-2 hover:bg-rose-50 text-[10px] text-rose-600 font-bold flex items-center gap-2 cursor-pointer animate-fade-in"
+                                    >
+                                      <span className="material-symbols-outlined text-sm text-rose-600">delete</span>
+                                      Delete Associate
+                                    </button>
+                                  </div>
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Bottom Page Numbers */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center items-center gap-1 select-none shrink-0 py-2">
+                    {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(pageNum => {
+                      const isCurrent = pageNum === associatesPage;
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setAssociatesPage(pageNum)}
+                          className={`w-6 h-6 text-[10px] font-bold rounded flex items-center justify-center border transition-all cursor-pointer shadow-premium-sm ${
+                            isCurrent 
+                              ? 'bg-primary text-white border-primary' 
+                              : 'bg-white text-secondary border-outline-variant hover:text-primary'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
                       );
                     })}
-                  </tbody>
-                </table>
-              </div>
-            </>
+                  </div>
+                )}
+              </>
             )
           )}
 

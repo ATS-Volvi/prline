@@ -76,7 +76,7 @@ function MainAppContent() {
       case 'alerts':
         return <AlertCenter setActiveTab={setActiveTab} />;
       case 'master_data':
-        return <MasterData />;
+        return <MasterData setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
       case 'ai_reports':
         return <AiReports />;
       case 'audit_logs':
