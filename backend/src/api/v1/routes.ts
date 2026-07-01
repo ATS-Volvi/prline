@@ -419,7 +419,7 @@ router.post("/associates/bulk-import", AuthHandler.authMiddleware, UserTypeHandl
 
 // ATTENDANCE ROUTES
 // GET attendance for a specific date + shift
-router.get("/attendance", async (req: Request, res: Response) => {
+router.get("/attendance", AuthHandler.authMiddleware, async (req: Request, res: Response) => {
   try {
     const { date, shiftId } = req.query;
     const userId = req.authData?.userId;
@@ -434,7 +434,7 @@ router.get("/attendance", async (req: Request, res: Response) => {
 });
 
 // POST mark attendance (upsert — one record per associate per shift per date)
-router.post("/attendance", async (req: Request, res: Response) => {
+router.post("/attendance", AuthHandler.authMiddleware, async (req: Request, res: Response) => {
   try {
     const { date, shiftId, associateId, status, markedBy } = req.body;
     const userId = req.authData?.userId;
@@ -464,7 +464,7 @@ router.post("/attendance", async (req: Request, res: Response) => {
 });
 
 // SKILL CRUD ROUTES
-router.post("/skills", async (req: Request, res: Response) => {
+router.post("/skills", AuthHandler.authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id, name, description } = req.body;
     const userId = req.authData?.userId;
@@ -485,7 +485,7 @@ router.post("/skills", async (req: Request, res: Response) => {
   }
 });
 
-router.put("/skills/:id", async (req: Request, res: Response) => {
+router.put("/skills/:id", AuthHandler.authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, description } = req.body;
@@ -503,7 +503,7 @@ router.put("/skills/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.delete("/skills/:id", async (req: Request, res: Response) => {
+router.delete("/skills/:id", AuthHandler.authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.authData?.userId;
@@ -522,7 +522,7 @@ router.delete("/skills/:id", async (req: Request, res: Response) => {
 });
 
 // SHIFT CRUD ROUTES
-router.post("/shifts", async (req: Request, res: Response) => {
+router.post("/shifts", AuthHandler.authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id, name, timings, workingDays } = req.body;
     const userId = req.authData?.userId;
@@ -544,7 +544,7 @@ router.post("/shifts", async (req: Request, res: Response) => {
   }
 });
 
-router.put("/shifts/:id", async (req: Request, res: Response) => {
+router.put("/shifts/:id", AuthHandler.authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, timings, workingDays } = req.body;
@@ -563,7 +563,7 @@ router.put("/shifts/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.delete("/shifts/:id", async (req: Request, res: Response) => {
+router.delete("/shifts/:id", AuthHandler.authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.authData?.userId;
