@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Workstation, Allocation, Associate } from '../../../../database/models/models';
+import { Workstation, Allocation, Associate } from '@prline/database';
 import { logAction } from '../services/auditService';
 import { autoAllocate } from '../services/allocationService';
 import { catchAsync } from '../middleware/errorHandler';
@@ -7,7 +7,7 @@ import { catchAsync } from '../middleware/errorHandler';
 export const allocate = catchAsync(async (req: Request, res: Response) => {
   const { date, shiftId, lineId, workstationId, associateId, overrideReason } = req.body;
   
-  const ws = await Workstation.findByPk(workstationId);
+  const ws = await Workstation.findByPk(workstationId as string);
   if (!ws) {
     return res.status(404).json({ success: false, message: "Workstation not found." });
   }
@@ -31,7 +31,7 @@ export const allocate = catchAsync(async (req: Request, res: Response) => {
     timestamp: new Date().toISOString()
   });
 
-  const assoc = await Associate.findByPk(associateId);
+  const assoc = await Associate.findByPk(associateId as string);
   const action = overrideReason ? "OVERRIDE_ALLOCATION" : "ALLOCATION_CONFIRMED";
   const details = overrideReason 
     ? `OVERRIDE: ${assoc?.get('name')} assigned to ${ws?.get('name')} (Reason: ${overrideReason}).`
@@ -43,7 +43,7 @@ export const allocate = catchAsync(async (req: Request, res: Response) => {
 
 export const deallocate = catchAsync(async (req: Request, res: Response) => {
   const { date, shiftId, workstationId, lineId, associateId } = req.body;
-  const ws = await Workstation.findByPk(workstationId);
+  const ws = await Workstation.findByPk(workstationId as string);
 
   const whereClause: any = { date, shiftId, workstationId };
   if (associateId) {

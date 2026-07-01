@@ -8,7 +8,7 @@ import {
   AssociateSkill
 } from "./models/models";
 import User from "./models/user";
-import { hashPassword } from "../utils/hashPwd";
+import { hashPassword } from "../../backend/utils/hashPwd";
 
 const skillsData = [
   { id: 'BLADE_OPT', name: 'Blade Operation', description: 'Slicing blade calibration and replacement' },

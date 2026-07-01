@@ -76,8 +76,8 @@ class Server{
         await this.connectToDb()
 
         try {
-          const { Associate } = await import('./DB/models/models');
-          const { seedDatabase } = await import('./DB/seed');
+          const { Associate } = await import('../database/models/models/models');
+          const { seedDatabase } = await import('../database/models/seed');
           const count = await Associate.count();
           if (count === 0) {
             console.log("No associates found. Seeding database...");
@@ -88,7 +88,7 @@ class Server{
         } catch (err) {
           console.log("Database tables not found or uninitialized. Seeding...");
           try {
-            const { seedDatabase } = await import('./DB/seed');
+            const { seedDatabase } = await import('../database/models/seed');
             await seedDatabase();
           } catch (seedErr) {
             console.error("Failed to seed database on startup:", seedErr);

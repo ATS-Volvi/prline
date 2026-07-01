@@ -9,13 +9,14 @@ import {
   LeaveRecord,
   Allocation,
   AuditLog,
+  LeaveRecord as LeaveRecordType, // avoid clash if any
   AttendanceRecord
-} from "../../../../database/models/models";
+} from "@prline/database";
 import AuthHandler from "../../../middleware/authHandler";
 import UserTypeHandler from "../../../middleware/getUserType";
-import { logAction } from "../../../services/auditService";
-import * as allocationController from "../../../controllers/allocationController";
-import * as dataController from "../../../controllers/dataController";
+import { logAction } from "../../../src/services/auditService";
+import * as allocationController from "../../../src/controllers/allocationController";
+import * as dataController from "../../../src/controllers/dataController";
 
 const router = Router();
 
@@ -35,7 +36,7 @@ router.get("/state", AuthHandler.authMiddleware, async (req: Request, res: Respo
     const attendanceRecords = await AttendanceRecord.findAll();
 
     // Parse shift working days JSON
-    const shifts = shiftsRaw.map(s => ({
+    const shifts = shiftsRaw.map((s: any) => ({
       ...s.toJSON(),
       workingDays: JSON.parse(s.workingDays || "[]")
     }));
@@ -127,7 +128,7 @@ router.put("/associates/:id", AuthHandler.authMiddleware, UserTypeHandler.checkS
 router.delete("/associates/:id", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const assoc = await Associate.findByPk(id);
+    const assoc = await Associate.findByPk(id as string);
     await Associate.destroy({ where: { id } });
     await AssociateSkill.destroy({ where: { associateId: id } });
     await Allocation.destroy({ where: { associateId: id } });
@@ -247,7 +248,7 @@ router.put("/workstations/:id", AuthHandler.authMiddleware, UserTypeHandler.chec
 router.delete("/workstations/:id", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const ws = await Workstation.findByPk(id);
+    const ws = await Workstation.findByPk(id as string);
     await Workstation.destroy({ where: { id } });
     await Allocation.destroy({ where: { workstationId: id } });
 
@@ -285,7 +286,7 @@ router.put("/production-lines/:id", AuthHandler.authMiddleware, UserTypeHandler.
 router.delete("/production-lines/:id", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const line = await ProductionLine.findByPk(id);
+    const line = await ProductionLine.findByPk(id as string);
     await Workstation.destroy({ where: { lineId: id } });
     await Allocation.destroy({ where: { lineId: id } });
     await ProductionLine.destroy({ where: { id } });
@@ -313,7 +314,7 @@ router.post("/leave", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin,
 router.delete("/leave/:id", AuthHandler.authMiddleware, UserTypeHandler.checkSecAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const leave = await LeaveRecord.findByPk(id);
+    const leave = await LeaveRecord.findByPk(id as string);
     await LeaveRecord.destroy({ where: { id } });
     if (leave) {
       const assoc = await Associate.findByPk(leave.get('associateId') as string);
@@ -465,7 +466,7 @@ router.put("/skills/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, description } = req.body;
-    const skill = await Skill.findByPk(id);
+    const skill = await Skill.findByPk(id as string);
     if (!skill) {
       res.status(404).json({ success: false, message: 'Skill not found.' });
       return;
@@ -481,7 +482,7 @@ router.put("/skills/:id", async (req: Request, res: Response) => {
 router.delete("/skills/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const skill = await Skill.findByPk(id);
+    const skill = await Skill.findByPk(id as string);
     if (!skill) {
       res.status(404).json({ success: false, message: 'Skill not found.' });
       return;
@@ -521,7 +522,7 @@ router.put("/shifts/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, timings, workingDays } = req.body;
-    const shift = await Shift.findByPk(id);
+    const shift = await Shift.findByPk(id as string);
     if (!shift) {
       res.status(404).json({ success: false, message: 'Shift not found.' });
       return;
@@ -538,7 +539,7 @@ router.put("/shifts/:id", async (req: Request, res: Response) => {
 router.delete("/shifts/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const shift = await Shift.findByPk(id);
+    const shift = await Shift.findByPk(id as string);
     if (!shift) {
       res.status(404).json({ success: false, message: 'Shift not found.' });
       return;

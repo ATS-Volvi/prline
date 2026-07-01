@@ -1,5 +1,5 @@
-import { IUser } from "../../../../../database/interfaces/user"
-import User from "../../../../../database/models/user"
+import { IUser } from "../../../../../database/models/interfaces/user"
+import User from "../../../../../database/models/models/user"
 
 class MainAuthDatabase{
     static async isUserExists(email:string){

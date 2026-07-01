@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { 
   Associate, Skill, AssociateSkill, Workstation, ProductionLine, 
   Shift, Allocation, AuditLog, LeaveRecord, AttendanceRecord 
-} from '../../../../database/models/models';
+} from '@prline/database';
 import { catchAsync } from '../middleware/errorHandler';
 
 export const getAssociates = catchAsync(async (req: Request, res: Response) => {
@@ -32,7 +32,7 @@ export const getProductionLines = catchAsync(async (req: Request, res: Response)
 
 export const getShifts = catchAsync(async (req: Request, res: Response) => {
   const shiftsRaw = await Shift.findAll();
-  const data = shiftsRaw.map(s => ({
+  const data = shiftsRaw.map((s: any) => ({
     ...s.toJSON(),
     workingDays: JSON.parse(s.workingDays || "[]")
   }));

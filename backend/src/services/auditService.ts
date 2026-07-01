@@ -1,4 +1,4 @@
-import { AuditLog } from "../../../../database/models/models";
+import { AuditLog } from "@prline/database";
 
 export const logAction = async (actionType: string, details: string, userId = "admin-user", userRole = "Plant Admin") => {
   try {

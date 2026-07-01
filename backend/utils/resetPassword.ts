@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import { variables } from '../config/envLoader'
 export function generateToken(email: string,expiresIn:string) {
-  const token = jwt.sign({ email }, variables.JWT_SECRET, { expiresIn: expiresIn })
+  const token = jwt.sign({ email }, variables.JWT_SECRET, { expiresIn: expiresIn as any })
   const encryptedToken = Buffer.from(token).toString('base64')
   return encryptedToken
 }

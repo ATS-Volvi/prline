@@ -5,5 +5,11 @@
     "frontend",
     "backend",
     "database"
-  ]
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=frontend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev": "npm run dev:backend"
+  }
 }
