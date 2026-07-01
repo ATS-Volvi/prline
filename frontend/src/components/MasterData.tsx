@@ -3,11 +3,12 @@ import { useApp } from '../context/AppContext';
 import type { Associate, Workstation, AssociateCategory, SkillLevel, ProductionLine, LineStatus, Skill, Shift } from '../types';
 
 interface MasterDataProps {
+  initialSubTab?: 'associates' | 'workstations' | 'skills' | 'lines' | 'shifts';
   setSelectedLineId?: (id: string) => void;
   setActiveTab?: (tab: string) => void;
 }
 
-export const MasterData: React.FC<MasterDataProps> = ({ setSelectedLineId, setActiveTab }) => {
+export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelectedLineId, setActiveTab }) => {
   const {
     associates,
     workstations,
@@ -31,13 +32,22 @@ export const MasterData: React.FC<MasterDataProps> = ({ setSelectedLineId, setAc
     updateShift,
     deleteShift,
     associateSkills,
+    addTrainingRecord,
     role
   } = useApp();
 
   const [activeSubTab, setActiveSubTab] = useState<'associates' | 'workstations' | 'skills' | 'lines' | 'shifts'>(() => {
+    if (initialSubTab) return initialSubTab;
     const stored = localStorage.getItem('master_data_sub_tab');
     return (stored as any) || 'associates';
   });
+
+  useEffect(() => {
+    if (initialSubTab) {
+      setActiveSubTab(initialSubTab);
+      setSelectedAssociate(null);
+    }
+  }, [initialSubTab]);
 
   // Profile View States
   const [selectedAssociate, setSelectedAssociate] = useState<Associate | null>(null);
@@ -48,6 +58,25 @@ export const MasterData: React.FC<MasterDataProps> = ({ setSelectedLineId, setAc
   const [selectedSkillFilter, setSelectedSkillFilter] = useState('All');
   const [activeMenuAssocId, setActiveMenuAssocId] = useState<string | null>(null);
   const [assocSearchQuery, setAssocSearchQuery] = useState('');
+
+  // Certification Matrix View States
+  const [associatesViewMode, setAssociatesViewMode] = useState<'directory' | 'matrix'>('directory');
+  const [matrixPage, setMatrixPage] = useState(1);
+  const [matrixLineFilter, setMatrixLineFilter] = useState('All Lines');
+  const [matrixCategoryFilter, setMatrixCategoryFilter] = useState('All Categories');
+  const [matrixSkillLevelFilter, setMatrixSkillLevelFilter] = useState('Any Skill');
+  const [matrixShowExpired, setMatrixShowExpired] = useState(true);
+
+  // Assign training modal states
+  const [showAssignTrainingModal, setShowAssignTrainingModal] = useState(false);
+  const [trainAssocId, setTrainAssocId] = useState('');
+  const [trainSkillId, setTrainSkillId] = useState('BLADE_OPT');
+  const [trainLevel, setTrainLevel] = useState<SkillLevel>('Operator');
+  const [trainExpiry, setTrainExpiry] = useState(() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 2); // default 2 years valid
+    return d.toISOString().split('T')[0];
+  });
   const [selectedAssociateLogs, setSelectedAssociateLogs] = useState<PerformanceLog[]>([]);
   const [showAddLogModal, setShowAddLogModal] = useState(false);
   const [newLogType, setNewLogType] = useState<'Commendation' | 'Safety Note' | 'Attendance'>('Commendation');
@@ -926,6 +955,448 @@ export const MasterData: React.FC<MasterDataProps> = ({ setSelectedLineId, setAc
     );
   };
 
+  const renderCertificationMatrix = () => {
+    const today = new Date();
+    const in30Days = new Date();
+    in30Days.setDate(today.getDate() + 30);
+
+    const todayStr = today.toISOString().split('T')[0];
+
+    const filtered = associates.filter(assoc => {
+      const searchLower = assocSearchQuery.toLowerCase();
+      const matchesSearch = assoc.name.toLowerCase().includes(searchLower) || assoc.id.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+
+      if (matrixCategoryFilter !== 'All Categories') {
+        const catMap: Record<string, string> = {
+          'Company Staff': 'Company',
+          'Contractors': 'Contract',
+          'Company': 'Company',
+          'Contract': 'Contract'
+        };
+        const mappedFilter = catMap[matrixCategoryFilter] || matrixCategoryFilter;
+        if (assoc.category !== mappedFilter) return false;
+      }
+
+      if (matrixLineFilter !== 'All Lines') {
+        const lineId = matrixLineFilter === 'Line A' ? 'LINE-01' : 'LINE-02';
+        const alloc = allocations.find(a => a.associateId === assoc.id && a.date === todayStr);
+        if (!alloc || alloc.lineId !== lineId) return false;
+      }
+
+      if (!matrixShowExpired) {
+        const hasExpired = associateSkills.some(s => s.associateId === assoc.id && new Date(s.expiryDate) < today);
+        if (hasExpired) return false;
+      }
+
+      return true;
+    });
+
+    const mTotalPages = Math.ceil(filtered.length / 10) || 1;
+    const paginated = filtered.slice((matrixPage - 1) * 10, matrixPage * 10);
+
+    const totalCerts = associateSkills.length;
+    const expiredCerts = associateSkills.filter(s => new Date(s.expiryDate) < today).length;
+    const complianceRate = totalCerts > 0 ? ((totalCerts - expiredCerts) / totalCerts * 100).toFixed(1) : "82.4";
+    
+    const upcomingCount = associateSkills.filter(s => {
+      const exp = new Date(s.expiryDate);
+      return exp >= today && exp <= in30Days;
+    }).length;
+
+    const displaySkills = [
+      { id: 'BLADE_OPT', name: 'Hydraulic Press 01', code: 'PAM-HP-01' },
+      { id: 'SEAS_OPT', name: 'CNC Lathe A', code: 'MCH-CN-A1' },
+      { id: 'FRY_OPT', name: 'Laser Cutter 04', code: 'CUT-LX-04' },
+      { id: 'PACK_OPT', name: 'Pneumatic Sorter', code: 'LOC-PS-02' },
+      { id: 'QC_AUDIT', name: 'QC Auditor', code: 'LOC-QC-08' }
+    ];
+
+    const handleAssignTrainingSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!trainAssocId) {
+        alert("Please select an associate first.");
+        return;
+      }
+      
+      addTrainingRecord({
+        associateId: trainAssocId,
+        skillId: trainSkillId,
+        level: trainLevel,
+        trainingDate: new Date().toISOString().split('T')[0],
+        certifiedBy: role,
+        expiryDate: trainExpiry,
+        reCertificationRequired: false
+      });
+
+      setShowAssignTrainingModal(false);
+      alert(`Successfully assigned ${trainSkillId} training to operator ${trainAssocId}!`);
+    };
+
+    return (
+      <div className="flex-grow flex flex-col gap-6 select-text overflow-y-auto px-1 py-1 custom-scrollbar relative">
+        {showAssignTrainingModal && (
+          <div className="fixed inset-0 bg-[#091426]/40 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in p-4">
+            <div className="bg-white border border-outline-variant rounded-xl p-6 shadow-premium-lg w-full max-w-md animate-scale-up select-none">
+              <div className="flex justify-between items-center pb-3 border-b border-outline-variant">
+                <h3 className="font-bold text-xs text-primary uppercase font-mono tracking-wider">Assign Training Course</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowAssignTrainingModal(false)}
+                  className="material-symbols-outlined text-secondary hover:text-primary cursor-pointer text-base"
+                >
+                  close
+                </button>
+              </div>
+
+              <form onSubmit={handleAssignTrainingSubmit} className="mt-4 flex flex-col gap-4 text-xs">
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-secondary uppercase text-[9px] font-mono tracking-wider">Select Associate</label>
+                  <select
+                    value={trainAssocId}
+                    onChange={(e) => setTrainAssocId(e.target.value)}
+                    required
+                    className="py-2 px-3 border border-outline-variant rounded-lg bg-surface-container-lowest font-bold text-xs cursor-pointer shadow-premium-sm"
+                  >
+                    <option value="">-- Choose Operator --</option>
+                    {associates.filter(a => a.status === 'Active').map(a => (
+                      <option key={a.id} value={a.id}>{a.name} ({a.id})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-secondary uppercase text-[9px] font-mono tracking-wider">Training Certification Skill</label>
+                  <select
+                    value={trainSkillId}
+                    onChange={(e) => setTrainSkillId(e.target.value)}
+                    className="py-2 px-3 border border-outline-variant rounded-lg bg-surface-container-lowest font-bold text-xs cursor-pointer shadow-premium-sm"
+                  >
+                    {skills.map(s => (
+                      <option key={s.id} value={s.id}>{s.name} ({s.id})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-bold text-secondary uppercase text-[9px] font-mono tracking-wider">Certified Level</label>
+                    <select
+                      value={trainLevel}
+                      onChange={(e) => setTrainLevel(e.target.value as SkillLevel)}
+                      className="py-2 px-3 border border-outline-variant rounded-lg bg-surface-container-lowest font-bold text-xs cursor-pointer shadow-premium-sm"
+                    >
+                      <option value="Trainee">Trainee</option>
+                      <option value="Operator">Operator</option>
+                      <option value="Certified">Certified</option>
+                      <option value="Expert">Expert</option>
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-bold text-secondary uppercase text-[9px] font-mono tracking-wider">Expiry Date</label>
+                    <input
+                      type="date"
+                      required
+                      value={trainExpiry}
+                      onChange={(e) => setTrainExpiry(e.target.value)}
+                      className="py-2 px-3 border border-outline-variant rounded-lg bg-surface-container-lowest font-bold text-xs shadow-premium-sm"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full mt-2 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-slate-900 transition-all shadow-premium-md font-mono uppercase tracking-wider text-[10px] cursor-pointer"
+                >
+                  Record Certification
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        <section className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-sm font-bold text-primary uppercase font-mono tracking-wider">Associate Certification Matrix</h2>
+            <p className="text-[10px] text-secondary mt-0.5">Associates &gt; Certification Matrix</p>
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto select-none">
+            <button
+              type="button"
+              onClick={() => alert("Exporting certification matrix as CSV file...")}
+              className="flex-1 sm:flex-none py-2 px-4 border border-outline-variant text-[10px] font-bold rounded-lg bg-white hover:bg-surface-container transition-all active:scale-[0.98] shadow-premium-sm cursor-pointer"
+            >
+              Export CSV
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const firstActive = associates.find(a => a.status === 'Active');
+                setTrainAssocId(firstActive ? firstActive.id : '');
+                setShowAssignTrainingModal(true);
+              }}
+              className="flex-1 sm:flex-none py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-900 transition-all active:scale-[0.98] shadow-premium-md cursor-pointer"
+            >
+              + Assign Training
+            </button>
+          </div>
+        </section>
+
+        <section className="bg-white border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-premium-sm select-none">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-col gap-1">
+              <label className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Production Line</label>
+              <select
+                value={matrixLineFilter}
+                onChange={(e) => { setMatrixLineFilter(e.target.value); setMatrixPage(1); }}
+                className="py-1.5 px-3 border border-outline-variant rounded-lg bg-surface-container-lowest font-bold text-[10px] cursor-pointer shadow-premium-sm"
+              >
+                <option value="All Lines">All Lines</option>
+                <option value="Line A">Line A (LINE-01)</option>
+                <option value="Line B">Line B (LINE-02)</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Category</label>
+              <select
+                value={matrixCategoryFilter}
+                onChange={(e) => { setMatrixCategoryFilter(e.target.value); setMatrixPage(1); }}
+                className="py-1.5 px-3 border border-outline-variant rounded-lg bg-surface-container-lowest font-bold text-[10px] cursor-pointer shadow-premium-sm"
+              >
+                <option value="All Categories">All Categories</option>
+                <option value="Company Staff">Company Staff</option>
+                <option value="Contractors">Contractors</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Skill Level</label>
+              <select
+                value={matrixSkillLevelFilter}
+                onChange={(e) => { setMatrixSkillLevelFilter(e.target.value); setMatrixPage(1); }}
+                className="py-1.5 px-3 border border-outline-variant rounded-lg bg-surface-container-lowest font-bold text-[10px] cursor-pointer shadow-premium-sm"
+              >
+                <option value="Any Skill">Any Skill Level</option>
+                <option value="Expert">Expert</option>
+                <option value="Certified">Certified</option>
+                <option value="Operator">Operator</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold text-secondary uppercase font-mono tracking-wider">Show Expired</span>
+            <button
+              type="button"
+              onClick={() => { setMatrixShowExpired(prev => !prev); setMatrixPage(1); }}
+              className={`w-8 h-4.5 rounded-full p-0.5 transition-colors duration-200 ease-in-out cursor-pointer relative shadow-premium-sm ${
+                matrixShowExpired ? 'bg-emerald-500' : 'bg-slate-200'
+              }`}
+            >
+              <div className={`w-3.5 h-3.5 bg-white rounded-full transition-transform duration-200 ease-in-out shadow-premium-sm ${
+                matrixShowExpired ? 'translate-x-3.5' : 'translate-x-0'
+              }`} />
+            </button>
+          </div>
+        </section>
+
+        <section className="bg-slate-50 border border-outline-variant rounded-lg px-4 py-2.5 flex justify-between items-center text-[10px] select-none shadow-premium-sm shrink-0">
+          <div className="flex gap-4">
+            <div className="flex items-center gap-1.5 font-bold text-secondary">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+              <span>Certified &amp; Valid</span>
+            </div>
+            <div className="flex items-center gap-1.5 font-bold text-secondary">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
+              <span>Expiring Soon (30d)</span>
+            </div>
+            <div className="flex items-center gap-1.5 font-bold text-secondary">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
+              <span>Expired</span>
+            </div>
+            <div className="flex items-center gap-1.5 font-bold text-secondary">
+              <span className="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block"></span>
+              <span>Not Trained</span>
+            </div>
+          </div>
+          <span className="text-secondary font-semibold font-mono tracking-wide">Last synced: 10m ago</span>
+        </section>
+
+        <div className="bg-white border border-outline-variant rounded-xl shadow-premium-sm flex-grow overflow-x-auto relative">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-surface-container-low border-b border-outline-variant text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps select-none">
+                <th className="p-3.5 w-64 min-w-[220px]">Associate Name</th>
+                {displaySkills.map(s => (
+                  <th key={s.id} className="p-3.5 border-l border-outline-variant min-w-[150px]">
+                    <div>{s.name}</div>
+                    <div className="text-[8px] text-secondary font-mono tracking-wider font-semibold mt-0.5">{s.code}</div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-150">
+              {paginated.map(assoc => (
+                <tr key={assoc.id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="p-3.5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded bg-[#091426] text-white flex items-center justify-center font-bold font-mono text-[11px] shadow-premium-sm">
+                        {assoc.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div>
+                        <div 
+                          className="font-bold text-[#0F172A] hover:underline cursor-pointer"
+                          onClick={() => { setSelectedAssociate(assoc); setProfileTab('skills'); }}
+                        >
+                          {assoc.name}
+                        </div>
+                        <div className="text-[9px] font-mono text-secondary font-semibold">ID: {assoc.id}</div>
+                      </div>
+                    </div>
+                  </td>
+
+                  {displaySkills.map(s => {
+                    const cert = associateSkills.find(sk => sk.associateId === assoc.id && sk.skillId === s.id);
+                    
+                    let cellBg = "bg-white";
+                    let content = null;
+                    
+                    if (cert) {
+                      const expDate = new Date(cert.expiryDate);
+                      const diffTime = expDate.getTime() - today.getTime();
+                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                      
+                      const matchesSkillFilter = matrixSkillLevelFilter === 'Any Skill' || cert.level === matrixSkillLevelFilter;
+                      
+                      if (!matchesSkillFilter) {
+                        content = <span className="text-secondary italic">—</span>;
+                      } else if (diffDays < 0) {
+                        cellBg = "bg-rose-50/30";
+                        content = (
+                          <div className="flex items-center gap-1.5 text-rose-700 font-bold text-[10px] animate-fade-in select-none">
+                            <span className="material-symbols-outlined text-sm font-bold">cancel</span>
+                            <span>Expired</span>
+                          </div>
+                        );
+                      } else if (diffDays <= 30) {
+                        cellBg = "bg-amber-50/30";
+                        content = (
+                          <div className="flex items-center gap-1.5 text-amber-700 font-bold text-[10px] animate-fade-in select-none">
+                            <span className="material-symbols-outlined text-sm font-bold">warning</span>
+                            <span>{diffDays} Days</span>
+                          </div>
+                        );
+                      } else {
+                        content = (
+                          <div className="flex items-center gap-1.5 text-emerald-700 font-bold text-[10px] animate-fade-in select-none">
+                            <span className="material-symbols-outlined text-sm font-bold">check_circle</span>
+                            <span>Valid</span>
+                          </div>
+                        );
+                      }
+                    } else {
+                      content = <span className="text-secondary/70 font-mono">—</span>;
+                    }
+
+                    return (
+                      <td key={s.id} className={`p-3.5 border-l border-outline-variant text-center transition-all ${cellBg}`}>
+                        {content}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <section className="flex justify-between items-center select-none shrink-0 py-1 text-[10px] font-bold text-secondary uppercase font-mono tracking-wider">
+          <span>Showing {filtered.length > 0 ? (matrixPage - 1) * 10 + 1 : 0}-{Math.min(matrixPage * 10, filtered.length)} of {filtered.length} Operators</span>
+          
+          {mTotalPages > 1 && (
+            <div className="flex items-center gap-1">
+              <button
+                disabled={matrixPage === 1}
+                onClick={() => setMatrixPage(p => Math.max(1, p - 1))}
+                className="w-6 h-6 border border-outline-variant rounded flex items-center justify-center bg-white text-secondary hover:text-primary disabled:opacity-40 cursor-pointer shadow-premium-sm"
+              >
+                <span className="material-symbols-outlined text-sm font-bold">chevron_left</span>
+              </button>
+              
+              {Array.from({ length: mTotalPages }, (_, idx) => idx + 1).map(pageNum => (
+                <button
+                  key={pageNum}
+                  onClick={() => setMatrixPage(pageNum)}
+                  className={`w-6 h-6 text-[10px] rounded flex items-center justify-center border transition-all cursor-pointer shadow-premium-sm ${
+                    pageNum === matrixPage 
+                      ? 'bg-primary text-white border-primary' 
+                      : 'bg-white text-secondary border-outline-variant hover:text-primary'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
+
+              <button
+                disabled={matrixPage === mTotalPages}
+                onClick={() => setMatrixPage(p => Math.min(mTotalPages, p + 1))}
+                className="w-6 h-6 border border-outline-variant rounded flex items-center justify-center bg-white text-secondary hover:text-primary disabled:opacity-40 cursor-pointer shadow-premium-sm"
+              >
+                <span className="material-symbols-outlined text-sm font-bold">chevron_right</span>
+              </button>
+            </div>
+          )}
+        </section>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 select-none shrink-0">
+          <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+            <div>
+              <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Total Compliance</p>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-lg font-bold text-[#0F172A]">{complianceRate}%</span>
+                <span className="text-[9px] font-bold text-emerald-600 font-mono">↑ 1.2%</span>
+              </div>
+            </div>
+            <span className="material-symbols-outlined text-emerald-500 text-lg">verified_user</span>
+          </div>
+
+          <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+            <div>
+              <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Upcoming Expirations</p>
+              <h3 className="text-lg font-bold text-[#0F172A] mt-1">{upcomingCount}</h3>
+              <span className="text-[9px] text-secondary font-medium font-mono mt-1 inline-block">Next 30 Days</span>
+            </div>
+            <span className="material-symbols-outlined text-amber-500 text-lg">hourglass_empty</span>
+          </div>
+
+          <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+            <div>
+              <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Critical Gaps</p>
+              <h3 className="text-lg font-bold text-rose-600 mt-1">3</h3>
+              <span className="text-[9px] text-secondary font-medium font-mono mt-1 inline-block">Line 4 Primary</span>
+            </div>
+            <span className="material-symbols-outlined text-rose-500 text-lg">report_problem</span>
+          </div>
+
+          <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+            <div>
+              <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Active Trainings</p>
+              <h3 className="text-lg font-bold text-[#0F172A] mt-1">28</h3>
+              
+              <div className="w-20 h-1 bg-slate-100 rounded-full overflow-hidden mt-2 border border-slate-200">
+                <div className="h-full bg-primary" style={{ width: '60%' }} />
+              </div>
+            </div>
+            <span className="material-symbols-outlined text-secondary text-lg">model_training</span>
+          </div>
+        </div>
+
+      </div>
+    );
+  };
+
   const changeSubTab = (tab: 'associates' | 'workstations' | 'skills' | 'lines' | 'shifts') => {
     setActiveSubTab(tab);
     setSelectedAssociate(null);
@@ -1304,373 +1775,412 @@ export const MasterData: React.FC<MasterDataProps> = ({ setSelectedLineId, setAc
             selectedAssociate ? (
               renderAssociateProfile(selectedAssociate)
             ) : (
-              <>
-                <div className="flex justify-between items-center shrink-0">
+              <div className="flex-1 flex flex-col gap-6 overflow-hidden min-h-0">
+                {/* Mode Switcher */}
+                <div className="flex justify-between items-center shrink-0 border-b border-outline-variant pb-3 select-none">
                   <div>
-                    <h2 className="text-sm font-bold text-primary uppercase font-mono tracking-wider">Team Directory</h2>
-                    <p className="text-[10px] text-secondary mt-0.5">Manage plant staff assignments and shift availability.</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-3 select-none">
-                    {/* Search Bar */}
-                    <div className="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant text-[11px] w-64 shadow-premium-sm">
-                      <span className="material-symbols-outlined text-secondary text-xs">search</span>
-                      <input
-                        type="text"
-                        value={assocSearchQuery}
-                        onChange={(e) => {
-                          setAssocSearchQuery(e.target.value);
-                          setAssociatesPage(1);
-                        }}
-                        placeholder="Search associates, ID, category..."
-                        className="bg-transparent border-none focus:outline-none focus:ring-0 text-[10px] w-full p-0 text-on-surface"
-                      />
-                    </div>
-
-                    {canWriteAssociates && !isAddingAssoc && !editingAssoc && (
-                      <button
-                        onClick={() => { resetAssocForm(); setIsAddingAssoc(true); }}
-                        className="py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-900 flex items-center gap-1.5 cursor-pointer shadow-premium-md font-label-caps tracking-wider transition-all hover:scale-[1.02]"
-                      >
-                        <span className="material-symbols-outlined text-sm">person_add</span> ADD ASSOCIATE
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Summary Metrics Row */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 select-none shrink-0">
-                  <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
-                    <div>
-                      <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Active Staff</p>
-                      <h3 className="text-base font-bold text-[#0F172A] mt-1">
-                        {associates.filter(a => a.status === 'Active').length} / {Math.max(140, associates.length)}
-                      </h3>
-                    </div>
-                    <span className="material-symbols-outlined text-primary text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>badge</span>
+                    <h2 className="text-sm font-bold text-primary uppercase font-mono tracking-wider">
+                      {associatesViewMode === 'matrix' ? 'Certification Matrix' : 'Roster Directory'}
+                    </h2>
+                    <p className="text-[10px] text-secondary mt-0.5">
+                      {associatesViewMode === 'matrix' ? 'Check skill compliance and training records.' : 'Manage plant staff assignments and shift availability.'}
+                    </p>
                   </div>
 
-                  <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
-                    <div>
-                      <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Shift Status</p>
-                      <h3 className="text-base font-bold text-emerald-600 mt-1 flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-                        Optimal
-                      </h3>
-                    </div>
-                    <span className="material-symbols-outlined text-emerald-500 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
-                  </div>
-
-                  <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
-                    <div>
-                      <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Open Stations</p>
-                      <h3 className="text-base font-bold text-[#0F172A] mt-1">
-                        {String(Math.max(0, workstations.length - allocations.filter(a => a.date === new Date().toISOString().split('T')[0] && a.shiftId === 'SHIFT-A').length)).padStart(2, '0')}
-                      </h3>
-                    </div>
-                    <span className="material-symbols-outlined text-secondary text-lg">desk</span>
-                  </div>
-
-                  <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
-                    <div>
-                      <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Safety Score</p>
-                      <h3 className="text-base font-bold text-[#0F172A] mt-1">98.4%</h3>
-                    </div>
-                    <span className="material-symbols-outlined text-rose-500 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>shield</span>
+                  <div className="flex gap-1 bg-surface-container p-1 rounded-lg border border-outline-variant shadow-premium-sm">
+                    <button
+                      type="button"
+                      onClick={() => setAssociatesViewMode('directory')}
+                      className={`px-3 py-1 rounded-lg text-[9px] font-bold transition-all cursor-pointer ${
+                        associatesViewMode === 'directory' ? 'bg-white text-primary shadow-premium-sm border border-outline-variant' : 'text-secondary hover:text-primary'
+                      }`}
+                    >
+                      Roster View
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAssociatesViewMode('matrix')}
+                      className={`px-3 py-1 rounded-lg text-[9px] font-bold transition-all cursor-pointer ${
+                        associatesViewMode === 'matrix' ? 'bg-white text-primary shadow-premium-sm border border-outline-variant' : 'text-secondary hover:text-primary'
+                      }`}
+                    >
+                      Certification Matrix
+                    </button>
                   </div>
                 </div>
 
-                {/* Filters & pagination bar */}
-                <div className="bg-slate-50 border border-outline-variant rounded-lg p-3 flex justify-between items-center select-none shrink-0 shadow-premium-sm">
-                  {/* Category Filter Pills */}
-                  <div className="flex gap-2">
-                    {['All', 'Welding', 'Assembly', 'Quality Control', 'Maintenance'].map(pill => (
-                      <button
-                        key={pill}
-                        onClick={() => { setSelectedSkillFilter(pill); setAssociatesPage(1); }}
-                        className={`px-3 py-1 rounded-full text-[9px] font-bold border transition-all cursor-pointer ${
-                          selectedSkillFilter === pill 
-                            ? 'bg-primary text-white border-primary shadow-premium-sm' 
-                            : 'bg-white text-secondary border-outline-variant hover:text-primary'
-                        }`}
-                      >
-                        {pill}
-                      </button>
-                    ))}
-                  </div>
+                {associatesViewMode === 'matrix' ? (
+                  renderCertificationMatrix()
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center shrink-0">
+                      <div>
+                        <h2 className="text-sm font-bold text-primary uppercase font-mono tracking-wider">Team Directory</h2>
+                        <p className="text-[10px] text-secondary mt-0.5">Manage plant staff assignments and shift availability.</p>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 select-none">
+                        {/* Search Bar */}
+                        <div className="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant text-[11px] w-64 shadow-premium-sm">
+                          <span className="material-symbols-outlined text-secondary text-xs">search</span>
+                          <input
+                            type="text"
+                            value={assocSearchQuery}
+                            onChange={(e) => {
+                              setAssocSearchQuery(e.target.value);
+                              setAssociatesPage(1);
+                            }}
+                            placeholder="Search associates, ID, category..."
+                            className="bg-transparent border-none focus:outline-none focus:ring-0 text-[10px] w-full p-0 text-on-surface"
+                          />
+                        </div>
 
-                  {/* Right pagination preview */}
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] text-secondary font-medium">
-                      Showing {filteredAssociatesList.length > 0 ? (associatesPage - 1) * 12 + 1 : 0}-{Math.min(associatesPage * 12, filteredAssociatesList.length)} of {filteredAssociatesList.length}
-                    </span>
-                    <div className="flex gap-1">
-                      <button
-                        disabled={associatesPage === 1}
-                        onClick={() => setAssociatesPage(p => Math.max(1, p - 1))}
-                        className="w-6 h-6 border border-outline-variant rounded flex items-center justify-center bg-white text-secondary hover:text-primary disabled:opacity-40 cursor-pointer shadow-premium-sm"
-                      >
-                        <span className="material-symbols-outlined text-sm font-bold">chevron_left</span>
-                      </button>
-                      <button
-                        disabled={associatesPage === totalPages}
-                        onClick={() => setAssociatesPage(p => Math.min(totalPages, p + 1))}
-                        className="w-6 h-6 border border-outline-variant rounded flex items-center justify-center bg-white text-secondary hover:text-primary disabled:opacity-40 cursor-pointer shadow-premium-sm"
-                      >
-                        <span className="material-symbols-outlined text-sm font-bold">chevron_right</span>
-                      </button>
+                        {canWriteAssociates && !isAddingAssoc && !editingAssoc && (
+                          <button
+                            onClick={() => { resetAssocForm(); setIsAddingAssoc(true); }}
+                            className="py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-900 flex items-center gap-1.5 cursor-pointer shadow-premium-md font-label-caps tracking-wider transition-all hover:scale-[1.02]"
+                          >
+                            <span className="material-symbols-outlined text-sm">person_add</span> ADD ASSOCIATE
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Team Roster Table Card */}
-                <div className="bg-white border border-outline-variant rounded-xl shadow-premium-sm flex-grow overflow-visible relative">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="bg-surface-container-low border-b border-outline-variant text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps select-none">
-                        <th className="p-3.5">Associate</th>
-                        <th className="p-3.5">Skill Category</th>
-                        <th className="p-3.5">Assignment</th>
-                        <th className="p-3.5">Status</th>
-                        <th className="p-3.5 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {paginatedAssociates.map(assoc => {
-                        const skills = associateSkills.filter(s => s.associateId === assoc.id);
-                        
-                        const todayStr = new Date().toISOString().split('T')[0];
-                        const allocation = allocations.find(a => a.associateId === assoc.id && a.date === todayStr && a.shiftId === 'SHIFT-A');
-                        
-                        let assignmentText = "Facility Wide";
-                        let assignmentIcon = "apartment";
-                        
-                        if (allocation) {
-                          const ws = workstations.find(w => w.id === allocation.workstationId);
-                          const line = productionLines.find(l => l.id === allocation.lineId);
-                          if (line) {
-                            assignmentText = line.name.replace("Line ", "Line A-").replace("0", "");
-                            assignmentIcon = "precision_manufacturing";
-                          } else if (ws) {
-                            assignmentText = ws.name;
-                            assignmentIcon = "desk";
-                          }
-                        }
+                    {/* Summary Metrics Row */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 select-none shrink-0">
+                      <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+                        <div>
+                          <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Active Staff</p>
+                          <h3 className="text-base font-bold text-[#0F172A] mt-1">
+                            {associates.filter(a => a.status === 'Active').length} / {Math.max(140, associates.length)}
+                          </h3>
+                        </div>
+                        <span className="material-symbols-outlined text-primary text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>badge</span>
+                      </div>
 
-                        let categoryText = "FLOATING";
-                        let categoryBg = "bg-slate-50 text-secondary border-outline-variant";
-                        
-                        if (skills.length > 0) {
-                          const mainSkill = skills[0].skillId;
-                          if (mainSkill.includes("BLADE")) {
-                            categoryText = "WELDING";
-                            categoryBg = "bg-[#0f172a] text-slate-100 border-[#0f172a]";
-                          } else if (mainSkill.includes("PACK")) {
-                            categoryText = "ASSEMBLY";
-                            categoryBg = "bg-blue-100 text-blue-800 border-blue-200";
-                          } else if (mainSkill.includes("QC")) {
-                            categoryText = "QUALITY CONTROL";
-                            categoryBg = "bg-emerald-900 text-emerald-100 border-emerald-950";
-                          } else if (mainSkill.includes("MAINT")) {
-                            categoryText = "MAINTENANCE";
-                            categoryBg = "bg-rose-50 text-rose-700 border-rose-100";
-                          } else {
-                            categoryText = mainSkill.replace("_OPT", "").replace("_ENG", "");
-                            categoryBg = "bg-slate-100 text-slate-800 border-slate-200";
-                          }
-                        }
+                      <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+                        <div>
+                          <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Shift Status</p>
+                          <h3 className="text-base font-bold text-emerald-600 mt-1 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                            Optimal
+                          </h3>
+                        </div>
+                        <span className="material-symbols-outlined text-emerald-500 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+                      </div>
 
-                        return (
-                          <tr key={assoc.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-3.5">
-                              <div className="flex items-center gap-3">
-                                <img 
-                                  alt={assoc.name} 
-                                  className="w-8 h-8 rounded-full object-cover border border-outline-variant shadow-premium-sm cursor-pointer" 
-                                  src={getAvatarUrl(assoc.name)} 
-                                  onClick={() => { setSelectedAssociate(assoc); setProfileTab('skills'); }}
-                                />
-                                <div>
-                                  <div 
-                                    className="font-bold text-[#0F172A] hover:underline cursor-pointer"
-                                    onClick={() => { setSelectedAssociate(assoc); setProfileTab('skills'); }}
-                                  >
-                                    {assoc.name}
-                                  </div>
-                                  <div className="text-[9px] font-mono text-secondary font-semibold">ID: {assoc.id}</div>
-                                </div>
-                              </div>
-                            </td>
-                            
-                            <td className="p-3.5">
-                              <span className={`px-2.5 py-0.5 rounded text-[8px] font-bold font-mono tracking-wider border shadow-premium-sm uppercase ${categoryBg}`}>
-                                {categoryText}
-                              </span>
-                            </td>
+                      <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+                        <div>
+                          <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Open Stations</p>
+                          <h3 className="text-base font-bold text-[#0F172A] mt-1">
+                            {String(Math.max(0, workstations.length - allocations.filter(a => a.date === new Date().toISOString().split('T')[0] && a.shiftId === 'SHIFT-A').length)).padStart(2, '0')}
+                          </h3>
+                        </div>
+                        <span className="material-symbols-outlined text-secondary text-lg">desk</span>
+                      </div>
 
-                            <td className="p-3.5 font-medium text-secondary">
-                              <div className="flex items-center gap-1.5">
-                                <span className="material-symbols-outlined text-secondary text-sm">{assignmentIcon}</span>
-                                <span>{assignmentText}</span>
-                              </div>
-                            </td>
+                      <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+                        <div>
+                          <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Safety Score</p>
+                          <h3 className="text-base font-bold text-[#0F172A] mt-1">98.4%</h3>
+                        </div>
+                        <span className="material-symbols-outlined text-rose-500 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>shield</span>
+                      </div>
+                    </div>
 
-                            <td className="p-3.5">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (role !== 'Plant Admin') {
-                                    alert("Access Denied: Only Plant Admins can toggle operator status.");
-                                    return;
-                                  }
-                                  const newStatus = assoc.status === 'Active' ? 'Inactive' : 'Active';
-                                  updateAssociate({ ...assoc, status: newStatus }, associateSkills.filter(s => s.associateId === assoc.id).map(s => ({ skillId: s.skillId, level: s.level, expiryDate: s.expiryDate })));
-                                }}
-                                className={`w-8 h-4.5 rounded-full p-0.5 transition-colors duration-200 ease-in-out cursor-pointer relative shadow-premium-sm ${
-                                  assoc.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-200'
-                                }`}
-                              >
-                                <div className={`w-3.5 h-3.5 bg-white rounded-full transition-transform duration-200 ease-in-out shadow-premium-sm ${
-                                  assoc.status === 'Active' ? 'translate-x-3.5' : 'translate-x-0'
-                                }`} />
-                              </button>
-                            </td>
+                    {/* Filters & pagination bar */}
+                    <div className="bg-slate-50 border border-outline-variant rounded-lg p-3 flex justify-between items-center select-none shrink-0 shadow-premium-sm">
+                      {/* Category Filter Pills */}
+                      <div className="flex gap-2">
+                        {['All', 'Welding', 'Assembly', 'Quality Control', 'Maintenance'].map(pill => (
+                          <button
+                            key={pill}
+                            onClick={() => { setSelectedSkillFilter(pill); setAssociatesPage(1); }}
+                            className={`px-3 py-1 rounded-full text-[9px] font-bold border transition-all cursor-pointer ${
+                              selectedSkillFilter === pill 
+                                ? 'bg-primary text-white border-primary shadow-premium-sm' 
+                                : 'bg-white text-secondary border-outline-variant hover:text-primary'
+                            }`}
+                          >
+                            {pill}
+                          </button>
+                        ))}
+                      </div>
 
-                            <td className="p-3.5 text-right select-none relative">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveMenuAssocId(activeMenuAssocId === assoc.id ? null : assoc.id);
-                                }}
-                                className="p-1 hover:bg-slate-100 rounded-full transition-all text-secondary hover:text-primary cursor-pointer"
-                              >
-                                <span className="material-symbols-outlined text-[18px]">more_vert</span>
-                              </button>
+                      {/* Right pagination preview */}
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] text-secondary font-medium">
+                          Showing {filteredAssociatesList.length > 0 ? (associatesPage - 1) * 12 + 1 : 0}-{Math.min(associatesPage * 12, filteredAssociatesList.length)} of {filteredAssociatesList.length}
+                        </span>
+                        <div className="flex gap-1">
+                          <button
+                            disabled={associatesPage === 1}
+                            onClick={() => setAssociatesPage(p => Math.max(1, p - 1))}
+                            className="w-6 h-6 border border-outline-variant rounded flex items-center justify-center bg-white text-secondary hover:text-primary disabled:opacity-40 cursor-pointer shadow-premium-sm"
+                          >
+                            <span className="material-symbols-outlined text-sm font-bold">chevron_left</span>
+                          </button>
+                          <button
+                            disabled={associatesPage === totalPages}
+                            onClick={() => setAssociatesPage(p => Math.min(totalPages, p + 1))}
+                            className="w-6 h-6 border border-outline-variant rounded flex items-center justify-center bg-white text-secondary hover:text-primary disabled:opacity-40 cursor-pointer shadow-premium-sm"
+                          >
+                            <span className="material-symbols-outlined text-sm font-bold">chevron_right</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
 
-                              {activeMenuAssocId === assoc.id && (
-                                <>
-                                  <div 
-                                    className="fixed inset-0 z-45" 
-                                    onClick={() => setActiveMenuAssocId(null)}
-                                  />
-                                  <div className="absolute right-3.5 top-11 bg-white border border-outline-variant rounded-xl shadow-premium-lg z-50 py-1.5 w-44 text-left animate-slide-up">
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setSelectedAssociate(assoc);
-                                        setProfileTab('skills');
-                                        setActiveMenuAssocId(null);
-                                      }}
-                                      className="w-full px-4 py-2 hover:bg-slate-50 text-[10px] text-secondary hover:text-primary font-bold flex items-center gap-2 cursor-pointer"
-                                    >
-                                      <span className="material-symbols-outlined text-sm">badge</span>
-                                      View Profile
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        startEditAssociate(assoc);
-                                        setActiveMenuAssocId(null);
-                                      }}
-                                      className="w-full px-4 py-2 hover:bg-slate-50 text-[10px] text-secondary hover:text-primary font-bold flex items-center gap-2 cursor-pointer"
-                                    >
-                                      <span className="material-symbols-outlined text-sm">settings</span>
-                                      Edit Skills
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const activeLine = productionLines.find(l => l.status === 'ACTIVE');
-                                        if (activeLine) setSelectedLineId(activeLine.id);
-                                        setActiveTab('shift_planner');
-                                        setActiveMenuAssocId(null);
-                                      }}
-                                      className="w-full px-4 py-2 hover:bg-slate-50 text-[10px] text-secondary hover:text-primary font-bold flex items-center gap-2 cursor-pointer"
-                                    >
-                                      <span className="material-symbols-outlined text-sm">precision_manufacturing</span>
-                                      Assign Station
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        alert("Opening calendar to manage shift availability.");
-                                        setActiveMenuAssocId(null);
-                                      }}
-                                      className="w-full px-4 py-2 hover:bg-slate-50 text-[10px] text-secondary hover:text-primary font-bold flex items-center gap-2 cursor-pointer"
-                                    >
-                                      <span className="material-symbols-outlined text-sm">calendar_today</span>
-                                      Manage Availability
-                                    </button>
-
-                                    <div className="h-[1px] bg-slate-100 my-1" />
-
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        if (role !== 'Plant Admin') {
-                                          alert("Access Denied: Only Plant Admins can deactivate operators.");
-                                          return;
-                                        }
-                                        const newStatus = assoc.status === 'Active' ? 'Inactive' : 'Active';
-                                        updateAssociate({ ...assoc, status: newStatus }, associateSkills.filter(s => s.associateId === assoc.id).map(s => ({ skillId: s.skillId, level: s.level, expiryDate: s.expiryDate })));
-                                        setActiveMenuAssocId(null);
-                                      }}
-                                      className="w-full px-4 py-2 hover:bg-slate-50 text-[10px] text-secondary hover:text-primary font-bold flex items-center gap-2 cursor-pointer"
-                                    >
-                                      <span className="material-symbols-outlined text-sm">block</span>
-                                      {assoc.status === 'Active' ? 'Deactivate' : 'Activate'}
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        if (window.confirm(`Delete associate ${assoc.name}? This will permanently remove all records.`)) {
-                                          deleteAssociate(assoc.id);
-                                        }
-                                        setActiveMenuAssocId(null);
-                                      }}
-                                      className="w-full px-4 py-2 hover:bg-rose-50 text-[10px] text-rose-600 font-bold flex items-center gap-2 cursor-pointer animate-fade-in"
-                                    >
-                                      <span className="material-symbols-outlined text-sm text-rose-600">delete</span>
-                                      Delete Associate
-                                    </button>
-                                  </div>
-                                </>
-                              )}
-                            </td>
+                    {/* Team Roster Table Card */}
+                    <div className="bg-white border border-outline-variant rounded-xl shadow-premium-sm flex-grow overflow-visible relative">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="bg-surface-container-low border-b border-outline-variant text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps select-none">
+                            <th className="p-3.5">Associate</th>
+                            <th className="p-3.5">Skill Category</th>
+                            <th className="p-3.5">Assignment</th>
+                            <th className="p-3.5">Status</th>
+                            <th className="p-3.5 text-right">Actions</th>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {paginatedAssociates.map(assoc => {
+                            const skills = associateSkills.filter(s => s.associateId === assoc.id);
+                            
+                            const todayStr = new Date().toISOString().split('T')[0];
+                            const allocation = allocations.find(a => a.associateId === assoc.id && a.date === todayStr && a.shiftId === 'SHIFT-A');
+                            
+                            let assignmentText = "Facility Wide";
+                            let assignmentIcon = "apartment";
+                            
+                            if (allocation) {
+                              const ws = workstations.find(w => w.id === allocation.workstationId);
+                              const line = productionLines.find(l => l.id === allocation.lineId);
+                              if (line) {
+                                assignmentText = line.name.replace("Line ", "Line A-").replace("0", "");
+                                assignmentIcon = "precision_manufacturing";
+                              } else if (ws) {
+                                assignmentText = ws.name;
+                                assignmentIcon = "desk";
+                              }
+                            }
 
-                {/* Bottom Page Numbers */}
-                {totalPages > 1 && (
-                  <div className="flex justify-center items-center gap-1 select-none shrink-0 py-2">
-                    {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(pageNum => {
-                      const isCurrent = pageNum === associatesPage;
-                      return (
-                        <button
-                          key={pageNum}
-                          onClick={() => setAssociatesPage(pageNum)}
-                          className={`w-6 h-6 text-[10px] font-bold rounded flex items-center justify-center border transition-all cursor-pointer shadow-premium-sm ${
-                            isCurrent 
-                              ? 'bg-primary text-white border-primary' 
-                              : 'bg-white text-secondary border-outline-variant hover:text-primary'
-                          }`}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
-                  </div>
+                            let categoryText = "FLOATING";
+                            let categoryBg = "bg-slate-50 text-secondary border-outline-variant";
+                            
+                            if (skills.length > 0) {
+                              const mainSkill = skills[0].skillId;
+                              if (mainSkill.includes("BLADE")) {
+                                categoryText = "WELDING";
+                                categoryBg = "bg-[#0f172a] text-slate-100 border-[#0f172a]";
+                              } else if (mainSkill.includes("PACK")) {
+                                categoryText = "ASSEMBLY";
+                                categoryBg = "bg-blue-100 text-blue-800 border-blue-200";
+                              } else if (mainSkill.includes("QC")) {
+                                categoryText = "QUALITY CONTROL";
+                                categoryBg = "bg-emerald-900 text-emerald-100 border-emerald-950";
+                              } else if (mainSkill.includes("MAINT")) {
+                                categoryText = "MAINTENANCE";
+                                categoryBg = "bg-rose-50 text-rose-700 border-rose-100";
+                              } else {
+                                categoryText = mainSkill.replace("_OPT", "").replace("_ENG", "");
+                                categoryBg = "bg-slate-100 text-slate-800 border-slate-200";
+                              }
+                            }
+
+                            return (
+                              <tr key={assoc.id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="p-3.5">
+                                  <div className="flex items-center gap-3">
+                                    <img 
+                                      alt={assoc.name} 
+                                      className="w-8 h-8 rounded-full object-cover border border-outline-variant shadow-premium-sm cursor-pointer" 
+                                      src={getAvatarUrl(assoc.name)} 
+                                      onClick={() => { setSelectedAssociate(assoc); setProfileTab('skills'); }}
+                                    />
+                                    <div>
+                                      <div 
+                                        className="font-bold text-[#0F172A] hover:underline cursor-pointer"
+                                        onClick={() => { setSelectedAssociate(assoc); setProfileTab('skills'); }}
+                                      >
+                                        {assoc.name}
+                                      </div>
+                                      <div className="text-[9px] font-mono text-secondary font-semibold">ID: {assoc.id}</div>
+                                    </div>
+                                  </div>
+                                </td>
+                                
+                                <td className="p-3.5">
+                                  <span className={`px-2.5 py-0.5 rounded text-[8px] font-bold font-mono tracking-wider border shadow-premium-sm uppercase ${categoryBg}`}>
+                                    {categoryText}
+                                  </span>
+                                </td>
+
+                                <td className="p-3.5 font-medium text-secondary">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-secondary text-sm">{assignmentIcon}</span>
+                                    <span>{assignmentText}</span>
+                                  </div>
+                                </td>
+
+                                <td className="p-3.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (role !== 'Plant Admin') {
+                                        alert("Access Denied: Only Plant Admins can toggle operator status.");
+                                        return;
+                                      }
+                                      const newStatus = assoc.status === 'Active' ? 'Inactive' : 'Active';
+                                      updateAssociate({ ...assoc, status: newStatus }, associateSkills.filter(s => s.associateId === assoc.id).map(s => ({ skillId: s.skillId, level: s.level, expiryDate: s.expiryDate })));
+                                    }}
+                                    className={`w-8 h-4.5 rounded-full p-0.5 transition-colors duration-200 ease-in-out cursor-pointer relative shadow-premium-sm ${
+                                      assoc.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-200'
+                                    }`}
+                                  >
+                                    <div className={`w-3.5 h-3.5 bg-white rounded-full transition-transform duration-200 ease-in-out shadow-premium-sm ${
+                                      assoc.status === 'Active' ? 'translate-x-3.5' : 'translate-x-0'
+                                    }`} />
+                                  </button>
+                                </td>
+
+                                <td className="p-3.5 text-right select-none relative">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveMenuAssocId(activeMenuAssocId === assoc.id ? null : assoc.id);
+                                    }}
+                                    className="p-1 hover:bg-slate-100 rounded-full transition-all text-secondary hover:text-primary cursor-pointer"
+                                  >
+                                    <span className="material-symbols-outlined text-[18px]">more_vert</span>
+                                  </button>
+
+                                  {activeMenuAssocId === assoc.id && (
+                                    <>
+                                      <div 
+                                        className="fixed inset-0 z-45" 
+                                        onClick={() => setActiveMenuAssocId(null)}
+                                      />
+                                      <div className="absolute right-3.5 top-11 bg-white border border-outline-variant rounded-xl shadow-premium-lg z-50 py-1.5 w-44 text-left animate-slide-up">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setSelectedAssociate(assoc);
+                                            setProfileTab('skills');
+                                            setActiveMenuAssocId(null);
+                                          }}
+                                          className="w-full px-4 py-2 hover:bg-slate-50 text-[10px] text-secondary hover:text-primary font-bold flex items-center gap-2 cursor-pointer"
+                                        >
+                                          <span className="material-symbols-outlined text-sm">badge</span>
+                                          View Profile
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            startEditAssociate(assoc);
+                                            setActiveMenuAssocId(null);
+                                          }}
+                                          className="w-full px-4 py-2 hover:bg-slate-50 text-[10px] text-secondary hover:text-primary font-bold flex items-center gap-2 cursor-pointer"
+                                        >
+                                          <span className="material-symbols-outlined text-sm">settings</span>
+                                          Edit Skills
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const activeLine = productionLines.find(l => l.status === 'ACTIVE');
+                                            if (activeLine) setSelectedLineId(activeLine.id);
+                                            setActiveTab('shift_planner');
+                                            setActiveMenuAssocId(null);
+                                          }}
+                                          className="w-full px-4 py-2 hover:bg-slate-50 text-[10px] text-secondary hover:text-primary font-bold flex items-center gap-2 cursor-pointer"
+                                        >
+                                          <span className="material-symbols-outlined text-sm">precision_manufacturing</span>
+                                          Assign Station
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            alert("Opening calendar to manage shift availability.");
+                                            setActiveMenuAssocId(null);
+                                          }}
+                                          className="w-full px-4 py-2 hover:bg-slate-50 text-[10px] text-secondary hover:text-primary font-bold flex items-center gap-2 cursor-pointer"
+                                        >
+                                          <span className="material-symbols-outlined text-sm">calendar_today</span>
+                                          Manage Availability
+                                        </button>
+
+                                        <div className="h-[1px] bg-slate-100 my-1" />
+
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            if (role !== 'Plant Admin') {
+                                              alert("Access Denied: Only Plant Admins can deactivate operators.");
+                                              return;
+                                            }
+                                            const newStatus = assoc.status === 'Active' ? 'Inactive' : 'Active';
+                                            updateAssociate({ ...assoc, status: newStatus }, associateSkills.filter(s => s.associateId === assoc.id).map(s => ({ skillId: s.skillId, level: s.level, expiryDate: s.expiryDate })));
+                                            setActiveMenuAssocId(null);
+                                          }}
+                                          className="w-full px-4 py-2 hover:bg-slate-50 text-[10px] text-secondary hover:text-primary font-bold flex items-center gap-2 cursor-pointer"
+                                        >
+                                          <span className="material-symbols-outlined text-sm">block</span>
+                                          {assoc.status === 'Active' ? 'Deactivate' : 'Activate'}
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            if (window.confirm(`Delete associate ${assoc.name}? This will permanently remove all records.`)) {
+                                              deleteAssociate(assoc.id);
+                                            }
+                                            setActiveMenuAssocId(null);
+                                          }}
+                                          className="w-full px-4 py-2 hover:bg-rose-50 text-[10px] text-rose-600 font-bold flex items-center gap-2 cursor-pointer animate-fade-in"
+                                        >
+                                          <span className="material-symbols-outlined text-sm text-rose-600">delete</span>
+                                          Delete Associate
+                                        </button>
+                                      </div>
+                                    </>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Bottom Page Numbers */}
+                    {totalPages > 1 && (
+                      <div className="flex justify-center items-center gap-1 select-none shrink-0 py-2">
+                        {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(pageNum => {
+                          const isCurrent = pageNum === associatesPage;
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => setAssociatesPage(pageNum)}
+                              className={`w-6 h-6 text-[10px] font-bold rounded flex items-center justify-center border transition-all cursor-pointer shadow-premium-sm ${
+                                isCurrent 
+                                  ? 'bg-primary text-white border-primary' 
+                                  : 'bg-white text-secondary border-outline-variant hover:text-primary'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
                 )}
-              </>
+              </div>
             )
           )}
 

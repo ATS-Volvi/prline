@@ -3,15 +3,12 @@ import { AppProvider, useApp } from './context/AppContext';
 import { Navigation } from './components/Navigation';
 import { Dashboard } from './components/Dashboard';
 import { ShiftPlanner } from './components/ShiftPlanner';
-import { SkillMatrix } from './components/SkillMatrix';
 import { Analytics } from './components/Analytics';
 import { MasterData } from './components/MasterData';
-import { AiReports } from './components/AiReports';
 import { AuditLogs } from './components/AuditLogs';
 import { Login } from './components/Login';
 import { ExecutiveDashboard } from './components/ExecutiveDashboard';
 import { PlantMap } from './components/PlantMap';
-import { AlertCenter } from './components/AlertCenter';
 
 function MainAppContent() {
   const { token, logout } = useApp();
@@ -69,16 +66,16 @@ function MainAppContent() {
             setActiveTab={setActiveTab}
           />
         );
-      case 'skill_matrix':
-        return <SkillMatrix />;
+      case 'lines':
+        return <MasterData initialSubTab="lines" setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
+      case 'associates':
+        return <MasterData initialSubTab="associates" setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
+      case 'workstations':
+        return <MasterData initialSubTab="workstations" setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
+      case 'skills':
+        return <MasterData initialSubTab="skills" setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
       case 'analytics':
         return <Analytics />;
-      case 'alerts':
-        return <AlertCenter setActiveTab={setActiveTab} />;
-      case 'master_data':
-        return <MasterData setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
-      case 'ai_reports':
-        return <AiReports />;
       case 'audit_logs':
         return <AuditLogs />;
       default:

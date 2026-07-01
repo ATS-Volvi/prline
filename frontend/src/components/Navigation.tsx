@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useApp } from '../context/AppContext';
 
 interface NavigationProps {
@@ -8,8 +8,7 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
-  const { role, user, associateSkills, associates, workstations, skills, productionLines, logout } = useApp();
-  const [masterDataOpen, setMasterDataOpen] = useState(true);
+  const { role, user, associateSkills, logout } = useApp();
 
   const expiringCount = React.useMemo(() => {
     const today = new Date();
@@ -24,11 +23,12 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
   const tabs = [
     { id: 'dashboard', name: 'Dashboard', icon: 'dashboard', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
     { id: 'shift_planner', name: 'Shift Allocation', icon: 'group_add', roles: ['Plant Admin', 'Production Supervisor', 'Plant Manager'] },
-    { id: 'skill_matrix', name: 'Skill Matrix', icon: 'military_tech', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
-    { id: 'analytics', name: 'Skill Gap Analysis', icon: 'analytics', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
-    { id: 'master_data', name: 'Master Data Setup', icon: 'database', roles: ['Plant Admin', 'HR / Training Coordinator'] },
-    { id: 'ai_reports', name: 'AI Predictive Reports', icon: 'psychology', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
-    { id: 'audit_logs', name: 'Audit Logs & Reports', icon: 'terminal', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] }
+    { id: 'lines', name: 'Production Lines', icon: 'precision_manufacturing', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
+    { id: 'associates', name: 'Associates', icon: 'groups', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
+    { id: 'workstations', name: 'Workstations', icon: 'desk', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
+    { id: 'skills', name: 'Skills', icon: 'military_tech', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
+    { id: 'analytics', name: 'Reports', icon: 'analytics', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
+    { id: 'audit_logs', name: 'Audit Logs', icon: 'terminal', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] }
   ];
 
   const visibleTabs = tabs.filter(t => t.roles.includes(role));
@@ -101,73 +101,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
         </button>
       </nav>
 
-      {/* Master Data Quick Config Panel */}
-      {(role === 'Plant Admin' || role === 'HR / Training Coordinator') && (
-        <div className="px-3 pb-3 bg-primary">
-          <button
-            onClick={() => setMasterDataOpen(prev => !prev)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-primary-container/40 hover:bg-primary-container/60 transition-all cursor-pointer group"
-          >
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>database</span>
-              <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#64748B]">MASTER DATA</span>
-            </div>
-            <span className={`material-symbols-outlined text-xs text-on-primary-container transition-transform duration-200 ${masterDataOpen ? 'rotate-180' : ''}`}>expand_more</span>
-          </button>
 
-          {masterDataOpen && (
-            <div className="mt-2 grid grid-cols-2 gap-1.5 animate-fade-in">
-              {/* Associates */}
-              <button
-                onClick={() => { setActiveTab('master_data'); localStorage.setItem('master_data_sub_tab', 'associates'); }}
-                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-primary-container/60 ${activeTab === 'master_data' ? 'border-outline bg-primary-container/50' : 'border-outline-variant bg-primary'}`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>groups</span>
-                  <span className="text-white font-mono font-bold text-sm leading-none">{associates?.length ?? 0}</span>
-                </div>
-                <span className="font-label-caps text-[8px] text-on-primary-container tracking-wider leading-tight">Associates</span>
-              </button>
-
-              {/* Workstations */}
-              <button
-                onClick={() => { setActiveTab('master_data'); localStorage.setItem('master_data_sub_tab', 'workstations'); }}
-                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-primary-container/60 ${activeTab === 'master_data' ? 'border-outline bg-primary-container/50' : 'border-outline-variant bg-primary'}`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>precision_manufacturing</span>
-                  <span className="text-white font-mono font-bold text-sm leading-none">{workstations?.length ?? 0}</span>
-                </div>
-                <span className="font-label-caps text-[8px] text-on-primary-container tracking-wider leading-tight">Workstations</span>
-              </button>
-
-              {/* Skills */}
-              <button
-                onClick={() => { setActiveTab('master_data'); localStorage.setItem('master_data_sub_tab', 'skills'); }}
-                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-primary-container/60 ${activeTab === 'master_data' ? 'border-outline bg-primary-container/50' : 'border-outline-variant bg-primary'}`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span>
-                  <span className="text-white font-mono font-bold text-sm leading-none">{skills?.length ?? 0}</span>
-                </div>
-                <span className="font-label-caps text-[8px] text-on-primary-container tracking-wider leading-tight">Skills</span>
-              </button>
-
-              {/* Production Lines */}
-              <button
-                onClick={() => { setActiveTab('master_data'); localStorage.setItem('master_data_sub_tab', 'lines'); }}
-                className={`flex flex-col items-start gap-1 p-2.5 rounded-xl border transition-all cursor-pointer group hover:border-[#14b8a6]/40 hover:bg-primary-container/60 ${activeTab === 'master_data' ? 'border-outline bg-primary-container/50' : 'border-outline-variant bg-primary'}`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span className="material-symbols-outlined text-[#14b8a6] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>conveyor_belt</span>
-                  <span className="text-white font-mono font-bold text-sm leading-none">{productionLines?.length ?? 0}</span>
-                </div>
-                <span className="font-label-caps text-[8px] text-on-primary-container tracking-wider leading-tight">Prod. Lines</span>
-              </button>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Footer Section */}
       <div className="mt-auto p-4 border-t border-outline-variant bg-[#050b18]">
