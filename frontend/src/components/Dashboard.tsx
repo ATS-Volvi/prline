@@ -13,7 +13,7 @@ const AVATAR_MAP: Record<string, string> = {
 };
 
 export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedLineId }) => {
-  const { productionLines, workstations, allocations, associates, associateSkills, leaveRecords, role } = useApp();
+  const { productionLines, workstations, allocations, associates, associateSkills, leaveRecords, role, user } = useApp();
 
   // Get current date string formatted as YYYY-MM-DD (e.g. 2026-06-29)
   const todayDateStr = new Date().toISOString().split('T')[0];
@@ -96,7 +96,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
     setActiveTab('shift_planner');
   };
 
-  const userName = role === 'Plant Admin' ? 'A. Mukhopadhyay' : role === 'HR / Training Coordinator' ? 'P. Banerjee' : role === 'Plant Manager' ? 'S. Chatterjee' : 'R. Sharma';
+  const userName = user?.name || (role === 'Plant Admin' ? 'A. Mukhopadhyay' : role === 'HR / Training Coordinator' ? 'P. Banerjee' : role === 'Plant Manager' ? 'S. Chatterjee' : 'R. Sharma');
 
   const todayStr = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
