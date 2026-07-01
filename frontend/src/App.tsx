@@ -4,6 +4,7 @@ import { Navigation } from './components/Navigation';
 import { Dashboard } from './components/Dashboard';
 import { ShiftPlanner } from './components/ShiftPlanner';
 import { Analytics } from './components/Analytics';
+import { AiReports } from './components/AiReports';
 import { MasterData } from './components/MasterData';
 import { AuditLogs } from './components/AuditLogs';
 import { Login } from './components/Login';
@@ -76,6 +77,8 @@ function MainAppContent() {
         return <MasterData initialSubTab="skills" setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
       case 'analytics':
         return <Analytics />;
+      case 'ai_reports':
+        return <AiReports />;
       case 'audit_logs':
         return <AuditLogs />;
       default:

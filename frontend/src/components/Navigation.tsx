@@ -28,6 +28,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
     { id: 'workstations', name: 'Workstations', icon: 'desk', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
     { id: 'skills', name: 'Skills', icon: 'military_tech', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
     { id: 'analytics', name: 'Reports', icon: 'analytics', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
+    { id: 'ai_reports', name: 'AI Reports', icon: 'smart_toy', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
     { id: 'audit_logs', name: 'Audit Logs', icon: 'terminal', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] }
   ];
 
