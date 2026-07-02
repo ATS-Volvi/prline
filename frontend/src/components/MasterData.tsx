@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import type { Associate, Workstation, AssociateCategory, SkillLevel, ProductionLine, LineStatus, Skill, Shift } from '../types';
+import { ShiftPlanner } from './ShiftPlanner';
 
 interface MasterDataProps {
   initialSubTab?: 'associates' | 'workstations' | 'skills' | 'lines' | 'shifts';
+  selectedLineId?: string;
   setSelectedLineId?: (id: string) => void;
   setActiveTab?: (tab: string) => void;
 }
 
-export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelectedLineId, setActiveTab }) => {
+export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedLineId, setSelectedLineId, setActiveTab }) => {
   const {
     associates,
     workstations,
@@ -2080,9 +2082,16 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden flex animate-fade-in">
-        
-        {/* Left Side Table View */}
-        <div className="flex-1 p-margin-desktop overflow-y-auto custom-scrollbar flex flex-col gap-6">
+        {activeSubTab === 'shifts' ? (
+          <ShiftPlanner
+            selectedLineId={selectedLineId || 'LINE-01'}
+            setSelectedLineId={setSelectedLineId || (() => {})}
+            setActiveTab={setActiveTab || (() => {})}
+          />
+        ) : (
+          <>
+            {/* Left Side Table View */}
+            <div className="flex-1 p-margin-desktop overflow-y-auto custom-scrollbar flex flex-col gap-6">
           
           {/* Sub-tab: Associates */}
           {activeSubTab === 'associates' && (
@@ -2637,8 +2646,8 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
             </>
           )}
 
-          {/* Unified Sub-tab: Lines & Shifts configuration */}
-          {(activeSubTab === 'lines' || activeSubTab === 'shifts') && (
+          {/* Unified Sub-tab: Lines configuration */}
+          {activeSubTab === 'lines' && (
             renderLineAndShiftConfig()
           )}
 
@@ -3122,8 +3131,9 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
 
           </aside>
         )}
-
-      </div>
+      </>
+    )}
+  </div>
     </div>
   );
 };
