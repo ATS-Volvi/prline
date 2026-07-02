@@ -830,6 +830,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
 
   // Unified Line and Shift Configuration states
   const [expandedLineId, setExpandedLineId] = useState<string | null>('LINE-01');
+  const [selectedLineFilter, setSelectedLineFilter] = useState('ALL');
   const [showConflictAlert, setShowConflictAlert] = useState(true);
   const [activeDaysShiftA, setActiveDaysShiftA] = useState<string[]>(['M', 'T', 'W', 'T', 'F']);
   const [activeDaysShiftB, setActiveDaysShiftB] = useState<string[]>(['M', 'T', 'W', 'T', 'F']);
@@ -881,19 +882,39 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
         )}
 
         {/* HEADER SECTION */}
-        <div className="flex justify-between items-center shrink-0 mb-4 select-none">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0 mb-4 select-none">
           <div>
             <h2 className="text-xl font-bold text-[#0F172A]">Line and Shift Configuration</h2>
             <p className="text-[11px] text-secondary mt-0.5">Configure operational parameters and machine hierarchies for Unit 04.</p>
           </div>
-          <button
-            type="button"
-            onClick={handleCommitChanges}
-            className="py-2.5 px-4 bg-[#091426] text-white font-bold rounded-lg hover:bg-slate-900 transition-all flex items-center gap-2 shadow-premium-md cursor-pointer text-[10px] uppercase font-mono tracking-wider"
-          >
-            <span className="material-symbols-outlined text-[16px]">save</span>
-            <span>Commit Changes</span>
-          </button>
+
+          <div className="flex items-center gap-3">
+            <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Line Filter:</span>
+            <select
+              value={selectedLineFilter}
+              onChange={(e) => {
+                setSelectedLineFilter(e.target.value);
+                if (e.target.value !== 'ALL') {
+                  setExpandedLineId(e.target.value);
+                }
+              }}
+              className="py-1.5 px-3 border border-outline-variant rounded-lg bg-white font-bold text-[10px] cursor-pointer shadow-premium-sm"
+            >
+              <option value="ALL">All Production Lines</option>
+              {productionLines.map(l => (
+                <option key={l.id} value={l.id}>{l.name}</option>
+              ))}
+            </select>
+
+            <button
+              type="button"
+              onClick={handleCommitChanges}
+              className="py-2.5 px-4 bg-[#091426] text-white font-bold rounded-lg hover:bg-slate-900 transition-all flex items-center gap-2 shadow-premium-md cursor-pointer text-[10px] uppercase font-mono tracking-wider ml-1"
+            >
+              <span className="material-symbols-outlined text-[16px]">save</span>
+              <span>Commit Changes</span>
+            </button>
+          </div>
         </div>
 
         {/* TWO-COLUMN GRID */}
@@ -921,7 +942,9 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
 
               {/* Accordion List */}
               <div className="flex flex-col gap-3">
-                {productionLines.map(line => {
+                {productionLines
+                  .filter(l => selectedLineFilter === 'ALL' || l.id === selectedLineFilter)
+                  .map(line => {
                   const isExpanded = expandedLineId === line.id;
                   const lineWS = workstations.filter(w => w.lineId === line.id);
                   
@@ -1018,13 +1041,13 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
                 <div className="flex flex-col gap-5">
                   
                   {/* Shift A */}
-                  <div className={`border border-outline-variant rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-opacity ${activeShiftA ? 'opacity-100' : 'opacity-55'}`}>
-                    <div className="sm:w-28 select-none">
+                  <div className={`border border-outline-variant rounded-xl p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 items-center transition-opacity ${activeShiftA ? 'opacity-100' : 'opacity-55'}`}>
+                    <div className="lg:col-span-2 select-none">
                       <h4 className="font-bold text-xs text-[#0f172a]">Shift A</h4>
                       <span className="mt-1 text-[8px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100 inline-block uppercase font-mono tracking-wider">MORNING</span>
                     </div>
 
-                    <div className="flex-grow grid grid-cols-2 gap-4">
+                    <div className="lg:col-span-6 grid grid-cols-2 gap-3 w-full">
                       <div className="flex flex-col gap-1">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider select-none">Start Time</span>
                         <div className="relative">
@@ -1054,7 +1077,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
                     </div>
 
                     {/* Active Toggle & Days */}
-                    <div className="flex flex-col gap-2.5 sm:items-end sm:w-44 select-none">
+                    <div className="lg:col-span-4 flex flex-col items-start lg:items-end gap-2.5 select-none w-full">
                       <div className="flex items-center gap-2">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Active</span>
                         <button
@@ -1089,13 +1112,13 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
                   </div>
 
                   {/* Shift B */}
-                  <div className={`border border-outline-variant rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-opacity ${activeShiftB ? 'opacity-100' : 'opacity-55'}`}>
-                    <div className="sm:w-28 select-none">
+                  <div className={`border border-outline-variant rounded-xl p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 items-center transition-opacity ${activeShiftB ? 'opacity-100' : 'opacity-55'}`}>
+                    <div className="lg:col-span-2 select-none">
                       <h4 className="font-bold text-xs text-[#0f172a]">Shift B</h4>
                       <span className="mt-1 text-[8px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-100 inline-block uppercase font-mono tracking-wider">SWING</span>
                     </div>
 
-                    <div className="flex-grow grid grid-cols-2 gap-4">
+                    <div className="lg:col-span-6 grid grid-cols-2 gap-3 w-full">
                       <div className="flex flex-col gap-1">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider select-none">Start Time</span>
                         <div className="relative">
@@ -1125,7 +1148,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
                     </div>
 
                     {/* Active Toggle & Days */}
-                    <div className="flex flex-col gap-2.5 sm:items-end sm:w-44 select-none">
+                    <div className="lg:col-span-4 flex flex-col items-start lg:items-end gap-2.5 select-none w-full">
                       <div className="flex items-center gap-2">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Active</span>
                         <button
@@ -1160,13 +1183,13 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
                   </div>
 
                   {/* Shift C */}
-                  <div className={`border border-outline-variant rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-opacity ${activeShiftC ? 'opacity-100' : 'opacity-55'}`}>
-                    <div className="sm:w-28 select-none">
+                  <div className={`border border-outline-variant rounded-xl p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 items-center transition-opacity ${activeShiftC ? 'opacity-100' : 'opacity-55'}`}>
+                    <div className="lg:col-span-2 select-none">
                       <h4 className="font-bold text-xs text-[#0f172a]">Shift C</h4>
                       <span className="mt-1 text-[8px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 inline-block uppercase font-mono tracking-wider">NIGHT</span>
                     </div>
 
-                    <div className="flex-grow grid grid-cols-2 gap-4">
+                    <div className="lg:col-span-6 grid grid-cols-2 gap-3 w-full">
                       <div className="flex flex-col gap-1">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider select-none">Start Time</span>
                         <div className="relative">
@@ -1196,7 +1219,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
                     </div>
 
                     {/* Active Toggle & Days */}
-                    <div className="flex flex-col gap-2.5 sm:items-end sm:w-44 select-none">
+                    <div className="lg:col-span-4 flex flex-col items-start lg:items-end gap-2.5 select-none w-full">
                       <div className="flex items-center gap-2">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Active</span>
                         <button
