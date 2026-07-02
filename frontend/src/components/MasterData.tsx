@@ -1019,7 +1019,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
                       <span className="mt-1 text-[8px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100 inline-block uppercase font-mono tracking-wider">MORNING</span>
                     </div>
 
-                    <div className="lg:col-span-6 grid grid-cols-2 gap-3 w-full">
+                    <div className="lg:col-span-5 grid grid-cols-2 gap-3 w-full">
                       <div className="flex flex-col gap-1">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider select-none">Start Time</span>
                         <div className="relative">
@@ -1049,7 +1049,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
                     </div>
 
                     {/* Active Toggle & Days */}
-                    <div className="lg:col-span-4 flex flex-col items-start lg:items-end gap-2.5 select-none w-full">
+                    <div className="lg:col-span-5 flex flex-col items-start lg:items-end gap-2.5 select-none w-full">
                       <div className="flex items-center gap-2">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Active</span>
                         <button
@@ -1090,7 +1090,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
                       <span className="mt-1 text-[8px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-100 inline-block uppercase font-mono tracking-wider">SWING</span>
                     </div>
 
-                    <div className="lg:col-span-6 grid grid-cols-2 gap-3 w-full">
+                    <div className="lg:col-span-5 grid grid-cols-2 gap-3 w-full">
                       <div className="flex flex-col gap-1">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider select-none">Start Time</span>
                         <div className="relative">
@@ -1120,7 +1120,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
                     </div>
 
                     {/* Active Toggle & Days */}
-                    <div className="lg:col-span-4 flex flex-col items-start lg:items-end gap-2.5 select-none w-full">
+                    <div className="lg:col-span-5 flex flex-col items-start lg:items-end gap-2.5 select-none w-full">
                       <div className="flex items-center gap-2">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Active</span>
                         <button
@@ -1161,7 +1161,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
                       <span className="mt-1 text-[8px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 inline-block uppercase font-mono tracking-wider">NIGHT</span>
                     </div>
 
-                    <div className="lg:col-span-6 grid grid-cols-2 gap-3 w-full">
+                    <div className="lg:col-span-5 grid grid-cols-2 gap-3 w-full">
                       <div className="flex flex-col gap-1">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider select-none">Start Time</span>
                         <div className="relative">
@@ -1191,7 +1191,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
                     </div>
 
                     {/* Active Toggle & Days */}
-                    <div className="lg:col-span-4 flex flex-col items-start lg:items-end gap-2.5 select-none w-full">
+                    <div className="lg:col-span-5 flex flex-col items-start lg:items-end gap-2.5 select-none w-full">
                       <div className="flex items-center gap-2">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Active</span>
                         <button
