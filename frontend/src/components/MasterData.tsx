@@ -1554,11 +1554,11 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
           <span className="text-secondary font-semibold font-mono tracking-wide">Last synced: 10m ago</span>
         </section>
 
-        <div className="bg-white border border-outline-variant rounded-xl shadow-premium-sm flex-grow overflow-x-auto relative">
+        <div className="bg-white border border-outline-variant rounded-xl shadow-premium-sm flex-grow overflow-auto max-h-[500px] relative custom-scrollbar">
           <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-surface-container-low border-b border-outline-variant text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps select-none">
-                <th className="p-3.5 w-64 min-w-[220px]">Associate Name</th>
+            <thead className="sticky top-0 z-20 bg-surface-container-low shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+              <tr className="border-b border-outline-variant text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps select-none">
+                <th className="p-3.5 w-64 min-w-[220px] sticky left-0 bg-surface-container-low z-30 shadow-[3px_0_5px_-2px_rgba(0,0,0,0.08)]">Associate Name</th>
                 {displaySkills.map(s => (
                   <th key={s.id} className="p-3.5 border-l border-outline-variant min-w-[150px]">
                     <div>{s.name}</div>
@@ -1569,8 +1569,8 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
             </thead>
             <tbody className="divide-y divide-slate-150">
               {paginated.map(assoc => (
-                <tr key={assoc.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="p-3.5">
+                <tr key={assoc.id} className="hover:bg-slate-50/50 transition-colors group">
+                  <td className="p-3.5 sticky left-0 bg-white z-10 shadow-[3px_0_5px_-2px_rgba(0,0,0,0.08)] group-hover:bg-slate-50/80 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded bg-[#091426] text-white flex items-center justify-center font-bold font-mono text-[11px] shadow-premium-sm">
                         {assoc.name.split(' ').map(n => n[0]).join('')}
