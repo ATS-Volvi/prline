@@ -24,13 +24,11 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
     deleteWorkstation,
     addProductionLine,
     updateProductionLine,
-    deleteProductionLine,
     addSkill,
     updateSkill,
     deleteSkill,
     addShift,
     updateShift,
-    deleteShift,
     associateSkills,
     addTrainingRecord,
     role
@@ -830,272 +828,462 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
     );
   };
 
-  // Line Master View Mode: 'dashboard' or 'list'
-  const [linesViewMode, setLinesViewMode] = useState<'dashboard' | 'list'>('dashboard');
-  const [isRerunningEngine, setIsRerunningEngine] = useState(false);
+  // Unified Line and Shift Configuration states
+  const [expandedLineId, setExpandedLineId] = useState<string | null>('LINE-01');
+  const [showConflictAlert, setShowConflictAlert] = useState(true);
+  const [activeDaysShiftA, setActiveDaysShiftA] = useState<string[]>(['M', 'T', 'W', 'T', 'F']);
+  const [activeDaysShiftB, setActiveDaysShiftB] = useState<string[]>(['M', 'T', 'W', 'T', 'F']);
+  const [activeDaysShiftC, setActiveDaysShiftC] = useState<string[]>([]);
+  const [activeShiftA, setActiveShiftA] = useState(true);
+  const [activeShiftB, setActiveShiftB] = useState(true);
+  const [activeShiftC, setActiveShiftC] = useState(false);
+  const [startTimeA, setStartTimeA] = useState('06:00 AM');
+  const [endTimeA, setEndTimeA] = useState('02:00 PM');
+  const [startTimeB, setStartTimeB] = useState('02:00 PM');
+  const [endTimeB, setEndTimeB] = useState('10:00 PM');
+  const [startTimeC, setStartTimeC] = useState('10:00 PM');
+  const [endTimeC, setEndTimeC] = useState('06:00 AM');
+
   const [showCommitToast, setShowCommitToast] = useState(false);
 
-  const renderProductionLinesDashboard = () => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const todayAllocations = allocations.filter(a => a.date === todayStr && a.shiftId === 'SHIFT-A');
-    
-    const totalStations = workstations.length;
-    const allocatedCount = todayAllocations.length;
-    const gapsCount = Math.max(0, totalStations - allocatedCount);
-    
-    const headcount = associates.length;
-    const utilization = headcount > 0 ? ((allocatedCount / headcount) * 100).toFixed(1) : "92.4";
-    
-    let compliantCount = 0;
-    todayAllocations.forEach(alloc => {
-      const ws = workstations.find(w => w.id === alloc.workstationId);
-      if (ws) {
-        const askill = associateSkills.find(s => s.associateId === alloc.associateId && s.skillId === ws.requiredSkillId);
-        if (askill) {
-          const levels: ('Trainee' | 'Operator' | 'Certified' | 'Expert')[] = ['Trainee', 'Operator', 'Certified', 'Expert'];
-          if (levels.indexOf(askill.level) >= levels.indexOf(ws.minSkillLevel)) {
-            compliantCount++;
-          }
-        }
+  const renderLineAndShiftConfig = () => {
+    const handleCommitChanges = () => {
+      setShowCommitToast(true);
+      setTimeout(() => setShowCommitToast(false), 3000);
+    };
+
+    const toggleLineExpand = (id: string) => {
+      setExpandedLineId(prev => prev === id ? null : id);
+    };
+
+    const toggleDay = (shift: 'A' | 'B' | 'C', day: string) => {
+      if (shift === 'A') {
+        setActiveDaysShiftA(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]);
+      } else if (shift === 'B') {
+        setActiveDaysShiftB(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]);
+      } else {
+        setActiveDaysShiftC(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]);
       }
-    });
-    const compliance = allocatedCount > 0 ? Math.round((compliantCount / allocatedCount) * 100) : 98;
+    };
 
     return (
-      <div className="flex-grow flex flex-col gap-6 select-text overflow-y-auto px-1 py-1 custom-scrollbar relative">
-        {/* Loading Spinner for Rerunning Engine */}
-        {isRerunningEngine && (
-          <div className="absolute inset-0 bg-[#091426]/30 backdrop-blur-sm z-50 flex flex-col items-center justify-center rounded-xl animate-fade-in">
-            <div className="bg-surface-container-lowest border border-outline-variant p-6 rounded-xl shadow-premium-lg flex flex-col items-center gap-4 max-w-xs text-center">
-              <span className="material-symbols-outlined text-4xl text-primary animate-spin">sync</span>
-              <div>
-                <h4 className="font-bold text-xs text-primary uppercase font-mono tracking-wider">Optimizing Allocations</h4>
-                <p className="text-[10px] text-secondary mt-1">AI algorithm is matching employee certifications, line priorities, and overtime thresholds...</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Commit Toast Notification */}
+      <div className="flex-grow flex flex-col gap-6 select-text overflow-y-auto px-1 py-1 custom-scrollbar relative p-6 lg:p-8 animate-fade-in">
+        
+        {/* Toast Alert */}
         {showCommitToast && (
-          <div className="fixed top-20 right-8 bg-[#091426] text-white border border-outline-variant p-4 rounded-xl shadow-premium-lg z-50 flex items-center gap-3 animate-slide-up text-xs font-bold">
+          <div className="fixed bottom-6 right-6 z-50 bg-[#091426] text-white border border-slate-700 p-4 rounded-xl shadow-premium-lg flex items-center gap-3 animate-slide-up">
             <span className="material-symbols-outlined text-emerald-500 font-bold">check_circle</span>
-            <span>Assignments committed to live database successfully!</span>
+            <div className="text-xs">
+              <p className="font-bold">Changes Committed Successfully</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Shift and line parameters have been saved and synced to the active floor plan.</p>
+            </div>
           </div>
         )}
 
-        {/* AI Allocation Complete Banner */}
-        <section className="bg-white border border-outline-variant rounded-xl p-5 shadow-premium-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-emerald-50 text-emerald-700 flex items-center justify-center rounded-full border border-emerald-100 shadow-premium-sm">
-              <span className="material-symbols-outlined text-[28px] font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-primary">AI Allocation Complete</h2>
-              <p className="text-[11px] text-secondary mt-0.5">
-                {headcount} Associates loaded across {productionLines.length} lines. <span className="text-emerald-700 font-bold">{gapsCount} Gaps remaining.</span>
-              </p>
-            </div>
+        {/* HEADER SECTION */}
+        <div className="flex justify-between items-center shrink-0 mb-4 select-none">
+          <div>
+            <h2 className="text-xl font-bold text-[#0F172A]">Line and Shift Configuration</h2>
+            <p className="text-[11px] text-secondary mt-0.5">Configure operational parameters and machine hierarchies for Unit 04.</p>
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <button
-              type="button"
-              onClick={() => {
-                setIsRerunningEngine(true);
-                setTimeout(() => {
-                  setIsRerunningEngine(false);
-                  alert("AI Optimization complete! Gaps have been resolved based on secondary certifications.");
-                }, 1800);
-              }}
-              className="flex-1 sm:flex-none py-2 px-4 border border-outline-variant text-[10px] font-bold rounded-lg bg-white hover:bg-surface-container transition-all active:scale-[0.98] shadow-premium-sm cursor-pointer"
-            >
-              Re-run Engine
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowCommitToast(true);
-                setTimeout(() => setShowCommitToast(false), 3000);
-              }}
-              className="flex-1 sm:flex-none py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-900 transition-all active:scale-[0.98] shadow-premium-md cursor-pointer"
-            >
-              Commit Assignments
-            </button>
-          </div>
-        </section>
+          <button
+            type="button"
+            onClick={handleCommitChanges}
+            className="py-2.5 px-4 bg-[#091426] text-white font-bold rounded-lg hover:bg-slate-900 transition-all flex items-center gap-2 shadow-premium-md cursor-pointer text-[10px] uppercase font-mono tracking-wider"
+          >
+            <span className="material-symbols-outlined text-[16px]">save</span>
+            <span>Commit Changes</span>
+          </button>
+        </div>
 
-        {/* Warnings/Conflicts Panel */}
-        <section className="bg-[#FFFBEB] border border-[#FEF3C7] rounded-xl p-4 flex items-start gap-3 shadow-premium-sm">
-          <span className="material-symbols-outlined text-[#D97706] text-[20px] font-bold shrink-0">warning</span>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-[10px] text-[#92400E] uppercase font-mono tracking-wider">Near-Miss Allocation Alerts (2)</h3>
-            <div className="mt-2.5 flex flex-col sm:flex-row gap-3 overflow-x-auto pb-1 custom-scrollbar">
-              <div className="flex items-center gap-2 bg-white/60 px-3 py-1.5 rounded border border-[#FDE68A] text-[10px] text-[#B45309] font-medium shadow-premium-sm shrink-0">
-                <span className="font-bold">Sarah Miller:</span> Level 3 Certification expiring in 2 days.
-              </div>
-              <div className="flex items-center gap-2 bg-white/60 px-3 py-1.5 rounded border border-[#FDE68A] text-[10px] text-[#B45309] font-medium shadow-premium-sm shrink-0">
-                <span className="font-bold">Marcus Chen:</span> Overtime threshold reaching 95% this shift.
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Production Lines Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {productionLines.map(line => {
-            const lineWS = workstations.filter(w => w.lineId === line.id);
-            const lineAllocations = todayAllocations.filter(a => a.lineId === line.id);
-            const staffedPercent = lineWS.length > 0 ? Math.round((lineAllocations.length / lineWS.length) * 100) : 0;
+        {/* TWO-COLUMN GRID */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+          
+          {/* Left Column: Production Lines & Asset Location Context (xl:col-span-5) */}
+          <div className="xl:col-span-5 flex flex-col gap-6">
             
-            const lineHash = line.id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-            const matchScore = 85 + (lineHash % 12);
+            {/* Production Lines Card */}
+            <div className="bg-white border border-outline-variant rounded-xl p-5 shadow-premium-sm">
+              <div className="flex justify-between items-center mb-4 select-none">
+                <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-primary text-[18px]">account_tree</span>
+                  Production Lines
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => alert("Add line functionality triggered!")}
+                  className="text-[9px] font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer font-mono"
+                >
+                  <span className="material-symbols-outlined text-[14px]">add</span>
+                  <span>NEW LINE</span>
+                </button>
+              </div>
 
-            return (
-              <div key={line.id} className="bg-white border border-outline-variant rounded-xl overflow-hidden flex flex-col shadow-premium-sm hover:border-primary transition-all">
-                <header className="bg-surface-container-low p-4 border-b border-outline-variant flex justify-between items-center shrink-0">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[20px] font-bold">precision_manufacturing</span>
-                    <h3 className="font-bold text-xs text-[#0F172A]">{line.name}</h3>
-                  </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold font-mono tracking-wider border shadow-premium-sm ${
-                    staffedPercent === 100 ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'
-                  }`}>
-                    {staffedPercent}% Staffed
-                  </span>
-                </header>
-                
-                <div className="p-4 flex-grow overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="text-secondary border-b border-outline-variant text-[9px] font-mono tracking-wider uppercase font-label-caps">
-                        <th className="pb-2 font-bold">Station</th>
-                        <th className="pb-2 font-bold">Associate</th>
-                        <th className="pb-2 font-bold text-right">Match Context</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {lineWS.map(ws => {
-                        const alloc = lineAllocations.find(a => a.workstationId === ws.id);
-                        const assoc = alloc ? associates.find(a => a.id === alloc.associateId) : null;
-                        
-                        let badgeText = "Skill Match";
-                        let badgeStyle = "bg-slate-50 text-slate-700 border-slate-200";
-                        
-                        if (assoc) {
-                          const skillMapping = associateSkills.find(s => s.associateId === assoc.id && s.skillId === ws.requiredSkillId);
-                          
-                          if (assoc.name.includes("Chen") && ws.id.includes("102")) {
-                            badgeText = "OT Threshold";
-                            badgeStyle = "bg-amber-50 text-amber-700 border-amber-250 font-bold";
-                          } else if (assoc.name.includes("Miller") && ws.id.includes("105")) {
-                            badgeText = "Cert. Warning";
-                            badgeStyle = "bg-amber-50 text-amber-700 border-amber-250 font-bold";
-                          } else if (skillMapping) {
-                            if (skillMapping.level === 'Expert') {
-                              badgeText = "Subject Expert";
-                              badgeStyle = "bg-indigo-50 text-indigo-850 border-indigo-250";
-                            } else if (skillMapping.level === 'Certified') {
-                              badgeText = "Certified L2";
-                              badgeStyle = "bg-emerald-50 text-emerald-800 border-emerald-250";
-                            } else {
-                              badgeText = "Optimal Match";
-                              badgeStyle = "bg-slate-50 text-secondary border-outline-variant";
-                            }
-                          }
-                        } else {
-                          badgeText = "Open Position";
-                          badgeStyle = "bg-rose-50 text-rose-700 border-rose-250 font-semibold";
-                        }
+              {/* Accordion List */}
+              <div className="flex flex-col gap-3">
+                {productionLines.map(line => {
+                  const isExpanded = expandedLineId === line.id;
+                  const lineWS = workstations.filter(w => w.lineId === line.id);
+                  
+                  return (
+                    <div key={line.id} className="border border-outline-variant rounded-xl overflow-hidden shadow-premium-sm transition-all bg-white">
+                      
+                      {/* Accordion Trigger */}
+                      <button
+                        type="button"
+                        onClick={() => toggleLineExpand(line.id)}
+                        className="w-full text-left p-4 flex justify-between items-center hover:bg-slate-50/50 cursor-pointer transition-colors"
+                      >
+                        <div>
+                          <h4 className="font-bold text-xs text-[#0f172a]">{line.name}</h4>
+                          <span className="text-[9px] font-mono text-secondary uppercase font-bold tracking-wider">ID: {line.id}</span>
+                        </div>
+                        <span className="material-symbols-outlined text-secondary transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)' }}>
+                          expand_more
+                        </span>
+                      </button>
 
-                        return (
-                          <tr key={ws.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="py-2.5">
-                              <div className="font-bold text-[#0F172A]">{ws.name}</div>
-                              <div className="text-[9px] text-secondary font-medium">Req: {ws.requiredSkillId} ({ws.minSkillLevel})</div>
-                            </td>
-                            <td className="py-2.5">
-                              {assoc ? (
-                                <div className="flex items-center gap-2">
-                                  <img 
-                                    alt={assoc.name} 
-                                    className="w-6 h-6 rounded-full object-cover border border-outline-variant shadow-premium-sm" 
-                                    src={getAvatarUrl(assoc.name)} 
-                                  />
+                      {/* Accordion Content */}
+                      {isExpanded && (
+                        <div className="p-4 border-t border-slate-100 bg-slate-50/30 flex flex-col gap-2.5 animate-fade-in select-none">
+                          {lineWS.length === 0 ? (
+                            <div className="text-[10px] text-secondary italic">No workstations assigned to this line.</div>
+                          ) : (
+                            lineWS.map(ws => (
+                              <div key={ws.id} className="bg-white border border-outline-variant p-3 rounded-lg flex items-center justify-between shadow-premium-sm hover:border-slate-350 transition-all">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="p-1.5 rounded-md bg-slate-100 text-slate-700">
+                                    <span className="material-symbols-outlined text-sm">precision_manufacturing</span>
+                                  </div>
                                   <div>
-                                    <div className="font-bold text-[#0F172A]">{assoc.name}</div>
-                                    <div className="text-[9px] font-mono text-secondary font-semibold">{assoc.id}</div>
+                                    <p className="font-bold text-[11px] text-[#0F172A] leading-tight">{ws.name}</p>
+                                    <p className="text-[9px] font-mono text-secondary mt-0.5 uppercase tracking-wider">ID: {ws.id}</p>
                                   </div>
                                 </div>
-                              ) : (
-                                <span className="text-secondary italic font-semibold text-[11px]">— Vacant</span>
-                              )}
-                            </td>
-                            <td className="py-2.5 text-right">
-                              <span className={`px-2 py-0.5 rounded text-[8px] font-bold font-mono tracking-wider border shadow-premium-sm ${badgeStyle}`}>
-                                {badgeText.toUpperCase()}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Asset Location Context Card */}
+            <div className="bg-white border border-outline-variant rounded-xl p-5 shadow-premium-sm">
+              <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider font-mono mb-4 flex items-center gap-1.5 select-none">
+                <span className="material-symbols-outlined text-primary text-[18px]">location_on</span>
+                Asset Location Context
+              </h3>
+              
+              <div className="relative rounded-xl overflow-hidden border border-outline-variant aspect-[16/10] bg-slate-900 flex items-center justify-center">
+                <img 
+                  src="/live_floor_tracking.png" 
+                  alt="Live Floor Tracking Map" 
+                  className="w-full h-full object-cover opacity-85"
+                />
+                
+                {/* Button overlay */}
+                <button
+                  type="button"
+                  onClick={() => alert("Live floor tracking system launched!")}
+                  className="absolute bg-[#091426]/90 border border-slate-700 text-white font-bold px-4 py-2 rounded-lg text-[10px] uppercase font-mono tracking-wider hover:bg-slate-900 transition-all flex items-center gap-2 cursor-pointer shadow-premium-lg"
+                >
+                  <span className="material-symbols-outlined text-[16px] text-emerald-400 font-bold">radar</span>
+                  <span>Live Floor Tracking</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Shift Definitions & Conflict Alerts (xl:col-span-7) */}
+          <div className="xl:col-span-7 flex flex-col gap-6">
+            
+            {/* Shift Definitions Card */}
+            <div className="bg-white border border-outline-variant rounded-xl p-5 shadow-premium-sm flex flex-col justify-between min-h-[500px]">
+              
+              <div className="space-y-5">
+                {/* Header */}
+                <div className="flex justify-between items-center mb-1 select-none">
+                  <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-primary text-[18px]">schedule</span>
+                    Shift Definitions
+                  </h3>
+                  <span className="text-[9px] font-bold text-secondary font-mono tracking-wider uppercase">Timezone: UTC +03:00</span>
                 </div>
 
-                <footer className="bg-slate-50 p-3 border-t border-slate-100 flex justify-between items-center text-[10px] select-none">
-                  <span className="text-secondary font-medium">Avg. Match Score: <b className="font-mono font-bold text-[#0F172A]">{matchScore}%</b></span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      alert(`Navigating to Shift Planner for line ${line.name}`);
-                      const tab = document.getElementById("tab-planner") as HTMLButtonElement;
-                      if (tab) tab.click();
-                    }}
-                    className="text-primary hover:underline font-bold cursor-pointer"
-                  >
-                    Adjust Line Staffing
-                  </button>
-                </footer>
+                {/* Shift Items */}
+                <div className="flex flex-col gap-5">
+                  
+                  {/* Shift A */}
+                  <div className={`border border-outline-variant rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-opacity ${activeShiftA ? 'opacity-100' : 'opacity-55'}`}>
+                    <div className="sm:w-28 select-none">
+                      <h4 className="font-bold text-xs text-[#0f172a]">Shift A</h4>
+                      <span className="mt-1 text-[8px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100 inline-block uppercase font-mono tracking-wider">MORNING</span>
+                    </div>
+
+                    <div className="flex-grow grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider select-none">Start Time</span>
+                        <div className="relative">
+                          <input 
+                            type="text" 
+                            value={startTimeA}
+                            disabled={!activeShiftA}
+                            onChange={(e) => setStartTimeA(e.target.value)}
+                            className="w-full py-1.5 pl-3 pr-8 border border-outline-variant rounded-lg bg-white font-bold text-[11px] disabled:bg-slate-50"
+                          />
+                          <span className="material-symbols-outlined text-xs text-secondary absolute right-2.5 top-1/2 -translate-y-1/2 select-none">schedule</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider select-none">End Time</span>
+                        <div className="relative">
+                          <input 
+                            type="text" 
+                            value={endTimeA}
+                            disabled={!activeShiftA}
+                            onChange={(e) => setEndTimeA(e.target.value)}
+                            className="w-full py-1.5 pl-3 pr-8 border border-outline-variant rounded-lg bg-white font-bold text-[11px] disabled:bg-slate-50"
+                          />
+                          <span className="material-symbols-outlined text-xs text-secondary absolute right-2.5 top-1/2 -translate-y-1/2 select-none">schedule</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Active Toggle & Days */}
+                    <div className="flex flex-col gap-2.5 sm:items-end sm:w-44 select-none">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Active</span>
+                        <button
+                          type="button"
+                          onClick={() => setActiveShiftA(!activeShiftA)}
+                          className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer ${activeShiftA ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                        >
+                          <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200 ${activeShiftA ? 'translate-x-4' : 'translate-x-0'}`} />
+                        </button>
+                      </div>
+
+                      <div className="flex gap-1.5">
+                        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => {
+                          const isSelected = activeDaysShiftA.includes(day);
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              disabled={!activeShiftA}
+                              onClick={() => toggleDay('A', day)}
+                              className={`w-6 h-6 rounded-md border font-bold text-[9px] font-mono transition-all flex items-center justify-center ${
+                                !activeShiftA ? 'bg-slate-100 text-slate-300 border-slate-100' :
+                                isSelected ? 'bg-[#091426] text-white border-[#091426]' : 'bg-white text-secondary border-outline-variant hover:bg-slate-55'
+                              }`}
+                            >
+                              {day}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Shift B */}
+                  <div className={`border border-outline-variant rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-opacity ${activeShiftB ? 'opacity-100' : 'opacity-55'}`}>
+                    <div className="sm:w-28 select-none">
+                      <h4 className="font-bold text-xs text-[#0f172a]">Shift B</h4>
+                      <span className="mt-1 text-[8px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-100 inline-block uppercase font-mono tracking-wider">SWING</span>
+                    </div>
+
+                    <div className="flex-grow grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider select-none">Start Time</span>
+                        <div className="relative">
+                          <input 
+                            type="text" 
+                            value={startTimeB}
+                            disabled={!activeShiftB}
+                            onChange={(e) => setStartTimeB(e.target.value)}
+                            className="w-full py-1.5 pl-3 pr-8 border border-outline-variant rounded-lg bg-white font-bold text-[11px] disabled:bg-slate-50"
+                          />
+                          <span className="material-symbols-outlined text-xs text-secondary absolute right-2.5 top-1/2 -translate-y-1/2 select-none">schedule</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider select-none">End Time</span>
+                        <div className="relative">
+                          <input 
+                            type="text" 
+                            value={endTimeB}
+                            disabled={!activeShiftB}
+                            onChange={(e) => setEndTimeB(e.target.value)}
+                            className="w-full py-1.5 pl-3 pr-8 border border-outline-variant rounded-lg bg-white font-bold text-[11px] disabled:bg-slate-50"
+                          />
+                          <span className="material-symbols-outlined text-xs text-secondary absolute right-2.5 top-1/2 -translate-y-1/2 select-none">schedule</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Active Toggle & Days */}
+                    <div className="flex flex-col gap-2.5 sm:items-end sm:w-44 select-none">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Active</span>
+                        <button
+                          type="button"
+                          onClick={() => setActiveShiftB(!activeShiftB)}
+                          className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer ${activeShiftB ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                        >
+                          <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200 ${activeShiftB ? 'translate-x-4' : 'translate-x-0'}`} />
+                        </button>
+                      </div>
+
+                      <div className="flex gap-1.5">
+                        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => {
+                          const isSelected = activeDaysShiftB.includes(day);
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              disabled={!activeShiftB}
+                              onClick={() => toggleDay('B', day)}
+                              className={`w-6 h-6 rounded-md border font-bold text-[9px] font-mono transition-all flex items-center justify-center ${
+                                !activeShiftB ? 'bg-slate-100 text-slate-300 border-slate-100' :
+                                isSelected ? 'bg-[#091426] text-white border-[#091426]' : 'bg-white text-secondary border-outline-variant hover:bg-slate-55'
+                              }`}
+                            >
+                              {day}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Shift C */}
+                  <div className={`border border-outline-variant rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-opacity ${activeShiftC ? 'opacity-100' : 'opacity-55'}`}>
+                    <div className="sm:w-28 select-none">
+                      <h4 className="font-bold text-xs text-[#0f172a]">Shift C</h4>
+                      <span className="mt-1 text-[8px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 inline-block uppercase font-mono tracking-wider">NIGHT</span>
+                    </div>
+
+                    <div className="flex-grow grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider select-none">Start Time</span>
+                        <div className="relative">
+                          <input 
+                            type="text" 
+                            value={startTimeC}
+                            disabled={!activeShiftC}
+                            onChange={(e) => setStartTimeC(e.target.value)}
+                            className="w-full py-1.5 pl-3 pr-8 border border-outline-variant rounded-lg bg-white font-bold text-[11px] disabled:bg-slate-50/50"
+                          />
+                          <span className="material-symbols-outlined text-xs text-secondary absolute right-2.5 top-1/2 -translate-y-1/2 select-none">schedule</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider select-none">End Time</span>
+                        <div className="relative">
+                          <input 
+                            type="text" 
+                            value={endTimeC}
+                            disabled={!activeShiftC}
+                            onChange={(e) => setEndTimeC(e.target.value)}
+                            className="w-full py-1.5 pl-3 pr-8 border border-outline-variant rounded-lg bg-white font-bold text-[11px] disabled:bg-slate-50/50"
+                          />
+                          <span className="material-symbols-outlined text-xs text-secondary absolute right-2.5 top-1/2 -translate-y-1/2 select-none">schedule</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Active Toggle & Days */}
+                    <div className="flex flex-col gap-2.5 sm:items-end sm:w-44 select-none">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Active</span>
+                        <button
+                          type="button"
+                          onClick={() => setActiveShiftC(!activeShiftC)}
+                          className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer ${activeShiftC ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                        >
+                          <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200 ${activeShiftC ? 'translate-x-4' : 'translate-x-0'}`} />
+                        </button>
+                      </div>
+
+                      <div className="flex gap-1.5">
+                        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => {
+                          const isSelected = activeDaysShiftC.includes(day);
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              disabled={!activeShiftC}
+                              onClick={() => toggleDay('C', day)}
+                              className={`w-6 h-6 rounded-md border font-bold text-[9px] font-mono transition-all flex items-center justify-center ${
+                                !activeShiftC ? 'bg-slate-50 text-slate-300/60 border-slate-100' :
+                                isSelected ? 'bg-[#091426] text-white border-[#091426]' : 'bg-white text-secondary border-outline-variant hover:bg-slate-55'
+                              }`}
+                            >
+                              {day}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
               </div>
-            );
-          })}
+
+              {/* Actions Footer */}
+              <div className="flex justify-end gap-4 items-center pt-8 border-t border-slate-100 mt-6 select-none shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStartTimeA('06:00 AM');
+                    setEndTimeA('02:00 PM');
+                    setStartTimeB('02:00 PM');
+                    setEndTimeB('10:00 PM');
+                    setStartTimeC('10:00 PM');
+                    setEndTimeC('06:00 AM');
+                    setActiveShiftA(true);
+                    setActiveShiftB(true);
+                    setActiveShiftC(false);
+                    setActiveDaysShiftA(['M', 'T', 'W', 'T', 'F']);
+                    setActiveDaysShiftB(['M', 'T', 'W', 'T', 'F']);
+                    setActiveDaysShiftC([]);
+                  }}
+                  className="text-[10px] font-bold font-mono text-secondary hover:text-[#0F172A] hover:underline uppercase tracking-wider cursor-pointer"
+                >
+                  Discard
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCommitChanges}
+                  className="py-2.5 px-5 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-all shadow-premium-md cursor-pointer text-[10px] uppercase font-mono tracking-wider"
+                >
+                  Save Shifts
+                </button>
+              </div>
+            </div>
+
+            {/* Shift Conflict alert block */}
+            {showConflictAlert && (
+              <div className="bg-rose-50 border border-rose-150 rounded-xl p-4 flex gap-3.5 items-start relative select-none animate-fade-in shadow-premium-sm">
+                <span className="material-symbols-outlined text-rose-600 font-bold">report</span>
+                <div className="flex-grow">
+                  <h4 className="font-bold text-xs text-rose-800">Shift Conflict Detected</h4>
+                  <p className="text-[10px] text-rose-700 mt-0.5 leading-relaxed">Shift A start time overlaps with Unit 03 maintenance window on Fridays. Please verify availability.</p>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => setShowConflictAlert(false)}
+                  className="text-rose-400 hover:text-rose-600 font-bold text-sm cursor-pointer p-0.5"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-
-        {/* Bottom Metrics Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-premium-sm">
-            <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Total Headcount</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-lg font-bold text-[#0F172A]">{headcount}</span>
-              <span className="text-[9px] font-bold text-emerald-600 font-mono">↑ 4%</span>
-            </div>
-          </div>
-          
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-premium-sm">
-            <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Labor Utilization</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-lg font-bold text-[#0F172A]">{utilization}%</span>
-              <span className="text-[9px] font-bold text-emerald-600 font-mono">Optimal</span>
-            </div>
-          </div>
-
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-premium-sm">
-            <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Certification Compliance</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-lg font-bold text-amber-600">{compliance}%</span>
-              <span className="text-[9px] font-bold text-amber-600 font-mono">! Warning</span>
-            </div>
-          </div>
-
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-premium-sm">
-            <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Skill Versatility Index</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-lg font-bold text-[#0F172A]">3.2</span>
-              <span className="text-[9px] text-secondary font-medium">Stations/Person</span>
-            </div>
-          </div>
-        </div>
-
       </div>
     );
   };
@@ -1623,13 +1811,6 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
     setShiftDays(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']);
   };
 
-  const startEditShift = (s: Shift) => {
-    setEditingShift(s);
-    setShiftId(s.id);
-    setShiftName(s.name);
-    setShiftTimings(s.timings);
-    setShiftDays(s.workingDays || []);
-  };
 
   // Skill Save
   const handleSaveSkill = (e: React.FormEvent) => {
@@ -1814,13 +1995,6 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
     setLineStatus('ACTIVE');
   };
 
-  const startEditLine = (l: ProductionLine) => {
-    setEditingLine(l);
-    setLineId(l.id);
-    setLineName(l.name);
-    setLineProduct(l.currentProduct);
-    setLineStatus(l.status);
-  };
 
   const canWriteAssociates = role === 'Plant Admin' || role === 'HR / Training Coordinator';
   const canWriteAllMasterData = role === 'Plant Admin';
@@ -2468,198 +2642,9 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
             </>
           )}
 
-          {/* Sub-tab: Lines */}
-          {activeSubTab === 'lines' && (
-            <>
-              {/* Top View Switcher */}
-              <div className="flex justify-between items-center mb-4 shrink-0 bg-surface-container-lowest p-3 border border-outline-variant rounded-xl shadow-premium-sm">
-                <div>
-                  <h3 className="font-bold text-xs text-primary uppercase font-mono tracking-wider">Lines Master View Mode</h3>
-                  <p className="text-[10px] text-secondary">Switch between real-time staffing dashboard and structural list editor</p>
-                </div>
-                <div className="flex gap-1 bg-surface-container p-1 rounded-lg border border-outline-variant shadow-premium-sm select-none">
-                  <button
-                    type="button"
-                    onClick={() => setLinesViewMode('dashboard')}
-                    className={`px-3 py-1 rounded-lg text-[9px] font-bold transition-all cursor-pointer ${
-                      linesViewMode === 'dashboard' ? 'bg-surface-container-lowest text-primary shadow-premium-sm border border-outline-variant' : 'text-secondary hover:text-primary'
-                    }`}
-                  >
-                    Dashboard View
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLinesViewMode('list')}
-                    className={`px-3 py-1 rounded-lg text-[9px] font-bold transition-all cursor-pointer ${
-                      linesViewMode === 'list' ? 'bg-surface-container-lowest text-primary shadow-premium-sm border border-outline-variant' : 'text-secondary hover:text-primary'
-                    }`}
-                  >
-                    Directory List
-                  </button>
-                </div>
-              </div>
-
-              {linesViewMode === 'dashboard' ? (
-                renderProductionLinesDashboard()
-              ) : (
-                <>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">Production Lines Directory</h2>
-                      <p className="text-[10px] text-secondary">Manage plant floor production channels, current product running, and operational status</p>
-                    </div>
-                {canWriteAllMasterData && !isAddingLine && !editingLine && (
-                  <button
-                    onClick={() => {
-                      setLineId('');
-                      setLineName('');
-                      setLineProduct('');
-                      setLineStatus('ACTIVE');
-                      setIsAddingLine(true);
-                    }}
-                    className="py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-900 flex items-center gap-1.5 cursor-pointer shadow-premium-md font-label-caps tracking-wider transition-all hover:scale-[1.02]"
-                  >
-                    <span className="material-symbols-outlined text-sm">add_circle</span> ADD PRODUCTION LINE
-                  </button>
-                )}
-              </div>
-
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-premium-sm">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-surface-container-low border-b border-outline-variant text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps">
-                      <th className="p-3.5">LINE ID</th>
-                      <th className="p-3.5">LINE NAME</th>
-                      <th className="p-3.5">CURRENT PRODUCT</th>
-                      <th className="p-3.5">STATUS</th>
-                      {canWriteAllMasterData && <th className="p-3.5 text-right">ACTIONS</th>}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {productionLines.map(line => (
-                      <tr key={line.id} className="hover:bg-surface-container-low/50 transition-colors">
-                        <td className="p-3.5 font-mono font-bold text-primary">{line.id}</td>
-                        <td className="p-3.5 font-bold text-on-surface">{line.name}</td>
-                        <td className="p-3.5 text-secondary font-medium">{line.currentProduct}</td>
-                        <td className="p-3.5">
-                          <span className={`px-2.5 py-0.5 rounded text-[8px] font-bold font-mono tracking-wider border shadow-premium-sm ${
-                            line.status === 'ACTIVE'
-                              ? 'bg-tertiary-fixed-dim/20 text-on-tertiary-fixed-variant border-outline-variant'
-                              : line.status === 'MAINTENANCE'
-                              ? 'bg-secondary-container text-on-secondary-container border-outline-variant'
-                              : line.status === 'HALTED'
-                              ? 'bg-error-container text-on-error-container border-outline-variant'
-                              : 'bg-surface-container-low text-slate-600 border-outline-variant'
-                          }`}>
-                            {line.status}
-                          </span>
-                        </td>
-                        {canWriteAllMasterData && (
-                          <td className="p-3.5 text-right select-none space-x-3">
-                            <button
-                              onClick={() => startEditLine(line)}
-                              className="text-primary hover:underline font-bold text-[10px] cursor-pointer"
-                            >
-                              EDIT
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (window.confirm(`Delete production line ${line.name}? This will delete all configured workstations and allocations for this line.`)) {
-                                  deleteProductionLine(line.id);
-                                }
-                              }}
-                              className="text-rose-600 hover:underline font-bold text-[10px] cursor-pointer"
-                            >
-                              REMOVE
-                            </button>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-        </>
-      )}
-
-          {/* Sub-tab: Shifts */}
-          {activeSubTab === 'shifts' && (
-            <>
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">Shifts Directory</h2>
-                  <p className="text-[10px] text-secondary">Manage plant shift timings, schedule definitions, and active working days</p>
-                </div>
-                {canWriteAllMasterData && !isAddingShift && !editingShift && (
-                  <button
-                    onClick={() => {
-                      setShiftId('');
-                      setShiftName('');
-                      setShiftTimings('');
-                      setShiftDays(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']);
-                      setIsAddingShift(true);
-                    }}
-                    className="py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-900 flex items-center gap-1.5 cursor-pointer shadow-premium-md font-label-caps tracking-wider transition-all hover:scale-[1.02]"
-                  >
-                    <span className="material-symbols-outlined text-sm">add_circle</span> ADD SHIFT
-                  </button>
-                )}
-              </div>
-
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-premium-sm">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-surface-container-low border-b border-outline-variant text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps">
-                      <th className="p-3.5">SHIFT ID</th>
-                      <th className="p-3.5">SHIFT NAME</th>
-                      <th className="p-3.5">TIMINGS</th>
-                      <th className="p-3.5">WORKING DAYS</th>
-                      {canWriteAllMasterData && <th className="p-3.5 text-right">ACTIONS</th>}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {shifts.map(shift => (
-                      <tr key={shift.id} className="hover:bg-surface-container-low/50 transition-colors">
-                        <td className="p-3.5 font-mono font-bold text-primary">{shift.id}</td>
-                        <td className="p-3.5 font-bold text-on-surface">{shift.name}</td>
-                        <td className="p-3.5 font-mono text-secondary font-medium">{shift.timings}</td>
-                        <td className="p-3.5 text-secondary">
-                          <div className="flex flex-wrap gap-1">
-                            {shift.workingDays && shift.workingDays.map(day => (
-                              <span key={day} className="bg-surface-container-low text-slate-600 font-bold px-1.5 py-0.5 rounded border border-outline-variant text-[8px] font-mono shadow-premium-sm">
-                                {day.substring(0, 3)}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                        {canWriteAllMasterData && (
-                          <td className="p-3.5 text-right select-none space-x-3">
-                            <button
-                              onClick={() => startEditShift(shift)}
-                              className="text-primary hover:underline font-bold text-[10px] cursor-pointer"
-                            >
-                              EDIT
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (window.confirm(`Delete shift ${shift.name}?`)) {
-                                  deleteShift(shift.id);
-                                }
-                              }}
-                              className="text-rose-600 hover:underline font-bold text-[10px] cursor-pointer"
-                            >
-                              REMOVE
-                            </button>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
+          {/* Unified Sub-tab: Lines & Shifts configuration */}
+          {(activeSubTab === 'lines' || activeSubTab === 'shifts') && (
+            renderLineAndShiftConfig()
           )}
 
         </div>
