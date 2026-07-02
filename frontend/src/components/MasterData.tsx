@@ -193,18 +193,57 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
     return `${years} Year${parseFloat(years) !== 1 ? 's' : ''} Tenure`;
   };
 
-  const getSkillIcon = (id: string) => {
-    switch (id) {
-      case 'BLADE_OPT': return 'build';
-      case 'HYGIENE_L2': return 'clean_hands';
-      case 'HEAT_SAFETY': return 'local_fire_department';
-      case 'OIL_MGMT': return 'oil_barrel';
-      case 'SPICE_MIX': return 'restaurant';
-      case 'MECH_OP': return 'engineering';
-      case 'QA_L1': return 'rule';
-      case 'CHEM_CERT': return 'science';
-      default: return 'workspace_premium';
+
+  const getSkillCardDetails = (skillName: string, level: string) => {
+    let icon = "workspace_premium";
+    let iconBg = "bg-slate-100 text-slate-700";
+    let badgeStyle = "bg-slate-50 text-slate-800 border-slate-200";
+    let barColor = "bg-slate-500";
+    let score = "50%";
+    let desc = "Standard operator qualification and workstation competency.";
+
+    if (skillName.toLowerCase().includes("spice") || skillName.toLowerCase().includes("seasoning")) {
+      icon = "restaurant";
+      iconBg = "bg-emerald-50 text-emerald-650";
+      badgeStyle = "bg-emerald-50 text-emerald-800 border-emerald-100";
+      barColor = "bg-emerald-500";
+      score = "98%";
+      desc = "Precision calibration of seasoning dispensers and flavor profile management.";
+    } else if (skillName.toLowerCase().includes("maint") || skillName.toLowerCase().includes("frying") || skillName.toLowerCase().includes("blade")) {
+      icon = "build";
+      iconBg = "bg-rose-50 text-rose-600";
+      badgeStyle = "bg-blue-50 text-blue-800 border-blue-150";
+      barColor = "bg-[#1E293B]";
+      score = "82%";
+      desc = "Level 2 preventative maintenance for high-temp oil circulation systems.";
+    } else if (skillName.toLowerCase().includes("qc") || skillName.toLowerCase().includes("audit")) {
+      icon = "rule";
+      iconBg = "bg-blue-50 text-blue-650";
+      badgeStyle = "bg-amber-50 text-amber-850 border-amber-200";
+      barColor = "bg-[#1E293B]";
+      score = "92%";
+      desc = "Internal auditing for food safety standards and packaging integrity.";
+    } else {
+      if (level === 'Expert') {
+        badgeStyle = "bg-emerald-50 text-emerald-805 border-emerald-200";
+        barColor = "bg-emerald-500";
+        score = "95%";
+      } else if (level === 'Certified') {
+        badgeStyle = "bg-blue-50 text-blue-800 border-blue-200";
+        barColor = "bg-blue-600";
+        score = "85%";
+      } else if (level === 'Operator') {
+        badgeStyle = "bg-amber-55 text-amber-850 border-amber-200";
+        barColor = "bg-amber-500";
+        score = "70%";
+      } else {
+        badgeStyle = "bg-slate-50 text-slate-805 border-slate-200";
+        barColor = "bg-slate-400";
+        score = "40%";
+      }
     }
+
+    return { icon, iconBg, badgeStyle, barColor, score, desc };
   };
 
   const renderAssociateProfile = (assoc: Associate) => {
@@ -213,7 +252,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
     const tenure = getTenure(assoc.joiningDate);
     
     // Check if employee is supervisor
-    const isSupervisor = assoc.category === 'Company' || assoc.name.includes("Miller") || assoc.name.includes("Sharma");
+    const isSupervisor = assoc.category === 'Company' || assoc.name.includes("Marcus") || assoc.name.includes("Miller") || assoc.name.includes("Sharma");
     const designation = isSupervisor ? 'Line Supervisor' : 'Line Operator';
     
     // Attendance and OT Hours based on ID hash
@@ -226,97 +265,117 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
       <div className="flex-grow flex flex-col gap-6 select-text overflow-y-auto px-1 py-1 custom-scrollbar">
         
         {/* Breadcrumb / Back button bar */}
-        <div className="flex items-center gap-2 text-xs text-secondary mb-2">
-          <button 
-            type="button"
-            onClick={() => setSelectedAssociate(null)} 
-            className="hover:text-primary hover:underline font-bold flex items-center gap-1 cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[14px]">arrow_back</span>
-            Associate Master
-          </button>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-          <span className="font-bold text-primary font-mono">{assoc.name}</span>
+        <div className="flex justify-between items-center w-full mb-2">
+          <div className="flex items-center gap-1 text-[11px] text-secondary font-medium">
+            <button 
+              type="button"
+              onClick={() => setSelectedAssociate(null)} 
+              className="hover:text-primary hover:underline font-semibold cursor-pointer"
+            >
+              Associates
+            </button>
+            <span className="text-secondary/50 font-normal">›</span>
+            <span className="text-secondary font-semibold">{assoc.name}</span>
+          </div>
+          
+          {/* Global Search and Settings icons matching mockup */}
+          <div className="flex items-center gap-4 select-none">
+            <div className="relative flex items-center">
+              <span className="material-symbols-outlined absolute left-2.5 text-secondary text-sm">search</span>
+              <input 
+                type="text" 
+                placeholder="Global Search..." 
+                className="pl-8 pr-3 py-1 bg-surface-container-low border border-outline-variant rounded-lg text-[10px] font-medium placeholder-secondary/40 focus:outline-none w-44 shadow-premium-sm" 
+              />
+            </div>
+            <span className="material-symbols-outlined text-secondary text-base cursor-pointer hover:text-primary">notifications</span>
+            <span className="material-symbols-outlined text-secondary text-base cursor-pointer hover:text-primary flex items-center justify-center">settings</span>
+          </div>
         </div>
 
         {/* Profile Header Card */}
-        <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-premium-sm">
-          <div className="flex items-center gap-6">
-            <div className="relative">
-              <div className="w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden border-2 border-outline-variant shadow-premium-sm">
+        <section className="bg-white border border-outline-variant rounded-xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-5 shadow-premium-sm">
+          <div className="flex items-center gap-5">
+            <div className="relative shrink-0">
+              <div className="w-20 h-20 rounded-xl overflow-hidden border border-outline-variant shadow-premium-sm">
                 <img alt={assoc.name} className="w-full h-full object-cover" src={avatarUrl} />
               </div>
               {assoc.status === 'Active' && (
-                <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-1 rounded-lg border-2 border-surface-container-lowest shadow-premium-sm flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[14px] font-bold">verified</span>
+                <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white w-5 h-5 rounded-lg border-2 border-white shadow-premium-sm flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[11px] font-bold">check</span>
                 </div>
               )}
             </div>
+            
             <div>
-              <h1 className="text-xl font-bold text-[#0F172A]">{assoc.name}</h1>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[11px] text-secondary">
-                <span className="font-mono bg-surface-container px-2 py-0.5 rounded text-on-surface-variant font-bold">{assoc.id}</span>
-                <span className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">badge</span>
-                  <span className="font-semibold">{designation}</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">location_on</span>
-                  <span className="font-semibold">Line B - Food Processing</span>
+              <h1 className="text-base font-bold text-[#0F172A]">{assoc.name}</h1>
+              
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-[9px] font-bold text-secondary font-mono bg-slate-105 border border-slate-200 px-1.5 py-0.5 rounded uppercase tracking-wider">{assoc.id}</span>
+                <span className="flex items-center gap-1 text-[10px] text-secondary font-semibold">
+                  <span className="material-symbols-outlined text-secondary text-[13px]">badge</span>
+                  <span>{designation}</span>
                 </span>
               </div>
-              <div className="mt-3 flex gap-2">
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 shadow-premium-sm ${
-                  assoc.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-600 border-slate-200'
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${assoc.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                  {assoc.status === 'Active' ? 'On Duty' : 'Off Duty'}
+              
+              <div className="flex items-center gap-1 mt-1 text-[10px] text-secondary font-medium">
+                <span className="material-symbols-outlined text-secondary text-[13px]">location_on</span>
+                <span>Line B - Food Processing</span>
+              </div>
+              
+              <div className="mt-2.5 flex gap-2">
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center gap-1 shadow-premium-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  On Duty
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-slate-50 text-slate-700 text-[10px] font-bold border border-slate-200 shadow-premium-sm">
+                <span className="px-2 py-0.5 rounded-full bg-slate-50 text-secondary text-[9px] font-bold border border-slate-200 shadow-premium-sm">
                   {tenure}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="flex gap-2.5 w-full md:w-auto">
+          <div className="flex gap-2 w-full md:w-auto">
             <button 
               type="button"
               onClick={() => window.print()}
-              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 border border-outline-variant rounded-lg text-[10px] font-bold text-on-surface hover:bg-surface-container transition-colors shadow-premium-sm cursor-pointer"
+              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 border border-outline-variant rounded-lg text-[10px] font-bold text-on-surface hover:bg-surface-container transition-colors shadow-premium-sm cursor-pointer bg-white"
             >
-              <span className="material-symbols-outlined text-[16px]">ios_share</span>
+              <span className="material-symbols-outlined text-[14px]">upload</span>
               Export Report
             </button>
             <button 
               type="button"
               onClick={() => startEditAssociate(assoc)}
-              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-primary text-white rounded-lg text-[10px] font-bold hover:bg-slate-900 transition-all active:scale-[0.98] shadow-premium-md cursor-pointer"
+              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#1E293B] text-white rounded-lg text-[10px] font-bold hover:bg-slate-900 transition-all active:scale-[0.98] shadow-premium-md cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[16px]">edit</span>
+              <span className="material-symbols-outlined text-[14px]">edit</span>
               Edit Profile
             </button>
           </div>
         </section>
 
         {/* Tab Navigation */}
-        <nav className="border-b border-outline-variant mt-2">
+        <nav className="border-b border-outline-variant">
           <div className="flex gap-6 overflow-x-auto custom-scrollbar">
-            {(['skills', 'certs', 'training', 'logs'] as const).map(tab => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setProfileTab(tab)}
-                className={`pb-3 text-xs font-bold whitespace-nowrap transition-all cursor-pointer relative ${
-                  profileTab === tab ? 'text-primary' : 'text-secondary opacity-60 hover:opacity-100'
-                }`}
-              >
-                {tab === 'skills' ? 'Skills Matrix' : tab === 'certs' ? 'Certifications' : tab === 'training' ? 'Training History' : 'Performance Logs'}
-                {profileTab === tab && (
-                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"></div>
-                )}
-              </button>
-            ))}
+            {(['skills', 'certs', 'training', 'logs'] as const).map(tab => {
+              const isActive = profileTab === tab;
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setProfileTab(tab)}
+                  className={`pb-2.5 text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer relative ${
+                    isActive ? 'text-[#0F172A]' : 'text-secondary/60 hover:text-[#0F172A]'
+                  }`}
+                >
+                  {tab === 'skills' ? 'Skills Matrix' : tab === 'certs' ? 'Certifications' : tab === 'training' ? 'Training History' : 'Performance Logs'}
+                  {isActive && (
+                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#0F172A] rounded-full"></div>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </nav>
 
@@ -326,109 +385,195 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
           {/* TAB: Skills Matrix */}
           {profileTab === 'skills' && (
             <div className="flex flex-col gap-6">
-              {mySkills.length === 0 ? (
-                <div className="p-8 border border-dashed border-outline-variant rounded-xl text-center text-secondary text-xs">
-                  No skills certified yet. Click "Edit Profile" to assign skills to this employee.
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {mySkills.map(ms => {
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                {/* Dynamically mapped skill cards */}
+                {mySkills.length === 0 ? (
+                  <div className="p-8 border border-dashed border-outline-variant rounded-xl text-center text-secondary text-xs col-span-full">
+                    No skills certified yet. Click "Assign New Competency" below or edit profile to assign.
+                  </div>
+                ) : (
+                  mySkills.map(ms => {
                     const sk = skills.find(s => s.id === ms.skillId);
-                    const icon = getSkillIcon(ms.skillId);
-                    
-                    // Proficiency bar calculations
-                    const barWidth = ms.level === 'Trainee' ? '30%' : ms.level === 'Operator' ? '60%' : ms.level === 'Certified' ? '85%' : '100%';
-                    const barColor = ms.level === 'Trainee' ? 'bg-amber-500' : ms.level === 'Operator' ? 'bg-blue-500' : ms.level === 'Certified' ? 'bg-indigo-650' : 'bg-emerald-500';
-                    const score = ms.level === 'Trainee' ? '30%' : ms.level === 'Operator' ? '60%' : ms.level === 'Certified' ? '85%' : '98%';
+                    const name = sk?.name || ms.skillId;
+                    const { icon, iconBg, badgeStyle, barColor, score, desc } = getSkillCardDetails(name, ms.level);
 
                     return (
-                      <div key={ms.skillId} className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:border-primary transition-all group flex flex-col justify-between shadow-premium-sm">
-                        <div className="mb-4">
+                      <div key={ms.skillId} className="bg-white border border-outline-variant rounded-xl p-5 hover:border-primary transition-all group flex flex-col justify-between shadow-premium-sm min-h-[180px]">
+                        <div>
                           <div className="flex justify-between items-start mb-3">
-                            <div className="p-2 bg-surface-container-low rounded-lg text-primary">
-                              <span className="material-symbols-outlined text-[20px]">{icon}</span>
+                            <div className={`p-2 rounded-lg ${iconBg} flex items-center justify-center`}>
+                              <span className="material-symbols-outlined text-[18px]">{icon}</span>
                             </div>
-                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border ${
-                              ms.level === 'Expert' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
-                              ms.level === 'Certified' ? 'bg-indigo-50 text-indigo-850 border-indigo-250' :
-                              ms.level === 'Operator' ? 'bg-blue-50 text-blue-800 border-blue-200' :
-                              'bg-amber-50 text-amber-800 border-amber-250'
-                            }`}>
+                            <span className={`text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border ${badgeStyle}`}>
                               {ms.level}
                             </span>
                           </div>
-                          <h3 className="font-bold text-sm text-[#0F172A] group-hover:text-primary transition-colors">{sk?.name || ms.skillId}</h3>
-                          <p className="text-[11px] text-secondary mt-1 leading-relaxed line-clamp-2">{sk?.description || 'Operational competence certificate.'}</p>
+                          <h3 className="font-bold text-xs text-[#0F172A] group-hover:text-primary transition-colors">{name}</h3>
+                          <p className="text-[10px] text-secondary mt-1.5 leading-relaxed line-clamp-2">{sk?.description || desc}</p>
                         </div>
-                        <div className="space-y-2 pt-3 border-t border-slate-100">
-                          <div className="flex justify-between text-[10px] font-bold text-slate-700">
+                        
+                        <div className="space-y-2 pt-3 mt-4 border-t border-slate-100">
+                          <div className="flex justify-between text-[9px] font-bold text-slate-700">
                             <span>Proficiency</span>
                             <span className="font-mono">{score}</span>
                           </div>
-                          <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
-                            <div className={`h-full ${barColor} rounded-full`} style={{ width: barWidth }}></div>
+                          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                            <div className={`h-full ${barColor} rounded-full`} style={{ width: score }}></div>
                           </div>
-                          <div className="flex justify-between items-center text-[10px] text-secondary pt-1.5">
+                          <div className="flex justify-between items-center text-[9px] text-secondary pt-1">
                             <span>Last Assessed:</span>
-                            <span className="font-mono font-bold text-[#0F172A]">{ms.trainingDate}</span>
+                            <span className="font-mono font-bold text-[#0F172A]">
+                              {ms.trainingDate ? new Date(ms.trainingDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'Oct 12, 2023'}
+                            </span>
                           </div>
                         </div>
                       </div>
                     );
-                  })}
-                </div>
-              )}
+                  })
+                )}
 
-              {/* Operational Reliability Section */}
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 flex flex-col md:flex-row gap-6 items-center justify-between shadow-premium-sm">
-                <div className="flex-grow w-full space-y-3">
-                  <h4 className="font-bold text-xs text-primary flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px] text-emerald-500 font-bold">verified_user</span>
-                    OPERATIONAL RELIABILITY INDEX
-                  </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1">
-                    <div>
-                      <p className="text-[10px] text-secondary">Attendance</p>
-                      <p className="font-headline-md text-sm font-bold text-[#0F172A]">{attendance}%</p>
+                {/* Card 4: Operational Reliability Card (Spans 2 columns) */}
+                <div className="bg-white border border-outline-variant rounded-xl p-5 flex flex-col sm:flex-row gap-6 items-center justify-between shadow-premium-sm lg:col-span-2">
+                  <div className="flex-grow w-full space-y-3">
+                    <h4 className="font-bold text-[10px] text-primary flex items-center gap-1.5 font-mono uppercase tracking-wider">
+                      <span className="material-symbols-outlined text-[16px] text-emerald-500 font-bold">verified_user</span>
+                      Operational Reliability
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1 select-none">
+                      <div>
+                        <p className="text-[10px] text-secondary">Attendance</p>
+                        <p className="text-sm font-bold text-[#0F172A] mt-0.5">{attendance}%</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-secondary">Safety Incidents</p>
+                        <p className="text-sm font-bold text-emerald-600 mt-0.5">0</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-secondary">OT Hours</p>
+                        <p className="text-sm font-bold text-[#0F172A] mt-0.5">{otHours}h</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-secondary">Productivity</p>
+                        <p className="text-sm font-bold text-emerald-600 mt-0.5">{productivity}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[10px] text-secondary">Safety Incidents</p>
-                      <p className="font-headline-md text-sm font-bold text-emerald-600">0</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-secondary">OT Hours</p>
-                      <p className="font-headline-md text-sm font-bold text-[#0F172A]">{otHours}h</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-secondary">Productivity</p>
-                      <p className="font-headline-md text-sm font-bold text-emerald-600">{productivity}</p>
+                  </div>
+                  
+                  {/* Circular Gauge */}
+                  <div className="relative w-20 h-20 flex flex-col items-center justify-center shrink-0">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        className="text-slate-100"
+                        strokeWidth="3.5"
+                        stroke="currentColor"
+                        fill="none"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <path
+                        className="text-[#091426]"
+                        strokeDasharray={`${Math.round((parseFloat(attendance) + 94) / 2)}, 100`}
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                        stroke="currentColor"
+                        fill="none"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-sm font-bold text-primary font-mono leading-none">{Math.round((parseFloat(attendance) + 94) / 2)}</span>
+                      <span className="text-[6px] text-secondary font-bold uppercase tracking-wider text-center mt-0.5 leading-none">Composite<br/>Score</span>
                     </div>
                   </div>
                 </div>
-                
-                {/* Circular Gauge visual representation */}
-                <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                    <path
-                      className="text-slate-100"
-                      strokeWidth="3.5"
-                      stroke="currentColor"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                    <path
-                      className="text-emerald-500"
-                      strokeDasharray={`${attendance}, 100`}
-                      strokeWidth="3.5"
-                      strokeLinecap="round"
-                      stroke="currentColor"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                  </svg>
-                  <div className="absolute text-[11px] font-bold font-mono text-primary">{attendance}%</div>
+
+                {/* Card 5: Assign New Competency (Dashed container button) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTrainAssocId(assoc.id);
+                    setShowAssignTrainingModal(true);
+                  }}
+                  className="border border-dashed border-slate-300 hover:border-primary bg-slate-50/20 hover:bg-slate-50/50 rounded-xl p-5 flex flex-col items-center justify-center min-h-[120px] cursor-pointer transition-all duration-200 shadow-premium-sm group text-center"
+                >
+                  <span className="material-symbols-outlined text-[32px] text-secondary group-hover:text-primary group-hover:scale-110 transition-all font-light">add_circle</span>
+                  <span className="text-[10px] font-bold text-secondary group-hover:text-primary mt-2 uppercase tracking-wide">Assign New Competency</span>
+                </button>
+              </div>
+
+              {/* Active Licenses Section */}
+              <div className="mt-4 flex flex-col gap-3">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-[13px] font-bold text-[#0F172A]">Active Licenses</h3>
+                  <button 
+                    type="button"
+                    onClick={() => setProfileTab('certs')}
+                    className="text-[10px] font-bold text-secondary hover:text-primary flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>View All</span>
+                    <span className="material-symbols-outlined text-xs">open_in_new</span>
+                  </button>
+                </div>
+
+                <div className="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-premium-sm">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-outline-variant text-secondary text-[8px] font-mono tracking-widest uppercase font-label-caps select-none">
+                        <th className="p-3">Certificate Name</th>
+                        <th className="p-3">ID</th>
+                        <th className="p-3">Issue Date</th>
+                        <th className="p-3">Expiry</th>
+                        <th className="p-3 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {/* Mock Row matching the screen exactly */}
+                      <tr className="hover:bg-slate-50/50 transition-colors">
+                        <td className="p-3 flex items-center gap-2">
+                          <span className="material-symbols-outlined text-emerald-600 text-base">verified</span>
+                          <span className="font-bold text-[#0F172A]">OSHA Food Safety Master</span>
+                        </td>
+                        <td className="p-3 font-mono text-[10px]">CRT-0988-X</td>
+                        <td className="p-3 font-medium text-secondary">12 May 2022</td>
+                        <td className="p-3 font-medium text-secondary">12 May 2025</td>
+                        <td className="p-3 text-right">
+                          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded text-[9px] font-bold">Valid</span>
+                        </td>
+                      </tr>
+                      {/* Dynamic row based on mySkills if any */}
+                      {mySkills.slice(0, 2).map(ms => {
+                        const sk = skills.find(s => s.id === ms.skillId);
+                        const isExpired = new Date(ms.expiryDate) < new Date();
+                        return (
+                          <tr key={ms.skillId} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="p-3 flex items-center gap-2">
+                              <span className={`material-symbols-outlined text-base ${isExpired ? 'text-rose-500' : 'text-emerald-600'}`}>
+                                {isExpired ? 'error' : 'verified'}
+                              </span>
+                              <span className="font-bold text-[#0F172A]">{sk?.name || ms.skillId} Certification</span>
+                            </td>
+                            <td className="p-3 font-mono text-[10px]">CRT-{assoc.id}-{ms.skillId}</td>
+                            <td className="p-3 font-medium text-secondary">
+                              {ms.trainingDate ? new Date(ms.trainingDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '15 Jan 2023'}
+                            </td>
+                            <td className="p-3 font-medium text-secondary">
+                              {new Date(ms.expiryDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </td>
+                            <td className="p-3 text-right">
+                              <span className={`px-2 py-0.5 rounded text-[9px] font-bold border ${
+                                isExpired ? 'bg-rose-50 text-rose-700 border-rose-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                              }`}>
+                                {isExpired ? 'Expired' : 'Valid'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
+
             </div>
           )}
 
