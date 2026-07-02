@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { AvailabilityTab } from './AvailabilityTab';
+import { AiPanelTab } from './AiPanelTab';
 
 interface ShiftPlannerProps {
   selectedLineId: string;
@@ -20,17 +21,14 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
     getEligibilityList,
     allocateAssociate,
     deallocateWorkstation,
-    attendanceRecords,
-    markAttendance,
     getConsecutiveWorkDays,
-    associateSkills,
     role
   } = useApp();
 
   // Active filters state
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedShiftId, setSelectedShiftId] = useState('SHIFT-A');
-  const [plannerTab, setPlannerTab] = useState<'allocation' | 'availability'>('allocation');
+  const [plannerTab, setPlannerTab] = useState<'allocation' | 'availability' | 'engine'>('allocation');
 
   // Animation & Modal states
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -157,10 +155,18 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
         >
           Availability & Attendance
         </button>
+        <button 
+          onClick={() => setPlannerTab('engine')}
+          className={`pb-2 px-2 text-[10px] font-label-caps font-bold uppercase tracking-wider transition-colors border-b-2 ${plannerTab === 'engine' ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-on-surface cursor-pointer'}`}
+        >
+          AI Run Panel
+        </button>
       </div>
 
       {plannerTab === 'availability' ? (
         <AvailabilityTab />
+      ) : plannerTab === 'engine' ? (
+        <AiPanelTab />
       ) : (
       <div className="flex-1 flex overflow-hidden p-md gap-md">
         

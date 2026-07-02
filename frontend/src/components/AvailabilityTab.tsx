@@ -25,9 +25,6 @@ export const AvailabilityTab: React.FC = () => {
   const presentCount = todayAttendances.filter(a => a.status === 'present').length;
   const attendancePulse = totalAssociates ? ((presentCount / totalAssociates) * 100).toFixed(1) : '0.0';
 
-  // Open Shifts (count required workstations that have no allocation today)
-  let openShiftsCount = 0;
-  // Simplifying for demo, counting all workstations without allocations today across all active lines
   
   // Upcoming leave (next 7 days)
   const upcomingLeaves = leaveRecords.filter(l => {
@@ -136,7 +133,7 @@ export const AvailabilityTab: React.FC = () => {
                           </div>
                           <div className="min-w-0">
                             <p className="font-label-lg text-label-lg text-primary truncate">{assoc.name}</p>
-                            <p className="font-mono text-[10px] text-on-surface-variant">{assoc.employeeId}</p>
+                            <p className="font-mono text-[10px] text-on-surface-variant">{assoc.id}</p>
                           </div>
                         </div>
                       </td>
@@ -150,7 +147,9 @@ export const AvailabilityTab: React.FC = () => {
                             {leave ? (
                               <div className="h-full w-full rounded bg-amber-100 border border-amber-400 flex flex-col items-center justify-center text-center px-xs py-2">
                                 <span className="font-bold text-amber-800 text-xs">Leave</span>
-                                <span className="text-[8px] leading-tight uppercase font-bold text-amber-700/60 truncate w-full">{leave.reason}</span>
+                                <span className="text-[8px] leading-tight uppercase font-bold text-amber-700/60 truncate w-full">
+                                  {leave.shiftId === 'ALL' ? 'Full Day' : 'Shift ' + leave.shiftId}
+                                </span>
                               </div>
                             ) : allocation ? (
                               <div className="h-full w-full rounded bg-[#4edea3]/20 border border-[#4edea3] flex flex-col items-center justify-center py-2">

@@ -241,7 +241,9 @@ export const SchedulesTab: React.FC = () => {
                         </div>
                         <div>
                           <p className="text-sm font-bold text-primary leading-tight">{assoc ? assoc.name : 'Unknown'}</p>
-                          <p className="text-[10px] text-[#57657a] font-medium mt-0.5">{leave.reason}</p>
+                          <p className="text-[10px] text-[#57657a] font-medium mt-0.5">
+                            {leave.shiftId === 'ALL' ? 'Full Day Leave' : 'Shift ' + leave.shiftId + ' Time Off'}
+                          </p>
                         </div>
                       </div>
                       <p className="text-[10px] font-bold text-[#57657a] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{dateLabel}</p>
