@@ -1,2 +1,5 @@
 node_modules
 config/.env.dev
+build/
+.env
+scratch_sync.ts

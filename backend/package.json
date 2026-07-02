@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev index.ts",
-    "start": "tsc && cd build",
+    "build": "tsc || true",
+    "start": "node build/backend/index.js",
     "migrate": "npx sequelize-cli db:migrate",
     "migrate-undo": "npx sequelize-cli db:migrate:undo"
   },
