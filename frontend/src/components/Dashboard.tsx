@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { SchedulesTab } from './SchedulesTab';
 
 interface DashboardProps {
   setActiveTab: (tab: string) => void;
@@ -15,7 +16,7 @@ const AVATAR_MAP: Record<string, string> = {
 export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedLineId }) => {
   const { productionLines, workstations, allocations, associates, associateSkills, leaveRecords, role, user } = useApp();
 
-  const [dashboardSubTab, setDashboardSubTab] = useState<'overview' | 'assets'>('overview');
+  const [dashboardSubTab, setDashboardSubTab] = useState<'overview' | 'assets' | 'schedules'>('overview');
   
   // Asset filter state
   const [filterLine, setFilterLine] = useState('All Lines');
@@ -485,6 +486,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
               )}
             </button>
             <button
+              onClick={() => setDashboardSubTab('schedules')}
+              className={`pb-1 text-xs font-bold transition-all cursor-pointer relative ${
+                dashboardSubTab === 'schedules' ? 'text-primary' : 'text-secondary hover:text-primary'
+              }`}
+            >
+              Schedules
+              {dashboardSubTab === 'schedules' && (
+                <div className="absolute bottom-[-18px] left-0 right-0 h-[2px] bg-primary rounded-full" />
+              )}
+            </button>
+            <button
               onClick={() => setDashboardSubTab('assets')}
               className={`pb-1 text-xs font-bold transition-all cursor-pointer relative ${
                 dashboardSubTab === 'assets' ? 'text-primary' : 'text-secondary hover:text-primary'
@@ -840,6 +852,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
         </section>
 
       </div>
+      ) : dashboardSubTab === 'schedules' ? (
+        <SchedulesTab />
       ) : (
         renderAssetsSubTab()
       )}

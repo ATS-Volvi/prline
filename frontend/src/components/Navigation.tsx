@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 
 interface NavigationProps {
@@ -7,8 +7,15 @@ interface NavigationProps {
   setMasterDataSubTab?: (tab: string) => void;
 }
 
+const MASTER_DATA_TABS = ['associates', 'workstations', 'skills', 'lines', 'shifts'];
+
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
   const { role, user, associateSkills, logout } = useApp();
+
+  // Whether the Master Data Configurator group is expanded
+  const [masterExpanded, setMasterExpanded] = useState<boolean>(
+    MASTER_DATA_TABS.includes(activeTab)
+  );
 
   const expiringCount = React.useMemo(() => {
     const today = new Date();
@@ -20,19 +27,46 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
     }).length;
   }, [associateSkills]);
 
-  const tabs = [
-    { id: 'dashboard', name: 'Dashboard', icon: 'dashboard', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
+  const allRoles = ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'];
+
+  // Top-level tabs (excluding the master data ones which are grouped)
+  const topTabs = [
+    { id: 'dashboard', name: 'Dashboard', icon: 'dashboard', roles: allRoles },
     { id: 'shift_planner', name: 'Shift Allocation', icon: 'group_add', roles: ['Plant Admin', 'Production Supervisor', 'Plant Manager'] },
-    { id: 'lines', name: 'Production Lines', icon: 'precision_manufacturing', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
-    { id: 'associates', name: 'Associates', icon: 'groups', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
-    { id: 'workstations', name: 'Workstations', icon: 'desk', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
-    { id: 'skills', name: 'Skills', icon: 'military_tech', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
-    { id: 'analytics', name: 'Reports', icon: 'analytics', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
-    { id: 'ai_reports', name: 'AI Reports', icon: 'smart_toy', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] },
-    { id: 'audit_logs', name: 'Audit Logs', icon: 'terminal', roles: ['Plant Admin', 'HR / Training Coordinator', 'Production Supervisor', 'Plant Manager'] }
+    { id: 'analytics', name: 'Reports', icon: 'analytics', roles: allRoles },
+    { id: 'ai_reports', name: 'AI Reports', icon: 'smart_toy', roles: allRoles },
+    { id: 'audit_logs', name: 'Audit Logs', icon: 'terminal', roles: allRoles },
   ];
 
-  const visibleTabs = tabs.filter(t => t.roles.includes(role));
+  // Sub-items under Master Data Configurator
+  const masterSubItems = [
+    { id: 'associates', name: 'Associate Master', icon: 'badge', roles: allRoles },
+    { id: 'workstations', name: 'Workstation Master', icon: 'desk', roles: allRoles },
+    { id: 'skills', name: 'Skill Register', icon: 'military_tech', roles: allRoles },
+    { id: 'lines', name: 'Line Master', icon: 'precision_manufacturing', roles: allRoles },
+    { id: 'shifts', name: 'Shift Master', icon: 'schedule', roles: allRoles },
+  ];
+
+  const visibleTopTabs = topTabs.filter(t => t.roles.includes(role));
+  const visibleMasterSubItems = masterSubItems.filter(t => t.roles.includes(role));
+  const showMasterGroup = visibleMasterSubItems.length > 0;
+
+  // Whether any master sub-tab is currently active
+  const isMasterActive = MASTER_DATA_TABS.includes(activeTab);
+
+  const handleMasterItemClick = (tabId: string) => {
+    setActiveTab(tabId);
+    setMasterExpanded(true);
+  };
+
+  const toggleMasterExpanded = () => {
+    const next = !masterExpanded;
+    setMasterExpanded(next);
+    // If collapsing while a master sub-tab is active, navigate away to dashboard
+    if (!next && isMasterActive) {
+      setActiveTab('dashboard');
+    }
+  };
 
   return (
     <aside className="w-64 bg-primary text-on-primary flex flex-col h-full shrink-0 select-none z-40 border-r border-outline-variant shadow-md">
@@ -51,9 +85,9 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
         {/* Profile Card / ID Badge */}
         <div className="mt-4 flex flex-col gap-2.5 p-3 bg-primary-container/30 border border-outline-variant rounded-xl">
           <div className="flex items-center gap-3">
-            <img 
-              className="w-10 h-10 rounded-lg border border-outline-variant object-cover shadow-sm" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdgJNACyT_CWwq_Gk3iuVS92due0LKPya-WGA-i8hJezbLXHIbSSgaqAiE9jFCILMbJLRHkU-9ztYRluhVrrHFICR7BGLMengv2pLiAeSPLSIO-H_pkmel5pdMoHxmvyx0iHojUCAXXY8esSQ4dKcLXZGr0QvPRtAgq0HSRrbzJSTjNh-9pURuUUo78Vf8VLEL0quupTsh13jqWlak_S4EOXEzgsGfFQSgK97F7vrEn9JnRbSDcrn_ZxHtwuc982ituyVcJs-KpA" 
+            <img
+              className="w-10 h-10 rounded-lg border border-outline-variant object-cover shadow-sm"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdgJNACyT_CWwq_Gk3iuVS92due0LKPya-WGA-i8hJezbLXHIbSSgaqAiE9jFCILMbJLRHkU-9ztYRluhVrrHFICR7BGLMengv2pLiAeSPLSIO-H_pkmel5pdMoHxmvyx0iHojUCAXXY8esSQ4dKcLXZGr0QvPRtAgq0HSRrbzJSTjNh-9pURuUUo78Vf8VLEL0quupTsh13jqWlak_S4EOXEzgsGfFQSgK97F7vrEn9JnRbSDcrn_ZxHtwuc982ituyVcJs-KpA"
               alt="User avatar"
             />
             <div className="overflow-hidden">
@@ -70,7 +104,88 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
 
       {/* Navigation Links */}
       <nav className="flex-1 py-4 px-3 overflow-y-auto custom-scrollbar flex flex-col gap-1 bg-primary">
-        {visibleTabs.map(tab => {
+        {/* Top-level tabs before master group */}
+        {visibleTopTabs.slice(0, 2).map(tab => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-3 px-4 py-2.5 transition-all duration-150 rounded-xl text-left cursor-pointer w-full ${
+                isActive
+                  ? 'text-white font-semibold text-sm bg-on-primary-fixed-variant shadow-sm border-l-4 border-[#14b8a6]'
+                  : 'text-[#94A3B8] font-medium text-sm hover:text-white hover:bg-primary-container border-l-4 border-transparent'
+              }`}
+            >
+              <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>{tab.icon}</span>
+              <span className="text-[14px]">{tab.name}</span>
+            </button>
+          );
+        })}
+
+        {/* Master Data Configurator Group */}
+        {showMasterGroup && (
+          <div className="flex flex-col">
+            {/* Group header */}
+            <button
+              onClick={toggleMasterExpanded}
+              className={`flex items-center gap-3 px-4 py-2.5 transition-all duration-150 rounded-xl text-left cursor-pointer w-full ${
+                isMasterActive
+                  ? 'text-white font-semibold text-sm bg-on-primary-fixed-variant shadow-sm border-l-4 border-[#14b8a6]'
+                  : 'text-[#94A3B8] font-medium text-sm hover:text-white hover:bg-primary-container border-l-4 border-transparent'
+              }`}
+            >
+              <span
+                className="material-symbols-outlined text-lg"
+                style={{ fontVariationSettings: isMasterActive ? "'FILL' 1" : "'FILL' 0" }}
+              >
+                settings
+              </span>
+              <span className="text-[14px] flex-1">Master Data</span>
+              {/* Chevron */}
+              <span
+                className="material-symbols-outlined text-base transition-transform duration-200"
+                style={{ transform: masterExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              >
+                expand_more
+              </span>
+            </button>
+
+            {/* Sub-items */}
+            <div
+              className="overflow-hidden transition-all duration-200"
+              style={{ maxHeight: masterExpanded ? `${visibleMasterSubItems.length * 52}px` : '0px' }}
+            >
+              <div className="flex flex-col gap-0.5 mt-0.5 pl-3">
+                {visibleMasterSubItems.map(item => {
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleMasterItemClick(item.id)}
+                      className={`flex items-center gap-2.5 px-3 py-2 transition-all duration-150 rounded-lg text-left cursor-pointer w-full ${
+                        isActive
+                          ? 'text-white font-semibold text-sm bg-on-primary-fixed-variant/80 border-l-4 border-[#14b8a6]'
+                          : 'text-[#94A3B8] font-medium text-sm hover:text-white hover:bg-primary-container/60 border-l-4 border-transparent'
+                      }`}
+                    >
+                      <span
+                        className="material-symbols-outlined text-base"
+                        style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
+                      >
+                        {item.icon}
+                      </span>
+                      <span className="text-[13px]">{item.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Remaining top-level tabs after master group */}
+        {visibleTopTabs.slice(2).map(tab => {
           const isActive = activeTab === tab.id;
           return (
             <button
@@ -92,7 +207,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
             </button>
           );
         })}
-        
+
         <button
           onClick={logout}
           className="flex items-center gap-3 px-4 py-2.5 mt-4 transition-all duration-150 rounded-xl text-left text-sm font-medium text-error hover:text-white hover:bg-error-container/20 cursor-pointer border-l-4 border-transparent"
@@ -101,8 +216,6 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
           <span className="text-[14px]">Logout System</span>
         </button>
       </nav>
-
-
 
       {/* Footer Section */}
       <div className="mt-auto p-4 border-t border-outline-variant bg-[#050b18]">

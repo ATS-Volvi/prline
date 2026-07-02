@@ -75,6 +75,8 @@ function MainAppContent() {
         return <MasterData initialSubTab="workstations" setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
       case 'skills':
         return <MasterData initialSubTab="skills" setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
+      case 'shifts':
+        return <MasterData initialSubTab="shifts" setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
       case 'analytics':
         return <Analytics />;
       case 'ai_reports':

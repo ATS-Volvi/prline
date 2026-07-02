@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { AvailabilityTab } from './AvailabilityTab';
 
 interface ShiftPlannerProps {
   selectedLineId: string;
@@ -29,11 +30,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
   // Active filters state
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedShiftId, setSelectedShiftId] = useState('SHIFT-A');
-  const [rightTab, setRightTab] = useState<'personnel' | 'attendance'>('personnel');
-
-  // Attendance state
-  const [attendanceSearch, setAttendanceSearch] = useState('');
-  const [personnelSearch, setPersonnelSearch] = useState('');
+  const [plannerTab, setPlannerTab] = useState<'allocation' | 'availability'>('allocation');
 
   // Animation & Modal states
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -146,7 +143,25 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
 
   return (
     <div className="flex-1 h-full flex flex-col overflow-hidden bg-background select-none animate-fade-in">
-      {/* Workspace Split */}
+      {/* Top Tabs */}
+      <div className="flex items-center gap-4 px-md pt-md pb-0 border-b border-outline-variant bg-surface shrink-0">
+        <button 
+          onClick={() => setPlannerTab('allocation')}
+          className={`pb-2 px-2 text-[10px] font-label-caps font-bold uppercase tracking-wider transition-colors border-b-2 ${plannerTab === 'allocation' ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-on-surface cursor-pointer'}`}
+        >
+          Shift Allocation
+        </button>
+        <button 
+          onClick={() => setPlannerTab('availability')}
+          className={`pb-2 px-2 text-[10px] font-label-caps font-bold uppercase tracking-wider transition-colors border-b-2 ${plannerTab === 'availability' ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-on-surface cursor-pointer'}`}
+        >
+          Availability & Attendance
+        </button>
+      </div>
+
+      {plannerTab === 'availability' ? (
+        <AvailabilityTab />
+      ) : (
       <div className="flex-1 flex overflow-hidden p-md gap-md">
         
         {/* Left main content canvas */}
@@ -359,177 +374,8 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
           </section>
         </div>
 
-        {/* Right Sidebar available personnel (Tabbed: Available List & Clock-in Daily Records) */}
-        <aside className="w-80 bg-surface-container-lowest border border-outline flex flex-col rounded-lg shadow-lg overflow-hidden shrink-0">
-          <div className="p-md bg-surface-container border-b border-outline">
-            <h3 className="font-headline-md text-sm font-bold text-on-surface">Available Personnel</h3>
-            <p className="font-label-caps text-[9px] text-secondary font-bold uppercase tracking-wider mt-0.5">
-              {rightTab === 'personnel' ? `Current Pool: ${(associates || []).filter(a => a.status === 'Active').length} Operators` : 'Roster Records'}
-            </p>
-          </div>
-
-          <div className="flex border-b border-outline-variant bg-surface-container-low shrink-0">
-            <button
-              onClick={() => setRightTab('personnel')}
-              className={`flex-1 py-2 text-[9px] font-bold font-label-caps tracking-wider text-center uppercase cursor-pointer border-b-2 ${
-                rightTab === 'personnel' ? 'border-primary text-primary' : 'border-transparent text-secondary'
-              }`}
-            >
-              Personnel
-            </button>
-            <button
-              onClick={() => setRightTab('attendance')}
-              className={`flex-1 py-2 text-[9px] font-bold font-label-caps tracking-wider text-center uppercase cursor-pointer border-b-2 ${
-                rightTab === 'attendance' ? 'border-primary text-primary' : 'border-transparent text-secondary'
-              }`}
-            >
-              Roster Clock-In
-            </button>
-          </div>
-
-          <div className="p-sm bg-surface-container-low border-b border-outline-variant shrink-0">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder={rightTab === 'personnel' ? "Search skills or ID..." : "Search associate..."}
-                value={rightTab === 'personnel' ? personnelSearch : attendanceSearch}
-                onChange={(e) => rightTab === 'personnel' ? setPersonnelSearch(e.target.value) : setAttendanceSearch(e.target.value)}
-                className="w-full bg-surface-container-lowest border border-outline rounded-lg text-xs py-1.5 pl-3 pr-8 focus:ring-0 focus:outline-none"
-              />
-              <span className="material-symbols-outlined absolute right-2.5 top-2 text-secondary text-sm">search</span>
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-sm flex flex-col gap-sm">
-            {rightTab === 'personnel' ? (
-              (() => {
-                const filtered = (associates || [])
-                  .filter(assoc => assoc.status === 'Active')
-                  .filter(assoc => {
-                    const matchQuery = personnelSearch.toLowerCase();
-                    const skillsMatch = (associateSkills || [])
-                      .filter(s => s.associateId === assoc.id)
-                      .some(s => s.skillId.toLowerCase().includes(matchQuery));
-                    return assoc.name.toLowerCase().includes(matchQuery) ||
-                           assoc.id.toLowerCase().includes(matchQuery) ||
-                           assoc.category.toLowerCase().includes(matchQuery) ||
-                           skillsMatch;
-                  });
-
-                if (filtered.length === 0) {
-                  return <p className="text-[10px] text-secondary/60 italic text-center py-4">No matching personnel found</p>;
-                }
-
-                return filtered.map(assoc => {
-                  const initials = assoc.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-                  const assocSkillsList = (associateSkills || [])
-                    .filter(s => s.associateId === assoc.id)
-                    .map(s => s.skillId);
-
-                  return (
-                    <div key={assoc.id} className="bg-surface-container-lowest border border-outline p-sm rounded-lg flex flex-col gap-sm hover:bg-surface-container-low transition-colors group">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-xs">
-                          <div className="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center font-bold text-on-secondary-container text-xs shrink-0 font-mono">
-                            {initials}
-                          </div>
-                          <div className="overflow-hidden">
-                            <h4 className="font-body-lg text-xs font-bold text-on-surface leading-tight truncate">{assoc.name}</h4>
-                            <span className="font-mono text-[9px] text-secondary block mt-0.5">ID: {assoc.id.replace('ASSOC-', '')}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-1">
-                        {assocSkillsList.length > 0 ? (
-                          assocSkillsList.map(skId => (
-                            <span key={skId} className="text-[9px] bg-primary-container text-on-primary-container px-2 py-0.2 rounded-full font-bold">
-                              {skId}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-[9px] text-secondary border border-outline px-2 py-0.2 rounded-full">
-                            {assoc.category}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                });
-              })()
-            ) : (
-              (() => {
-                const filtered = (associates || [])
-                  .filter(assoc => assoc.status === 'Active')
-                  .filter(assoc => 
-                    assoc.name.toLowerCase().includes(attendanceSearch.toLowerCase()) ||
-                    assoc.id.toLowerCase().includes(attendanceSearch.toLowerCase())
-                  );
-
-                if (filtered.length === 0) {
-                  return <p className="text-[10px] text-secondary/60 italic text-center py-4">No associates found</p>;
-                }
-
-                return filtered.map(assoc => {
-                  const initials = assoc.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-                  const record = (attendanceRecords || []).find(r => r.associateId === assoc.id && r.date === selectedDate && r.shiftId === selectedShiftId);
-                  const isPresent = record?.status === 'present';
-                  const isAbsent = record?.status === 'absent';
-
-                  return (
-                    <div key={assoc.id} className="p-2 bg-surface-container-lowest border border-outline rounded-lg flex items-center justify-between">
-                      <div className="flex gap-2 overflow-hidden items-center">
-                        <div className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center font-bold text-xs uppercase text-secondary shrink-0 font-mono">
-                          {initials}
-                        </div>
-                        <div className="overflow-hidden">
-                          <span className="text-xs font-bold text-primary truncate block leading-tight">{assoc.name}</span>
-                          <span className="text-[8.5px] text-secondary font-mono block mt-0.5">{assoc.id}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-1 shrink-0">
-                        <button
-                          onClick={() => markAttendance(selectedDate, selectedShiftId, assoc.id, 'present')}
-                          className={`w-5 h-5 rounded flex items-center justify-center cursor-pointer border ${
-                            isPresent 
-                              ? 'bg-emerald-500 border-emerald-500 text-white font-bold' 
-                              : 'bg-surface-container-lowest border-outline-variant text-slate-400 hover:bg-tertiary-fixed-dim/20'
-                          }`}
-                          title="Mark Present"
-                        >
-                          <span className="material-symbols-outlined text-[10px] font-bold">check</span>
-                        </button>
-                        <button
-                          onClick={() => markAttendance(selectedDate, selectedShiftId, assoc.id, 'absent')}
-                          className={`w-5 h-5 rounded flex items-center justify-center cursor-pointer border ${
-                            isAbsent 
-                              ? 'bg-rose-500 border-rose-500 text-white font-bold' 
-                              : 'bg-surface-container-lowest border-outline-variant text-slate-400 hover:bg-rose-50'
-                          }`}
-                          title="Mark Absent"
-                        >
-                          <span className="material-symbols-outlined text-[10px] font-bold">close</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                });
-              })()
-            )}
-          </div>
-
-          <div className="p-sm bg-surface-container-lowest border-t border-outline shrink-0">
-            <button
-              onClick={() => setRightTab('attendance')}
-              className="w-full py-1.5 bg-surface-container-high text-on-surface font-label-caps text-[9px] font-bold rounded hover:bg-surface-variant transition-colors flex items-center justify-center gap-1 cursor-pointer uppercase tracking-wider"
-            >
-              <span className="material-symbols-outlined text-sm">groups</span>
-              VIEW ALL CLOCKED-IN
-            </button>
-          </div>
-        </aside>
       </div>
+      )}
 
       {/* Auto-Allocation Success Modal */}
       {showAutoSuccessModal && (

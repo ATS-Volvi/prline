@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:5505',
+        target: 'https://prline-production.up.railway.app',
         changeOrigin: true,
         secure: false,
       }
