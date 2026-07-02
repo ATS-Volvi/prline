@@ -89,7 +89,7 @@ class Server{
         try {
           const { Associate } = await import('../database/models/models/models');
           const { seedDatabase } = await import('../database/models/seed');
-          const count = await Associate.count();
+          const count = await (Associate as any).count();
           if (count === 0) {
             console.log("No associates found. Seeding database...");
             await seedDatabase();

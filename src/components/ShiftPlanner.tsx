@@ -26,10 +26,16 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
     role
   } = useApp();
 
+  // Main view toggle
+  const [mainView, setMainView] = useState<'allocation' | 'workstation_planning'>('allocation');
+
   // Active filters state
   const [selectedDate, setSelectedDate] = useState('2026-06-25');
   const [selectedShiftId, setSelectedShiftId] = useState('SHIFT-A');
   const [rightTab, setRightTab] = useState<'personnel' | 'attendance'>('personnel');
+
+  // Workstation planning search
+  const [wsSearchQuery, setWsSearchQuery] = useState('');
 
   // Attendance state
   const [attendanceSearch, setAttendanceSearch] = useState('');
@@ -144,8 +150,293 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
   const currentWS = workstations.find(w => w.id === assigningWSId);
   const eligibility = assigningWSId ? getEligibilityList(assigningWSId, selectedDate, selectedShiftId) : { eligible: [], ineligible: [] };
 
+  // Compute workstation planning stats
+  const activeWSForLine = workstations.filter(w => w.lineId === (currentLine?.id || ''));
+  const currentShift = shifts.find(s => s.id === selectedShiftId);
+  const wsAllocationsMap = new Map<string, typeof allocations>();
+  activeWSForLine.forEach(ws => {
+    const wsAllocs = allocations.filter(
+      a => a.date === selectedDate && a.shiftId === selectedShiftId && a.workstationId === ws.id
+    );
+    wsAllocationsMap.set(ws.id, wsAllocs);
+  });
+  const totalMachines = activeWSForLine.length;
+  const allocatedMachines = activeWSForLine.filter(ws => (wsAllocationsMap.get(ws.id) || []).length > 0).length;
+  const unallocatedMachines = totalMachines - allocatedMachines;
+  const efficiency = totalMachines > 0 ? ((allocatedMachines / totalMachines) * 100).toFixed(1) : '0.0';
+  const activeAssociates = (associates || []).filter(a => a.status === 'Active');
+  const presentToday = activeAssociates.filter(a => {
+    const record = (attendanceRecords || []).find(r => r.associateId === a.id && r.date === selectedDate && r.shiftId === selectedShiftId);
+    return record?.status === 'present';
+  });
+
+  // Filter workstations by search
+  const filteredWSForPlanning = activeWSForLine.filter(ws => {
+    if (!wsSearchQuery) return true;
+    const q = wsSearchQuery.toLowerCase();
+    return ws.name.toLowerCase().includes(q) || ws.id.toLowerCase().includes(q) || ws.requiredSkillId.toLowerCase().includes(q);
+  });
+
   return (
     <div className="flex-1 h-full flex flex-col overflow-hidden bg-background select-none animate-fade-in">
+      {/* Sub-Tab Navigation Bar */}
+      <div className="flex items-center border-b border-outline-variant bg-surface shrink-0 px-md">
+        <button
+          onClick={() => setMainView('allocation')}
+          className={`px-5 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer border-b-2 transition-colors ${
+            mainView === 'allocation'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-secondary hover:text-on-surface'
+          }`}
+        >
+          <span className="flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-sm">group_add</span>
+            Shift Allocation
+          </span>
+        </button>
+        <button
+          onClick={() => setMainView('workstation_planning')}
+          className={`px-5 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer border-b-2 transition-colors ${
+            mainView === 'workstation_planning'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-secondary hover:text-on-surface'
+          }`}
+        >
+          <span className="flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-sm">precision_manufacturing</span>
+            Shift Planning
+          </span>
+        </button>
+      </div>
+
+      {mainView === 'workstation_planning' ? (
+        /* ═══════════════════════════════════════════════════════ */
+        /*   SHIFT PLANNING — Workstation-Centric Allocation View */
+        /* ═══════════════════════════════════════════════════════ */
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          <div className="p-md md:p-lg space-y-lg max-w-7xl mx-auto">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-md">
+              <div>
+                <div className="flex items-center gap-sm text-on-secondary-container mb-1">
+                  <span className="material-symbols-outlined text-base">factory</span>
+                  <span className="font-bold text-sm text-secondary">{currentLine.name}</span>
+                </div>
+                <h2 className="text-xl font-black text-primary tracking-tight">Shift Planning</h2>
+                <p className="text-sm text-secondary mt-1">
+                  <span className="font-bold">{currentShift?.name || selectedShiftId}</span>{' '}
+                  ({currentShift?.timings || ''}) •{' '}
+                  {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                </p>
+              </div>
+              <div className="flex gap-sm">
+                <div className="flex flex-col min-w-[120px]">
+                  <label className="text-[9px] text-secondary font-bold uppercase tracking-wider mb-1">Production Line</label>
+                  <select
+                    value={selectedLineId}
+                    onChange={(e) => setSelectedLineId(e.target.value)}
+                    className="bg-surface-container-lowest border border-outline-variant text-on-surface text-xs font-bold rounded-lg py-1.5 px-2 focus:ring-primary focus:border-primary"
+                  >
+                    {productionLines.map(l => (
+                      <option key={l.id} value={l.id}>{l.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col min-w-[120px]">
+                  <label className="text-[9px] text-secondary font-bold uppercase tracking-wider mb-1">Active Shift</label>
+                  <select
+                    value={selectedShiftId}
+                    onChange={(e) => setSelectedShiftId(e.target.value)}
+                    className="bg-surface-container-lowest border border-outline-variant text-on-surface text-xs font-bold rounded-lg py-1.5 px-2 focus:ring-primary focus:border-primary"
+                  >
+                    {shifts.map(shift => (
+                      <option key={shift.id} value={shift.id}>{shift.name} ({shift.timings})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col min-w-[120px]">
+                  <label className="text-[9px] text-secondary font-bold uppercase tracking-wider mb-1">Date</label>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="bg-surface-container-lowest border border-outline-variant text-on-surface text-xs font-bold rounded-lg py-1.5 px-2 focus:ring-primary focus:border-primary"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Stats Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md">
+              {/* Total Machines */}
+              <div className="bg-surface-container-lowest border border-outline-variant p-md rounded-xl hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-start mb-sm">
+                  <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">Total Machines</span>
+                  <span className="material-symbols-outlined text-primary text-xl">precision_manufacturing</span>
+                </div>
+                <div className="text-2xl font-black text-primary">{totalMachines}</div>
+                <div className="text-[11px] text-secondary mt-1">Active on {currentLine.name.split(' - ')[0]}</div>
+              </div>
+
+              {/* Unallocated */}
+              <div className="bg-surface-container-lowest border border-outline-variant p-md rounded-xl hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-start mb-sm">
+                  <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">Unallocated</span>
+                  <div className="flex items-center gap-1">
+                    {unallocatedMachines > 0 && <div className="w-2 h-2 rounded-full bg-error animate-pulse"></div>}
+                    <span className="material-symbols-outlined text-error text-xl">warning</span>
+                  </div>
+                </div>
+                <div className={`text-2xl font-black ${unallocatedMachines > 0 ? 'text-error' : 'text-primary'}`}>
+                  {String(unallocatedMachines).padStart(2, '0')}
+                </div>
+                <div className="text-[11px] text-secondary mt-1">{unallocatedMachines > 0 ? 'Requires attention' : 'All allocated'}</div>
+              </div>
+
+              {/* Efficiency */}
+              <div className="bg-surface-container-lowest border border-outline-variant p-md rounded-xl hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-start mb-sm">
+                  <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">Efficiency</span>
+                  <span className="material-symbols-outlined text-[#00301e] text-xl">analytics</span>
+                </div>
+                <div className="text-2xl font-black text-primary">{efficiency}%</div>
+                <div className="text-[11px] text-secondary mt-1">Allocation coverage</div>
+              </div>
+
+              {/* Associates */}
+              <div className="bg-surface-container-lowest border border-outline-variant p-md rounded-xl hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-start mb-sm">
+                  <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">Associates</span>
+                  <span className="material-symbols-outlined text-secondary text-xl">group</span>
+                </div>
+                <div className="text-2xl font-black text-primary">{presentToday.length}/{activeAssociates.length}</div>
+                <div className="text-[11px] text-secondary mt-1">On-site today</div>
+              </div>
+            </div>
+
+            {/* Workstation Allocation Grid */}
+            <div className="space-y-md">
+              <div className="flex items-center justify-between border-b border-outline-variant pb-sm">
+                <h3 className="text-base font-bold text-on-surface">Workstation Allocation</h3>
+                <div className="flex items-center gap-md">
+                  {/* Search */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search workstations..."
+                      value={wsSearchQuery}
+                      onChange={(e) => setWsSearchQuery(e.target.value)}
+                      className="bg-surface-container-lowest border border-outline-variant rounded-full text-xs py-1.5 pl-3 pr-8 focus:ring-0 focus:outline-none w-48"
+                    />
+                    <span className="material-symbols-outlined absolute right-2.5 top-1.5 text-secondary text-sm">search</span>
+                  </div>
+                  <div className="flex gap-md text-[10px] font-bold uppercase tracking-wider">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2.5 h-2.5 rounded-full bg-error"></div>
+                      <span className="text-secondary">Unallocated ({unallocatedMachines})</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#4edea3]"></div>
+                      <span className="text-secondary">Allocated ({allocatedMachines})</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {filteredWSForPlanning.length === 0 ? (
+                <div className="bg-surface-container-lowest border border-dashed border-outline rounded-lg p-12 flex flex-col items-center justify-center text-secondary gap-3">
+                  <span className="material-symbols-outlined text-3xl text-amber-500 animate-pulse">construction</span>
+                  <span className="text-xs font-bold uppercase">No workstations found for this production line.</span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-md pb-md">
+                  {/* Sort: unallocated first */}
+                  {[...filteredWSForPlanning]
+                    .sort((a, b) => {
+                      const aAlloc = (wsAllocationsMap.get(a.id) || []).length;
+                      const bAlloc = (wsAllocationsMap.get(b.id) || []).length;
+                      if (aAlloc === 0 && bAlloc > 0) return -1;
+                      if (aAlloc > 0 && bAlloc === 0) return 1;
+                      return 0;
+                    })
+                    .map((ws) => {
+                      const wsAllocs = wsAllocationsMap.get(ws.id) || [];
+                      const isAllocated = wsAllocs.length > 0;
+                      const assignedAssoc = isAllocated ? associates.find(a => a.id === wsAllocs[0].associateId) : null;
+                      const assetId = ws.id.replace(/[^0-9]/g, '').padStart(6, '0').slice(0, 6);
+
+                      return (
+                        <div
+                          key={ws.id}
+                          className={`bg-surface-container-lowest border rounded-xl overflow-hidden flex flex-col group hover:shadow-md transition-all duration-300 ${
+                            !isAllocated ? 'border-error' : 'border-outline-variant hover:border-outline'
+                          }`}
+                        >
+                          {/* Card Body */}
+                          <div className="p-md flex-1">
+                            <div className="flex justify-between items-start mb-md">
+                              <div>
+                                <h4 className="text-sm font-bold text-primary tracking-tight">{ws.name.toUpperCase().replace(/\s+/g, '-')}</h4>
+                                <code className="text-[10px] text-secondary font-mono">ASSET_ID: {assetId}</code>
+                              </div>
+                              <span className={`material-symbols-outlined text-xl ${
+                                !isAllocated ? 'text-error' : 'text-secondary'
+                              }`}>
+                                {!isAllocated ? 'report_problem' : 'check_circle'}
+                              </span>
+                            </div>
+                            <div className="mt-md">
+                              <span className="px-2 py-1 bg-surface-container-high rounded text-[10px] font-bold text-on-surface-variant">
+                                Required Skill: {ws.minSkillLevel}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Status Footer */}
+                          {!isAllocated ? (
+                            <div className="bg-error/10 p-md flex items-center justify-between">
+                              <div className="flex items-center gap-sm">
+                                <span className="material-symbols-outlined text-error text-base" style={{ fontVariationSettings: "'FILL' 1" }}>error</span>
+                                <span className="text-[11px] font-bold text-error uppercase tracking-wider">UNALLOCATED</span>
+                              </div>
+                              {(role === 'Production Supervisor' || role === 'Plant Admin') && (
+                                <button
+                                  onClick={() => handleOpenAssignModal(ws.id)}
+                                  className="bg-primary text-white px-4 py-1.5 rounded text-[10px] font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+                                >
+                                  Assign
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="bg-[#4edea3]/15 p-md flex items-center justify-between gap-sm border-t border-outline-variant">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-full bg-secondary-container flex items-center justify-center text-[10px] font-bold text-on-secondary-container font-mono shrink-0">
+                                  {assignedAssoc?.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '??'}
+                                </div>
+                                <span className="text-[11px] font-bold text-[#005236]">
+                                  ALLOCATED TO: {assignedAssoc?.name || 'Unknown'}
+                                </span>
+                              </div>
+                              {wsAllocs.length > 1 && (
+                                <span className="text-[9px] bg-primary-container text-on-primary-container px-1.5 py-0.5 rounded-full font-bold">+{wsAllocs.length - 1}</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+
+      /* ═══════════════════════════════════════════ */
+      /*   ORIGINAL SHIFT ALLOCATION VIEW BELOW     */
+      /* ═══════════════════════════════════════════ */
+
       {/* Workspace Split */}
       <div className="flex-1 flex overflow-hidden p-md gap-md">
         
@@ -530,6 +821,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
           </div>
         </aside>
       </div>
+      )}
 
       {/* Auto-Allocation Success Modal */}
       {showAutoSuccessModal && (

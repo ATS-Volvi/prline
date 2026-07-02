@@ -225,7 +225,7 @@ input:checked + .slider:before {
   transform: translateX(20px);
 }
 
-html, body {
+html, body, #root {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -233,20 +233,13 @@ html, body {
 }
 
 /* Login page layout */
-.login-root {
-  width: 100vw;
-  min-height: 100dvh;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
 /* Left panel: hidden on mobile, flex column on desktop */
 .login-left-panel {
-  display: none;
+  display: none !important;
 }
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .login-left-panel {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
   }
 }

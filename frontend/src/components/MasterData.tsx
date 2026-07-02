@@ -1568,6 +1568,10 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
   const [wsMinLevel, setWsMinLevel] = useState<SkillLevel>('Operator');
   const [wsMaxStaffCount, setWsMaxStaffCount] = useState<number>(1);
 
+  // Workstation UI states
+  const [wsFloorSectionFilter, setWsFloorSectionFilter] = useState('All Sections');
+  const [wsStatusFilter, setWsStatusFilter] = useState('All Statuses');
+
   // Production Line forms
   const [editingLine, setEditingLine] = useState<ProductionLine | null>(null);
   const [isAddingLine, setIsAddingLine] = useState(false);
@@ -2331,79 +2335,304 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
 
           {/* Sub-tab: Workstations */}
           {activeSubTab === 'workstations' && (
-            <>
-              <div className="flex justify-between items-center">
+            <div className="max-w-[1400px] mx-auto animate-fade-in">
+              {/* HEADER SECTION */}
+              <section className="flex flex-col md:flex-row md:items-end justify-between gap-md mb-xl">
                 <div>
-                  <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">Workstations Directory</h2>
-                  <p className="text-[10px] text-secondary">Manage plant floor workstation constraints and required minimum skills</p>
+                  <nav className="flex items-center gap-2 text-on-surface-variant text-body-sm mb-2">
+                    <span>Assets</span>
+                    <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                    <span className="text-primary font-medium">Workstations</span>
+                  </nav>
+                  <h2 className="font-headline-lg text-headline-lg text-primary">Workstation Master</h2>
                 </div>
-                {canWriteAllMasterData && !isAddingWS && !editingWS && (
-                  <button
-                    onClick={() => { setWsId(''); setWsName(''); setIsAddingWS(true); }}
-                    className="py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-900 flex items-center gap-1.5 cursor-pointer shadow-premium-md font-label-caps tracking-wider transition-all hover:scale-[1.02]"
-                  >
-                    <span className="material-symbols-outlined text-sm">add_circle</span> CONFIGURE STATION
+                <div className="flex gap-md">
+                  <button className="flex items-center gap-2 px-md py-3 bg-surface-container-highest text-primary font-bold rounded-lg border border-outline-variant hover:bg-surface-variant transition-all active:scale-95">
+                    <span className="material-symbols-outlined">file_download</span>
+                    Export List
                   </button>
-                )}
-              </div>
+                  {canWriteAllMasterData && !isAddingWS && !editingWS && (
+                    <button
+                      onClick={() => { setWsId(''); setWsName(''); setIsAddingWS(true); }}
+                      className="flex items-center gap-2 px-md py-3 bg-primary-container text-on-primary font-bold rounded-lg hover:shadow-sm transition-all active:scale-95"
+                    >
+                      <span className="material-symbols-outlined">add</span>
+                      Add Workstation
+                    </button>
+                  )}
+                </div>
+              </section>
 
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-premium-sm">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-surface-container-low border-b border-outline-variant text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps">
-                      <th className="p-3.5">STATION ID</th>
-                      <th className="p-3.5">STATION NAME</th>
-                      <th className="p-3.5">PRODUCTION LINE</th>
-                      <th className="p-3.5">REQUIRED SKILL</th>
-                      <th className="p-3.5">MINIMUM LEVEL</th>
-                      <th className="p-3.5">CAPACITY</th>
-                      {canWriteAllMasterData && <th className="p-3.5 text-right">ACTIONS</th>}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {workstations.map(ws => {
-                      const line = productionLines.find(l => l.id === ws.lineId);
-                      return (
-                        <tr key={ws.id} className="hover:bg-surface-container-low/50 transition-colors">
-                          <td className="p-3.5 font-mono font-bold text-primary">{ws.id}</td>
-                          <td className="p-3.5 font-bold text-on-surface">{ws.name}</td>
-                          <td className="p-3.5 text-secondary font-medium">{line?.name || ws.lineId}</td>
-                          <td className="p-3.5 font-mono font-bold text-secondary">{ws.requiredSkillId}</td>
-                          <td className="p-3.5">
-                            <span className="bg-surface-container-low text-slate-800 font-bold px-2 py-0.5 rounded border border-outline-variant font-mono text-[9px] shadow-premium-sm">
-                              &gt;= {ws.minSkillLevel}
-                            </span>
-                          </td>
-                          <td className="p-3.5 font-mono font-bold text-slate-700">
-                            {ws.maxStaffCount || 1} { (ws.maxStaffCount || 1) === 1 ? 'Worker' : 'Workers' }
-                          </td>
-                          {canWriteAllMasterData && (
-                            <td className="p-3.5 text-right select-none space-x-3">
-                              <button
-                                onClick={() => startEditWS(ws)}
-                                className="text-primary hover:underline font-bold text-[10px] cursor-pointer"
-                              >
-                                EDIT
-                              </button>
-                              <button
-                                onClick={() => {
-                                  if (window.confirm(`Delete workstation ${ws.name}? Active shift allocations will be cleared.`)) {
-                                    deleteWorkstation(ws.id);
-                                  }
-                                }}
-                                className="text-rose-600 hover:underline font-bold text-[10px] cursor-pointer"
-                              >
-                                REMOVE
-                              </button>
+              {/* KPI GRID (Bento Style) */}
+              <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md mb-xl">
+                {/* Total */}
+                <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg flex flex-col justify-between">
+                  <div className="flex justify-between items-start gap-2">
+                    <span className="text-body-sm text-on-surface-variant font-medium">Total Workstations</span>
+                    <div className="p-2 bg-secondary-container text-on-secondary-container rounded-lg">
+                      <span className="material-symbols-outlined">precision_manufacturing</span>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <h3 className="text-headline-lg font-bold">{workstations.length}</h3>
+                    <p className="text-body-sm text-on-tertiary-container mt-1 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">trending_up</span>
+                      +2 from last month
+                    </p>
+                  </div>
+                </div>
+
+                {/* Operating */}
+                {(() => {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const activeAllocsToday = allocations.filter(a => a.date === todayStr);
+                    const operatingCount = new Set(activeAllocsToday.map(a => a.workstationId)).size;
+                    const operatingPct = workstations.length ? Math.round((operatingCount / workstations.length) * 100) : 0;
+                    
+                    return (
+                        <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg flex flex-col justify-between">
+                          <div className="flex justify-between items-start gap-2">
+                            <span className="text-body-sm text-on-surface-variant font-medium">Operating</span>
+                            <div className="p-2 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-lg">
+                              <span className="material-symbols-outlined">check_circle</span>
+                            </div>
+                          </div>
+                          <div className="mt-4">
+                            <h3 className="text-headline-lg font-bold">{operatingCount}</h3>
+                            <div className="w-full bg-surface-container h-1.5 rounded-full mt-2">
+                              <div className="bg-on-tertiary-container h-1.5 rounded-full transition-all duration-1000" style={{ width: `${operatingPct}%` }}></div>
+                            </div>
+                          </div>
+                        </div>
+                    );
+                })()}
+
+                {/* Maintenance */}
+                {(() => {
+                    const maintenanceLines = productionLines.filter(l => l.status === 'MAINTENANCE').map(l => l.id);
+                    const maintenanceWsCount = workstations.filter(w => maintenanceLines.includes(w.lineId)).length;
+                    return (
+                        <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg flex flex-col justify-between">
+                          <div className="flex justify-between items-start gap-2">
+                            <span className="text-body-sm text-on-surface-variant font-medium">Maintenance</span>
+                            <div className="p-2 bg-secondary-fixed text-on-secondary-fixed-variant rounded-lg">
+                              <span className="material-symbols-outlined">build</span>
+                            </div>
+                          </div>
+                          <div className="mt-4">
+                            <h3 className="text-headline-lg font-bold">{maintenanceWsCount}</h3>
+                            <p className="text-body-sm text-on-secondary-container mt-1">Scheduled: {maintenanceWsCount > 0 ? 1 : 0} urgent</p>
+                          </div>
+                        </div>
+                    );
+                })()}
+
+                {/* Offline/Critical */}
+                {(() => {
+                    const haltedLines = productionLines.filter(l => l.status === 'HALTED').map(l => l.id);
+                    const haltedWsCount = workstations.filter(w => haltedLines.includes(w.lineId)).length;
+                    return (
+                        <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg flex flex-col justify-between">
+                          <div className="flex justify-between items-start gap-2">
+                            <span className="text-body-sm text-on-surface-variant font-medium">Offline/Critical</span>
+                            <div className="p-2 bg-error-container text-on-error-container rounded-lg">
+                              <span className="material-symbols-outlined">error</span>
+                            </div>
+                          </div>
+                          <div className="mt-4">
+                            <h3 className="text-headline-lg font-bold">{haltedWsCount}</h3>
+                            <p className="text-body-sm text-error mt-1 font-medium">{haltedWsCount > 0 ? 'Awaiting parts' : 'All systems clear'}</p>
+                          </div>
+                        </div>
+                    );
+                })()}
+              </section>
+
+              {/* FILTERS & LIST */}
+              <section className="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+                {/* Filter Bar */}
+                <div className="px-lg py-md border-b border-outline-variant flex flex-col md:flex-row md:items-center justify-between gap-md bg-surface-container-low">
+                  <div className="flex flex-wrap items-center gap-md">
+                    <div className="flex items-center gap-2 bg-surface px-md py-2 border border-outline-variant rounded-lg text-body-md">
+                      <span className="text-on-surface-variant">Floor Section:</span>
+                      <select 
+                        value={wsFloorSectionFilter}
+                        onChange={(e) => setWsFloorSectionFilter(e.target.value)}
+                        className="bg-transparent border-none focus:ring-0 font-medium py-0 cursor-pointer outline-none"
+                      >
+                        <option value="All Sections">All Sections</option>
+                        {productionLines.map(l => (
+                          <option key={l.id} value={l.id}>{l.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-2 bg-surface px-md py-2 border border-outline-variant rounded-lg text-body-md">
+                      <span className="text-on-surface-variant">Status:</span>
+                      <select 
+                        value={wsStatusFilter}
+                        onChange={(e) => setWsStatusFilter(e.target.value)}
+                        className="bg-transparent border-none focus:ring-0 font-medium py-0 cursor-pointer outline-none"
+                      >
+                        <option value="All Statuses">All Statuses</option>
+                        <option value="Operating">Operating</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Offline">Offline</option>
+                        <option value="Idle">Idle</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors text-body-md font-medium">
+                    <span className="material-symbols-outlined text-[18px]">filter_list</span>
+                    Advanced Filters
+                  </button>
+                </div>
+
+                {/* Table Content */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-surface-container-low text-on-surface-variant font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps">
+                      <tr>
+                        <th className="p-3.5 border-b border-outline-variant">Station ID</th>
+                        <th className="p-3.5 border-b border-outline-variant">Machine Name</th>
+                        <th className="p-3.5 border-b border-outline-variant">Status</th>
+                        <th className="p-3.5 border-b border-outline-variant">Min. Skill</th>
+                        <th className="p-3.5 border-b border-outline-variant">Assigned Associate</th>
+                        <th className="p-3.5 border-b border-outline-variant">Current Efficiency</th>
+                        {canWriteAllMasterData && <th className="p-3.5 border-b border-outline-variant text-right">Actions</th>}
+                      </tr>
+                    </thead>
+                    <tbody className="text-xs divide-y divide-outline-variant">
+                      {workstations
+                        .filter(ws => wsFloorSectionFilter === 'All Sections' || ws.lineId === wsFloorSectionFilter)
+                        .filter(ws => {
+                          if (wsStatusFilter === 'All Statuses') return true;
+                          const line = productionLines.find(l => l.id === ws.lineId);
+                          const todayStr = new Date().toISOString().split('T')[0];
+                          const activeAlloc = allocations.find(a => a.workstationId === ws.id && a.date === todayStr);
+                          let status = 'Idle';
+                          if (line?.status === 'MAINTENANCE') status = 'Maintenance';
+                          else if (line?.status === 'HALTED') status = 'Offline';
+                          else if (activeAlloc) status = 'Operating';
+                          return status === wsStatusFilter;
+                        })
+                        .map((ws) => {
+                        const line = productionLines.find(l => l.id === ws.lineId);
+                        
+                        // Infer Status
+                        let status = 'Idle';
+                        let statusColor = 'bg-surface-container-high text-on-surface-variant';
+                        let dotColor = 'bg-outline';
+                        
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        const activeAlloc = allocations.find(a => a.workstationId === ws.id && a.date === todayStr);
+                        
+                        if (line?.status === 'MAINTENANCE') {
+                          status = 'Maintenance';
+                          statusColor = 'bg-blue-100 text-blue-800';
+                          dotColor = 'bg-blue-500';
+                        } else if (line?.status === 'HALTED') {
+                          status = 'Offline';
+                          statusColor = 'bg-error-container text-on-error-container';
+                          dotColor = 'bg-error';
+                        } else if (activeAlloc) {
+                          status = 'Operating';
+                          statusColor = 'bg-green-100 text-green-800';
+                          dotColor = 'bg-green-500';
+                        }
+
+                        // Determine Assigned Associate
+                        const assignedAssoc = activeAlloc ? associates.find(a => a.id === activeAlloc.associateId) : null;
+                        
+                        // Mock Efficiency (seeded deterministically by ID so it doesn't jump around)
+                        const mockEff = activeAlloc ? 80 + (ws.id.charCodeAt(ws.id.length-1) % 20) : (status === 'Maintenance' ? 0 : (status === 'Offline' ? 12 : 0));
+                        const effColor = mockEff > 70 ? 'bg-on-tertiary-container' : (mockEff > 40 ? 'bg-secondary' : 'bg-error');
+
+                        return (
+                          <tr key={ws.id} className="hover:bg-surface-container-lowest/50 transition-colors cursor-pointer group">
+                            <td className="p-3.5 text-xs text-primary font-bold font-mono">{ws.id}</td>
+                            <td className="p-3.5">
+                              <div className="flex flex-col">
+                                <span className="font-bold">{ws.name}</span>
+                                <span className="text-body-sm text-on-surface-variant">{line?.name || 'Unassigned Line'}</span>
+                              </div>
                             </td>
-                          )}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </>
+                            <td className="p-3.5">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${statusColor}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${dotColor} mr-1.5`}></span>
+                                {status}
+                              </span>
+                            </td>
+                            <td className="p-3.5">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium border border-outline-variant ${ws.minSkillLevel === 'Expert' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}>
+                                {ws.minSkillLevel === 'Expert' ? 'Expert' : ws.minSkillLevel}
+                              </span>
+                            </td>
+                            <td className="p-3.5">
+                              {assignedAssoc ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-bold text-[10px] overflow-hidden border border-outline-variant">
+                                    {assignedAssoc.name.split(' ').map(n=>n[0]).join('').substring(0,2)}
+                                  </div>
+                                  <span>{assignedAssoc.name}</span>
+                                </div>
+                              ) : (
+                                <span className="text-body-sm text-on-surface-variant italic">Unassigned</span>
+                              )}
+                            </td>
+                            <td className="p-3.5">
+                              <div className="flex items-center gap-2">
+                                <div className="w-24 bg-surface-container-high h-2 rounded-full overflow-hidden">
+                                  <div className={`${effColor} h-full`} style={{ width: `${mockEff}%` }}></div>
+                                </div>
+                                <span className={`text-xs font-mono font-bold ${mockEff < 30 && status !== 'Maintenance' && status !== 'Idle' ? 'text-error' : ''}`}>{mockEff}%</span>
+                              </div>
+                            </td>
+                            {canWriteAllMasterData && (
+                              <td className="p-3.5 text-right">
+                                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); startEditWS(ws); }}
+                                    className="p-2 text-on-surface-variant hover:text-primary transition-colors" 
+                                    title="Edit"
+                                  >
+                                    <span className="material-symbols-outlined text-[20px]">edit</span>
+                                  </button>
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (window.confirm(`Delete workstation ${ws.name}? Active shift allocations will be cleared.`)) {
+                                        deleteWorkstation(ws.id);
+                                      }
+                                    }}
+                                    className="p-2 text-on-surface-variant hover:text-error transition-colors" 
+                                    title="Remove"
+                                  >
+                                    <span className="material-symbols-outlined text-[20px]">delete</span>
+                                  </button>
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Pagination */}
+                <div className="px-lg py-md bg-surface-container-low border-t border-outline-variant flex items-center justify-between">
+                  <span className="text-body-sm text-on-surface-variant">Showing {workstations.length} Workstations</span>
+                  <div className="flex items-center gap-2">
+                    <button className="p-2 rounded-md border border-outline-variant hover:bg-surface transition-colors disabled:opacity-40" disabled>
+                      <span className="material-symbols-outlined">chevron_left</span>
+                    </button>
+                    <button className="px-3 py-1 rounded-md bg-primary text-on-primary font-bold text-body-sm">1</button>
+                    <button className="p-2 rounded-md border border-outline-variant hover:bg-surface transition-colors disabled:opacity-40" disabled>
+                      <span className="material-symbols-outlined">chevron_right</span>
+                    </button>
+                  </div>
+                </div>
+              </section>
+            </div>
           )}
 
           {/* Sub-tab: Skills */}

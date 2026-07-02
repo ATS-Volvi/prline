@@ -2,6 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import type { UserRole } from '../types';
 
+/* ─── color tokens (scoped to Login only) ─── */
+const C = {
+  bg: '#f3f2ee',
+  surface: '#ffffff',
+  panelGray: '#f3f4f6',
+  primary: '#005a9c',
+  primaryContainer: '#1a73c0',
+  onPrimaryContainer: '#f2f6ff',
+  secondary: '#0d9488',
+  onSurface: '#141b2b',
+  onSurfaceVariant: '#414751',
+  outline: '#717782',
+  outlineVariant: '#c1c7d3',
+  surfaceContainerLow: '#f1f3ff',
+  error: '#ba1a1a',
+  errorBg: 'rgba(186,26,26,0.06)',
+  successGreen: '#10b981',
+  successBg: 'rgba(16,185,129,0.06)',
+};
+
 export const Login: React.FC = () => {
   const { login } = useApp();
   const [viewMode, setViewMode] = useState<'login' | 'signup' | 'forgot' | 'reset'>(() => {
@@ -30,6 +50,7 @@ export const Login: React.FC = () => {
     }
   }, []);
 
+  /* ─── form submit (unchanged logic) ─── */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -108,13 +129,12 @@ export const Login: React.FC = () => {
         }
 
         setSuccessMsg('Password updated successfully! You can now log in.');
-        // Clean URL query params
         window.history.replaceState({}, document.title, window.location.pathname);
         setViewMode('login');
         setPassword('');
         setConfirmPassword('');
       } else {
-        // Login flow — use window.fetch to bypass AppContext interceptor
+        // Login flow
         let res: Response;
         try {
           res = await window.fetch('/api/v1/auth/login', {
@@ -139,7 +159,7 @@ export const Login: React.FC = () => {
 
         const token = data.content.accessToken;
         const userProfile = data.content.data;
-        
+
         let role: UserRole = 'Production Supervisor';
         const type = userProfile ? (userProfile as any).userType : undefined;
         if (type === 'pri_admin') role = 'Plant Admin';
@@ -156,334 +176,792 @@ export const Login: React.FC = () => {
     }
   };
 
-  const getHeaderTitle = () => {
+  /* ─── helpers ─── */
+  const headingTitle = () => {
     switch (viewMode) {
-      case 'signup': return 'Register Portal';
-      case 'forgot': return 'Reset Gateway Request';
-      case 'reset': return 'Reset System Credentials';
-      default: return 'Authorized Access';
+      case 'signup': return 'Create Account';
+      case 'forgot': return 'Reset Password';
+      case 'reset': return 'New Password';
+      default: return 'Welcome Back';
     }
   };
 
-  const getHeaderDesc = () => {
+  const headingDesc = () => {
     switch (viewMode) {
-      case 'signup': return 'Request credentials for the Kolkata Plant scheduling system';
-      case 'forgot': return 'Submit email to receive an encrypted password reset link';
-      case 'reset': return 'Provide a new secure password for system verification';
-      default: return 'Enter encrypted credentials to retrieve active roster control';
+      case 'signup': return 'Request credentials for the scheduling system';
+      case 'forgot': return 'Enter your email to receive a reset link';
+      case 'reset': return 'Provide a new secure password';
+      default: return 'Secure access for plant operations';
     }
   };
+
+  const submitLabel = () => {
+    if (loading) return null;
+    switch (viewMode) {
+      case 'signup': return 'CREATE ACCOUNT';
+      case 'forgot': return 'SEND RESET LINK';
+      case 'reset': return 'RESET PASSWORD';
+      default: return 'SIGN IN';
+    }
+  };
+
+  /* ─── shared input style ─── */
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '14px 18px',
+    borderRadius: '10px',
+    border: `1.5px solid ${C.outlineVariant}`,
+    outline: 'none',
+    fontSize: '18px',
+    lineHeight: '28px',
+    fontFamily: 'Inter, sans-serif',
+    color: C.onSurface,
+    backgroundColor: C.surface,
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+    boxSizing: 'border-box' as const,
+  };
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: '15px',
+    lineHeight: '20px',
+    fontWeight: 600,
+    color: C.onSurfaceVariant,
+    fontFamily: 'Inter, sans-serif',
+  };
+
+  /* ─── info rows for left panel ─── */
+  const infoRows = [
+    { icon: 'schedule', label: 'Active Shift', value: 'SHIFT A', accent: C.primaryContainer },
+    { icon: 'group', label: 'Associates Indexed', value: '32', accent: C.primaryContainer },
+    { icon: 'sync', label: 'System Sync', value: 'Live SQL DB', accent: C.secondary },
+    { icon: 'location_on', label: 'Location', value: 'Kolkata Snacks, IN', accent: C.primaryContainer },
+  ];
 
   return (
     <div
-      className="login-root select-none font-sans"
       style={{
-        display: 'flex',
-        width: '100vw',
         minHeight: '100dvh',
-        backgroundColor: '#0b1329',
-        overflowY: 'auto',
+        width: '100vw',
+        marginLeft: 'calc(50% - 50vw)',
+        marginRight: 'calc(50% - 50vw)',
+        display: 'flex',
+        alignItems: 'stretch',
+        justifyContent: 'center',
+        padding: 0,
+        backgroundColor: C.bg,
+        fontFamily: 'Inter, sans-serif',
+        overflowX: 'hidden',
+        boxSizing: 'border-box' as const,
       }}
     >
-      {/* LEFT PANEL: Branding & Plant Live Telemetry (Desktop Only) */}
-      <div
-        className="login-left-panel"
+      {/* ── Main Container ── */}
+      <main
         style={{
-          width: '58%',
-          flexShrink: 0,
-          background: 'linear-gradient(135deg, #050b18 0%, #0b1329 50%, #182547 100%)',
           position: 'relative',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: '3rem',
-          overflow: 'hidden',
-          borderRight: '1px solid rgba(30,41,59,0.4)',
-          minHeight: '100dvh',
-        }}
-      >
-        
-        {/* Animated Grid Overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(20,184,166,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(20,184,166,0.025)_1px,transparent_1px)] bg-[size:3rem_3rem] animate-grid-move" />
-        
-        {/* Glowing Orbs */}
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-[#182c47]/20 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-[#14b8a6]/10 rounded-full blur-[100px] pointer-events-none" />
-
-        {/* Top Header */}
-        <div className="relative flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-tr from-[#14b8a6] to-[#0f766e] shadow-lg shadow-[#14b8a6]/20 text-white">
-            <span className="material-symbols-outlined text-white text-base">factory</span>
-          </div>
-          <div>
-            <h3 className="text-xs font-bold tracking-tight text-white font-mono leading-none">PEPSICO</h3>
-            <p className="text-[7.5px] font-bold text-[#94a3b8] tracking-widest font-label-caps mt-0.5">OPERATIONAL CONTROLS</p>
-          </div>
-        </div>
-
-        {/* Center Content: Interactive Hero */}
-        <div style={{ position: 'relative', marginTop: 'auto', marginBottom: 'auto', maxWidth: '520px', width: '100%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#14b8a6]/10 border border-[#14b8a6]/20 text-[9px] font-bold font-mono text-[#14b8a6] uppercase tracking-wider">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#14b8a6] animate-ping" />
-            Zone 4 Smart Gateway
-          </span>
-          
-          <h1 className="text-3xl xl:text-4xl font-extrabold text-white tracking-tight leading-tight uppercase">
-            Smarter Scheduling.<br />
-            <span className="bg-gradient-to-r from-[#14b8a6] to-[#38bdf8] bg-clip-text text-transparent">Optimized Output.</span>
-          </h1>
-          
-          <p style={{ fontSize: '12px', color: '#94a3b8', lineHeight: '1.75', maxWidth: '440px' }}>
-            Welcome to the PepsiCo Kolkata Roster Board. This system automatically cross-references associate skills and availability against production lines to guarantee compliant shift staffing in real-time.
-          </p>
-
-          {/* Plant Telemetry Status Card */}
-          <div style={{ backgroundColor: 'rgba(16,25,46,0.6)', border: '1px solid rgba(30,41,59,0.7)', borderRadius: '1rem', padding: '1.25rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', backdropFilter: 'blur(12px)', maxWidth: '440px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div className="flex items-center justify-between border-b border-[#1e293b]/60 pb-3">
-              <span className="text-[9px] font-bold font-mono text-[#94a3b8] tracking-widest uppercase">PLANT TELEMETRY</span>
-              <span className="px-2 py-0.5 text-[8px] font-bold font-mono bg-[#14b8a6]/10 text-[#14b8a6] border border-[#14b8a6]/20 rounded-md">NOMINAL</span>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-[8.5px] font-bold font-mono text-[#64748b] tracking-wider uppercase">Active Shift</p>
-                <p className="text-xs font-bold text-white font-sans mt-0.5">SHIFT A (06:00 - 14:00)</p>
-              </div>
-              <div>
-                <p className="text-[8.5px] font-bold font-mono text-[#64748b] tracking-wider uppercase">Seeded Pool</p>
-                <p className="text-xs font-bold text-white font-sans mt-0.5">32 Associates Indexed</p>
-              </div>
-              <div>
-                <p className="text-[8.5px] font-bold font-mono text-[#64748b] tracking-wider uppercase">System Sync</p>
-                <p className="text-xs font-bold text-white font-sans mt-0.5 flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#14b8a6] animate-pulse" />
-                  Live SQL DB
-                </p>
-              </div>
-              <div>
-                <p className="text-[8.5px] font-bold font-mono text-[#64748b] tracking-wider uppercase">Location</p>
-                <p className="text-xs font-bold text-white font-sans mt-0.5">Kolkata Snacks, IN</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Metadata */}
-        <div className="relative flex items-center justify-between border-t border-[#1e293b]/50 pt-6 text-[9px] font-mono text-[#64748b]">
-          <span>© 2026 PepsiCo, Inc. All rights reserved.</span>
-          <span>v2.1.0 • secure-mode</span>
-        </div>
-      </div>
-
-      {/* RIGHT PANEL: The Authentication Form */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#070d19',
-          borderLeft: '1px solid rgba(30,41,59,0.2)',
-          position: 'relative',
-          minHeight: '100dvh',
-          padding: '2.5rem 1.5rem',
-        }}
-      >
-        {/* Mobile Background Grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:3rem_3rem] lg:hidden opacity-30 pointer-events-none" />
-        
-        {/* Login Card */}
-        <div style={{
-          position: 'relative',
-          backgroundColor: '#10192e',
-          border: '1px solid #1e293b',
-          borderRadius: '1rem',
-          overflow: 'hidden',
-          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
-          display: 'flex',
-          flexDirection: 'column',
+          backgroundColor: C.surface,
           width: '100%',
-          maxWidth: '420px',
-        }}>
+          flex: '1 1 auto',
+          display: 'flex',
+          flexDirection: 'row',
+          overflow: 'hidden',
+        }}
+      >
+        {/* ── Gradient Top Bar ── */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '4px',
+            background: 'linear-gradient(90deg, #1A73C0 0%, #0d9488 100%)',
+            zIndex: 10,
+          }}
+        />
 
-          {/* Top Accent Strip */}
-          <div style={{ height: '4px', width: '100%', background: 'linear-gradient(to right, #14b8a6, #0f766e)' }} />
+        {/* ════════════════════════════════════════════ */}
+        {/* LEFT PANEL                                  */}
+        {/* ════════════════════════════════════════════ */}
+        <section
+          className="login-left-panel"
+          style={{
+            width: '50%',
+            flexShrink: 0,
+            backgroundColor: C.surface,
+            padding: '48px 56px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          {/* subtle dot grid */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              opacity: 0.03,
+              pointerEvents: 'none',
+              backgroundImage: `radial-gradient(${C.primary} 1px, transparent 1px)`,
+              backgroundSize: '20px 20px',
+            }}
+          />
 
-          {/* Header Block */}
-          <div style={{ padding: '1.5rem', backgroundColor: '#10192e', display: 'flex', flexDirection: 'column', alignItems: 'center', borderBottom: '1px solid rgba(30,41,59,0.5)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem' }}>
-              <span className="material-symbols-outlined" style={{ color: '#14b8a6', fontSize: '20px' }}>factory</span>
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', letterSpacing: '0.1em', color: '#94a3b8', textTransform: 'uppercase' }}>PEPSICO OPERATIONAL GATEWAY</span>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            {/* Branding */}
+            <div style={{ marginBottom: '56px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ color: C.secondary, fontSize: '36px', fontWeight: 700 }}
+                >
+                  factory
+                </span>
+                <span
+                  style={{
+                    fontSize: '32px',
+                    lineHeight: '40px',
+                    fontWeight: 800,
+                    letterSpacing: '-0.01em',
+                    color: C.onSurface,
+                  }}
+                >
+                  PEPSICO
+                </span>
+              </div>
+              <span
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.2em',
+                  color: C.outline,
+                  marginTop: '6px',
+                  display: 'block',
+                }}
+              >
+                OPERATIONAL CONTROLS
+              </span>
             </div>
-            <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '15px', fontWeight: 700, letterSpacing: '-0.01em', color: 'white', textTransform: 'uppercase', textAlign: 'center', margin: 0 }}>
-              {getHeaderTitle()}
-            </h2>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', color: '#94a3b8', textAlign: 'center', marginTop: '0.25rem', marginBottom: 0 }}>
-              {getHeaderDesc()}
-            </p>
+
+            {/* Status Badge */}
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '6px 16px',
+                borderRadius: '9999px',
+                border: `1px solid ${C.secondary}30`,
+                backgroundColor: `${C.secondary}0d`,
+                marginBottom: '36px',
+              }}
+            >
+              <span
+                style={{
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '50%',
+                  backgroundColor: C.secondary,
+                  animation: 'pulse 2s infinite',
+                }}
+              />
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: C.secondary,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                ZONE 4 · SMART GATEWAY
+              </span>
+            </div>
+
+            {/* Headlines */}
+            <div style={{ marginBottom: '32px' }}>
+              <h1
+                style={{
+                  fontSize: '40px',
+                  lineHeight: '48px',
+                  fontWeight: 700,
+                  letterSpacing: '-0.02em',
+                  color: C.onSurface,
+                  margin: 0,
+                }}
+              >
+                Smarter Scheduling.
+              </h1>
+              <h1
+                style={{
+                  fontSize: '40px',
+                  lineHeight: '48px',
+                  fontWeight: 700,
+                  letterSpacing: '-0.02em',
+                  color: C.onSurface,
+                  margin: 0,
+                }}
+              >
+                Optimized Output.
+              </h1>
+              <p
+                style={{
+                  fontSize: '18px',
+                  lineHeight: '28px',
+                  color: C.onSurfaceVariant,
+                  marginTop: '20px',
+                }}
+              >
+                Automated rostering. Real-time visibility. Better compliance.
+              </p>
+            </div>
+
+            {/* Info List Card */}
+            <div
+              style={{
+                backgroundColor: C.surface,
+                border: `1.5px solid ${C.outlineVariant}`,
+                borderRadius: '16px',
+                overflow: 'hidden',
+                maxWidth: '520px',
+              }}
+            >
+              {infoRows.map((row, i) => (
+                <div
+                  key={row.icon}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '20px 24px',
+                    borderBottom: i < infoRows.length - 1 ? `1px solid ${C.outlineVariant}` : 'none',
+                    cursor: 'default',
+                    transition: 'background-color 0.15s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = C.surfaceContainerLow)}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div
+                      style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '12px',
+                        backgroundColor: `${row.accent}14`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: row.accent,
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+                        {row.icon}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '17px', lineHeight: '24px', fontWeight: 500, color: C.onSurfaceVariant }}>
+                      {row.label}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '17px', lineHeight: '24px', fontWeight: 700, color: row.accent }}>
+                    {row.value}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Form Body */}
-          <form onSubmit={handleSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
+          {/* Footer */}
+          <footer style={{ marginTop: '56px', position: 'relative', zIndex: 1 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                color: C.outline,
+                fontSize: '14px',
+                fontWeight: 500,
+              }}
+            >
+              <span>© 2026 PepsiCo Operations</span>
+              <span
+                style={{
+                  width: '5px',
+                  height: '5px',
+                  borderRadius: '50%',
+                  backgroundColor: C.outlineVariant,
+                }}
+              />
+              <span>v4.12.0-stable</span>
+            </div>
+          </footer>
+        </section>
 
+        {/* ════════════════════════════════════════════ */}
+        {/* RIGHT PANEL — Auth Form                     */}
+        {/* ════════════════════════════════════════════ */}
+        <section
+          style={{
+            width: '50%',
+            flexShrink: 0,
+            backgroundColor: C.panelGray,
+            padding: '56px 64px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'stretch',
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              backgroundColor: C.surface,
+              padding: '40px',
+              borderRadius: '16px',
+              border: `1.5px solid ${C.outlineVariant}`,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+            }}
+          >
+            {/* Card header */}
+            <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+              <h2
+                style={{
+                  fontSize: '30px',
+                  lineHeight: '38px',
+                  fontWeight: 700,
+                  color: C.onSurface,
+                  margin: 0,
+                }}
+              >
+                {headingTitle()}
+              </h2>
+              <p
+                style={{
+                  fontSize: '16px',
+                  lineHeight: '24px',
+                  color: C.onSurfaceVariant,
+                  marginTop: '8px',
+                }}
+              >
+                {headingDesc()}
+              </p>
+            </div>
+
+            {/* ── Alerts ── */}
             {error && (
-              <div style={{ padding: '0.75rem', backgroundColor: 'rgba(239,68,68,0.08)', borderLeft: '4px solid #ef4444', borderRadius: '0.375rem', fontSize: '11px', fontWeight: 600, color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>error</span>
+              <div
+                style={{
+                  padding: '14px 18px',
+                  backgroundColor: C.errorBg,
+                  borderLeft: `4px solid ${C.error}`,
+                  borderRadius: '10px',
+                  marginBottom: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  fontSize: '15px',
+                  fontWeight: 500,
+                  color: C.error,
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>error</span>
                 <span>{error}</span>
               </div>
             )}
 
             {successMsg && (
-              <div style={{ padding: '0.75rem', backgroundColor: 'rgba(16,185,129,0.08)', borderLeft: '4px solid #10b981', borderRadius: '0.375rem', fontSize: '11px', fontWeight: 600, color: '#34d399', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check_circle</span>
+              <div
+                style={{
+                  padding: '14px 18px',
+                  backgroundColor: C.successBg,
+                  borderLeft: `4px solid ${C.successGreen}`,
+                  borderRadius: '10px',
+                  marginBottom: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  fontSize: '15px',
+                  fontWeight: 500,
+                  color: '#059669',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>check_circle</span>
                 <span>{successMsg}</span>
               </div>
             )}
 
-            {viewMode === 'signup' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Full Name</label>
-                <input
-                  type="text" required value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Rajesh Sen"
-                  className="login-input"
-                  style={{ width: '100%', height: '44px', border: '1px solid #1e293b', borderRadius: '0.75rem', padding: '0 0.75rem', fontSize: '12px', backgroundColor: 'rgba(26,43,76,0.3)', color: 'white', outline: 'none', boxSizing: 'border-box' }}
-                />
-              </div>
-            )}
-
-            {viewMode !== 'reset' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Email Address</label>
-                <input
-                  type="email" required value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="operator@pepsico.com"
-                  className="login-input"
-                  style={{ width: '100%', height: '44px', border: '1px solid #1e293b', borderRadius: '0.75rem', padding: '0 0.75rem', fontSize: '12px', backgroundColor: 'rgba(26,43,76,0.3)', color: 'white', outline: 'none', boxSizing: 'border-box' }}
-                />
-              </div>
-            )}
-
-            {viewMode !== 'forgot' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  {viewMode === 'reset' ? 'New Password' : 'Password'}
-                </label>
-                <div style={{ position: 'relative', width: '100%' }}>
+            {/* ── Form ── */}
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Name (signup only) */}
+              {viewMode === 'signup' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={labelStyle}>Full Name</label>
                   <input
-                    type={showPassword ? 'text' : 'password'} required value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="login-input"
-                    style={{ width: '100%', height: '44px', border: '1px solid #1e293b', borderRadius: '0.75rem', padding: '0 3rem 0 0.75rem', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace', backgroundColor: 'rgba(26,43,76,0.3)', color: 'white', outline: 'none', boxSizing: 'border-box' }}
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Rajesh Sen"
+                    style={inputStyle}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = C.primaryContainer;
+                      e.currentTarget.style.boxShadow = `0 0 0 3px ${C.primaryContainer}20`;
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = C.outlineVariant;
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                   />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)}
-                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', fontSize: '9px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, cursor: 'pointer', padding: 0 }}>
-                    {showPassword ? 'HIDE' : 'SHOW'}
-                  </button>
                 </div>
-              </div>
-            )}
+              )}
 
-            {viewMode === 'reset' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Confirm Password</label>
-                <div style={{ position: 'relative', width: '100%' }}>
+              {/* Email (not shown on reset) */}
+              {viewMode !== 'reset' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={labelStyle}>Email Address</label>
                   <input
-                    type={showConfirmPassword ? 'text' : 'password'} required value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="login-input"
-                    style={{ width: '100%', height: '44px', border: '1px solid #1e293b', borderRadius: '0.75rem', padding: '0 3rem 0 0.75rem', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace', backgroundColor: 'rgba(26,43,76,0.3)', color: 'white', outline: 'none', boxSizing: 'border-box' }}
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="operator@pepsico.com"
+                    style={inputStyle}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = C.primaryContainer;
+                      e.currentTarget.style.boxShadow = `0 0 0 3px ${C.primaryContainer}20`;
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = C.outlineVariant;
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                   />
-                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', fontSize: '9px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, cursor: 'pointer', padding: 0 }}>
-                    {showConfirmPassword ? 'HIDE' : 'SHOW'}
-                  </button>
                 </div>
-              </div>
-            )}
+              )}
 
-            {viewMode === 'signup' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Access Level</label>
-                <select
-                  value={selectedRole}
-                  onChange={(e) => setSelectedRole(e.target.value as UserRole)}
-                  style={{ width: '100%', height: '44px', border: '1px solid #1e293b', borderRadius: '0.75rem', padding: '0 0.75rem', fontSize: '12px', backgroundColor: '#0d1727', color: 'white', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
-                >
-                  <option value="Production Supervisor">Production Supervisor</option>
-                  <option value="HR / Training Coordinator">HR / Training Coordinator</option>
-                  <option value="Plant Admin">Plant Admin</option>
-                  <option value="Plant Manager">Plant Manager</option>
-                </select>
-              </div>
-            )}
+              {/* Password (not shown on forgot) */}
+              {viewMode !== 'forgot' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={labelStyle}>
+                      {viewMode === 'reset' ? 'New Password' : 'Password'}
+                    </label>
+                    {viewMode === 'login' && (
+                      <button
+                        type="button"
+                        onClick={() => { setViewMode('forgot'); setError(null); setSuccessMsg(null); }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          color: C.primaryContainer,
+                          cursor: 'pointer',
+                          padding: 0,
+                          fontFamily: 'Inter, sans-serif',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+                        onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                      >
+                        Forgot Password?
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      style={{ ...inputStyle, paddingRight: '52px' }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = C.primaryContainer;
+                        e.currentTarget.style.boxShadow = `0 0 0 3px ${C.primaryContainer}20`;
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = C.outlineVariant;
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '14px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: C.outline,
+                        cursor: 'pointer',
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        transition: 'color 0.15s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = C.onSurfaceVariant)}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = C.outline)}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+                        {showPassword ? 'visibility_off' : 'visibility'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              )}
 
-            {viewMode === 'login' && (
-              <div style={{ textAlign: 'right' }}>
-                <button type="button"
-                  onClick={() => { setViewMode('forgot'); setError(null); setSuccessMsg(null); }}
-                  style={{ background: 'none', border: 'none', fontSize: '10px', color: '#94a3b8', cursor: 'pointer', padding: 0 }}>
-                  Forgot Password?
-                </button>
-              </div>
-            )}
+              {/* Confirm Password (reset only) */}
+              {viewMode === 'reset' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={labelStyle}>Confirm Password</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      style={{ ...inputStyle, paddingRight: '52px' }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = C.primaryContainer;
+                        e.currentTarget.style.boxShadow = `0 0 0 3px ${C.primaryContainer}20`;
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = C.outlineVariant;
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '14px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: C.outline,
+                        cursor: 'pointer',
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        transition: 'color 0.15s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = C.onSurfaceVariant)}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = C.outline)}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+                        {showConfirmPassword ? 'visibility_off' : 'visibility'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              )}
 
-            <button type="submit" disabled={loading}
+              {/* Role selector (signup only) */}
+              {viewMode === 'signup' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={labelStyle}>Access Level</label>
+                  <select
+                    value={selectedRole}
+                    onChange={(e) => setSelectedRole(e.target.value as UserRole)}
+                    style={{
+                      ...inputStyle,
+                      cursor: 'pointer',
+                      appearance: 'none',
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23717782' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 18px center',
+                      paddingRight: '44px',
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = C.primaryContainer;
+                      e.currentTarget.style.boxShadow = `0 0 0 3px ${C.primaryContainer}20`;
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = C.outlineVariant;
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  >
+                    <option value="Production Supervisor">Production Supervisor</option>
+                    <option value="HR / Training Coordinator">HR / Training Coordinator</option>
+                    <option value="Plant Admin">Plant Admin</option>
+                    <option value="Plant Manager">Plant Manager</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '18px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: loading ? '#5a9fd4' : C.primaryContainer,
+                  color: C.onPrimaryContainer,
+                  fontSize: '16px',
+                  lineHeight: '24px',
+                  fontWeight: 700,
+                  fontFamily: 'Inter, sans-serif',
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.8 : 1,
+                  transition: 'all 0.15s',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  marginTop: '4px',
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading) e.currentTarget.style.background = C.primary;
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) e.currentTarget.style.background = C.primaryContainer;
+                }}
+                onMouseDown={(e) => {
+                  if (!loading) e.currentTarget.style.transform = 'scale(0.98)';
+                }}
+                onMouseUp={(e) => {
+                  if (!loading) e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                {loading ? (
+                  <span
+                    style={{
+                      width: '22px',
+                      height: '22px',
+                      border: '2.5px solid white',
+                      borderTopColor: 'transparent',
+                      borderRadius: '50%',
+                      display: 'inline-block',
+                      animation: 'spin 0.7s linear infinite',
+                    }}
+                  />
+                ) : (
+                  submitLabel()
+                )}
+              </button>
+            </form>
+
+            {/* ── Footer links ── */}
+            <div
               style={{
-                width: '100%', height: '44px', marginTop: '0.5rem',
-                background: loading ? '#0f5f56' : 'linear-gradient(to right, #14b8a6, #0f766e)',
-                border: 'none', borderRadius: '0.75rem', color: 'white',
-                fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, fontSize: '11px',
-                letterSpacing: '0.08em', textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
-                opacity: loading ? 0.7 : 1, transition: 'opacity 0.2s',
+                marginTop: '36px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '24px',
               }}
             >
-              {loading ? (
-                <span style={{ width: '16px', height: '16px', border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
-              ) : (
-                <>
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                    {viewMode === 'forgot' ? 'mail_outline' : viewMode === 'reset' ? 'sync' : 'lock_open'}
-                  </span>
-                  {viewMode === 'signup' ? 'Create Account'
-                    : viewMode === 'forgot' ? 'Send Reset Link'
-                    : viewMode === 'reset' ? 'Reset Password'
-                    : 'Authenticate'}
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Footer Toggle */}
-          <div style={{ padding: '1rem 1.5rem', backgroundColor: 'rgba(13,23,39,0.9)', borderTop: '1px solid rgba(30,41,59,0.6)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-            {viewMode === 'login' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '10.5px', fontFamily: 'Inter, sans-serif' }}>
-                <span style={{ color: '#94a3b8' }}>Need system access?</span>
-                <button type="button"
-                  onClick={() => { setViewMode('signup'); setError(null); setSuccessMsg(null); }}
-                  style={{ background: 'none', border: 'none', color: '#14b8a6', fontWeight: 700, fontSize: '10.5px', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
-                  Register Here
-                </button>
+              {/* Encryption badge */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: C.outline }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>lock</span>
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>Secured with 256-bit encryption</span>
               </div>
-            )}
-            {viewMode !== 'login' && (
-              <button type="button"
-                onClick={() => {
-                  setViewMode('login'); setError(null); setSuccessMsg(null);
-                  if (viewMode === 'reset') window.history.replaceState({}, document.title, window.location.pathname);
-                }}
-                style={{ background: 'none', border: 'none', color: '#14b8a6', fontWeight: 700, fontSize: '10.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: 0 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>arrow_back</span>
-                Back to Sign In
-              </button>
-            )}
+
+              {/* Toggle login ↔ signup */}
+              {viewMode === 'login' && (
+                <p style={{ fontSize: '16px', color: C.onSurfaceVariant, margin: 0 }}>
+                  Need system access?{' '}
+                  <button
+                    type="button"
+                    onClick={() => { setViewMode('signup'); setError(null); setSuccessMsg(null); }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: C.primaryContainer,
+                      fontWeight: 500,
+                      fontSize: '16px',
+                      cursor: 'pointer',
+                      padding: 0,
+                      textDecoration: 'underline',
+                      textUnderlineOffset: '4px',
+                      fontFamily: 'Inter, sans-serif',
+                      marginLeft: '4px',
+                      transition: 'color 0.15s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = C.primary)}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = C.primaryContainer)}
+                  >
+                    Register here
+                  </button>
+                </p>
+              )}
+
+              {viewMode !== 'login' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewMode('login');
+                    setError(null);
+                    setSuccessMsg(null);
+                    if (viewMode === 'reset')
+                      window.history.replaceState({}, document.title, window.location.pathname);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: C.primaryContainer,
+                    fontWeight: 600,
+                    fontSize: '16px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: 0,
+                    fontFamily: 'Inter, sans-serif',
+                    transition: 'color 0.15s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = C.primary)}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = C.primaryContainer)}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
+                  Back to Sign In
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
+
+      {/* ── keyframe animations ── */}
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        html, body, #root {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
+        }
+        @media (max-width: 768px) {
+          .login-left-panel {
+            display: none !important;
+          }
+          main {
+            flex-direction: column !important;
+          }
+          main > section:last-child {
+            width: 100% !important;
+            min-width: unset !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };
