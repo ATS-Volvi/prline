@@ -29,6 +29,8 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedShiftId, setSelectedShiftId] = useState('SHIFT-A');
   const [plannerTab, setPlannerTab] = useState<'allocation' | 'availability' | 'engine'>('allocation');
+  const [showFilterPopover, setShowFilterPopover] = useState(false);
+  const [showPublishToast, setShowPublishToast] = useState(false);
 
   // Animation & Modal states
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -139,6 +141,13 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
   const currentWS = workstations.find(w => w.id === assigningWSId);
   const eligibility = assigningWSId ? getEligibilityList(assigningWSId, selectedDate, selectedShiftId) : { eligible: [], ineligible: [] };
 
+  const lineAllocations = allocations.filter(
+    a => a.date === selectedDate && a.shiftId === selectedShiftId && a.lineId === currentLine.id
+  );
+  const allocatedCount = lineAllocations.length;
+  const unallocatedCount = Math.max(0, activeWS.length - allocatedCount);
+  const totalPoolCount = associates.filter(a => a.status === 'Active').length;
+
   return (
     <div className="flex-1 h-full flex flex-col overflow-hidden bg-background select-none animate-fade-in">
       {/* Top Tabs */}
@@ -168,224 +177,319 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
       ) : plannerTab === 'engine' ? (
         <AiPanelTab />
       ) : (
-      <div className="flex-1 flex overflow-hidden p-md gap-md">
+      <div className="flex-1 flex flex-col overflow-hidden bg-slate-50/20 select-text p-6 lg:p-8 relative animate-fade-in">
         
-        {/* Left main content canvas */}
-        <div className="flex-1 flex flex-col gap-md overflow-hidden">
+        {/* Publish Shift Toast Alert */}
+        {showPublishToast && (
+          <div className="fixed top-20 right-8 bg-[#091426] text-white border border-slate-700 p-4 rounded-xl shadow-premium-lg z-50 flex items-center gap-3 animate-slide-up text-xs font-bold animate-fade-in">
+            <span className="material-symbols-outlined text-emerald-500 font-bold">check_circle</span>
+            <span>Shift schedule published to live roster and active plant database!</span>
+          </div>
+        )}
+
+        {/* PAGE HEADER */}
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 mb-6 select-none relative">
+          <div>
+            <div className="flex items-center gap-1.5 text-secondary">
+              <span className="material-symbols-outlined text-sm font-bold">precision_manufacturing</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider font-mono">Line {currentLine.name}</span>
+            </div>
+            <h2 className="text-xl font-bold text-[#0F172A] mt-1">Shift Planning</h2>
+            <p className="text-[11px] text-secondary mt-0.5 font-mono">
+              {shifts.find(s => s.id === selectedShiftId)?.name} ({shifts.find(s => s.id === selectedShiftId)?.timings}) • {
+                new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })
+              }
+            </p>
+          </div>
           
-          {/* Controls Bar (Matching code.html mockup look with flex wrap to prevent overflow) */}
-          <section className="bg-surface p-sm border border-outline flex flex-wrap items-center justify-between gap-sm rounded-lg shadow-sm shrink-0">
-            <div className="flex flex-wrap items-center gap-md">
-              <div className="flex flex-col min-w-[120px]">
-                <label className="font-label-caps text-[10px] text-secondary mb-1 uppercase tracking-wider">Production Line</label>
-                <select
-                  value={selectedLineId}
-                  onChange={(e) => setSelectedLineId(e.target.value)}
-                  className="bg-surface-dim border-outline text-on-surface font-body-lg text-xs font-bold rounded-lg focus:ring-primary focus:border-primary py-1 pr-8"
-                >
-                  {productionLines.map(l => (
-                    <option key={l.id} value={l.id}>{l.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col min-w-[120px]">
-                <label className="font-label-caps text-[10px] text-secondary mb-1 uppercase tracking-wider">Active Shift</label>
-                <select
-                  value={selectedShiftId}
-                  onChange={(e) => setSelectedShiftId(e.target.value)}
-                  className="bg-surface-dim border-outline text-on-surface font-body-lg text-xs font-bold rounded-lg focus:ring-primary focus:border-primary py-1 pr-8"
-                >
-                  {shifts.map(shift => (
-                    <option key={shift.id} value={shift.id}>{shift.name} ({shift.timings})</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col min-w-[120px]">
-                <label className="font-label-caps text-[10px] text-secondary mb-1 uppercase tracking-wider">Production Date</label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="bg-surface-dim border-outline text-on-surface font-body-lg text-xs font-bold rounded-lg focus:ring-primary focus:border-primary py-1 px-2.5"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-xs shrink-0 mt-2 sm:mt-0">
+          <div className="flex items-center gap-2.5">
+            {/* Filter Trigger Button */}
+            <div className="relative">
               <button
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to clear all allocations for this line and shift?')) {
-                    clearLineAllocations(selectedDate, selectedShiftId, currentLine.id);
-                  }
-                }}
-                disabled={currentLine.status !== 'ACTIVE'}
-                className="bg-surface border border-rose-600 text-rose-600 px-3 py-2 font-label-caps text-[10px] font-bold rounded-lg hover:bg-rose-50 transition-colors active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap mr-1"
+                type="button"
+                onClick={() => setShowFilterPopover(!showFilterPopover)}
+                className={`py-2 px-4 border border-outline-variant rounded-lg font-bold text-[10px] uppercase font-mono tracking-wider flex items-center gap-1.5 transition-all shadow-premium-sm cursor-pointer ${
+                  showFilterPopover ? 'bg-slate-100 text-primary' : 'bg-white text-secondary hover:text-primary hover:bg-slate-55'
+                }`}
               >
-                Clear Allocations
+                <span className="material-symbols-outlined text-sm">filter_alt</span>
+                <span>Filter</span>
               </button>
-              <button
-                onClick={() => {
-                  alert('Shift allocation configuration saved and synced successfully!');
-                }}
-                disabled={currentLine.status !== 'ACTIVE'}
-                className="bg-surface border border-primary text-primary px-3 py-2 font-label-caps text-[10px] font-bold rounded-lg hover:bg-surface-container-low transition-colors active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap"
-              >
-                Save Configuration
-              </button>
-              <button
-                onClick={handleAutoAllocate}
-                disabled={isOptimizing || currentLine.status !== 'ACTIVE'}
-                className="bg-primary text-white px-3 py-2 font-label-caps text-[10px] font-bold rounded-lg hover:opacity-90 transition-all active:scale-95 shadow-md flex items-center gap-1 cursor-pointer disabled:opacity-50 whitespace-nowrap"
-              >
-                {isOptimizing && <span className="material-symbols-outlined text-xs animate-spin">sync</span>}
-                {isOptimizing ? 'Allocating...' : 'Auto-Allocate Staff'}
-              </button>
-            </div>
-          </section>
 
-          {/* Grid Layout (Matching Mockup look: bold stage numbers, outline-variant containers, and thick black left borders) */}
-          <section className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-            {activeWS.length === 0 ? (
-              <div className="bg-surface-container-lowest border border-dashed border-outline rounded-lg p-12 flex flex-col items-center justify-center text-secondary gap-3">
-                <span className="material-symbols-outlined text-3xl text-amber-500 animate-pulse">construction</span>
-                <span className="text-xs font-bold uppercase font-label-caps">No workstations configured for this production line.</span>
-                <button
-                  onClick={() => setActiveTab('master_data')}
-                  className="mt-2 py-1.5 px-4 bg-primary text-white font-bold rounded-lg text-[10px] font-label-caps tracking-wider uppercase hover:bg-slate-800 transition-all cursor-pointer shadow-premium-sm"
-                >
-                  Configure Workstations
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-md pb-md">
-                {activeWS.map((ws, index) => {
-                  const capacity = ws.maxStaffCount || 1;
-                  const assignedAllocations = allocations.filter(
-                    a => a.date === selectedDate && a.shiftId === selectedShiftId && a.workstationId === ws.id
-                  );
-                  const isHalted = currentLine.status === 'HALTED';
+              {/* Collapsible Filter Popover Card */}
+              {showFilterPopover && (
+                <div className="absolute right-0 top-11 mt-2 w-80 bg-white border border-outline-variant rounded-xl p-5 shadow-premium-lg z-50 flex flex-col gap-4 animate-slide-up select-none">
+                  <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                    <h4 className="font-bold text-[10px] font-mono tracking-wider text-[#0F172A] uppercase">Planner Context</h4>
+                    <button onClick={() => setShowFilterPopover(false)} className="text-secondary hover:text-primary font-bold text-xs">×</button>
+                  </div>
+                  
+                  <div className="flex flex-col gap-3 text-xs">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-bold text-secondary text-[9px] uppercase font-mono">Production Line</label>
+                      <select
+                        value={selectedLineId}
+                        onChange={(e) => setSelectedLineId(e.target.value)}
+                        className="py-1.5 px-3 border border-outline-variant rounded-lg bg-surface-container-lowest font-bold text-[10px] cursor-pointer"
+                      >
+                        {productionLines.map(l => (
+                          <option key={l.id} value={l.id}>{l.name}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                  // Semantic styling classes mirroring mockup
-                  let isCritical = !isHalted && assignedAllocations.length === 0;
-                  let isUnderstaffed = !isHalted && assignedAllocations.length > 0 && assignedAllocations.length < capacity;
-                  let isStaffed = !isHalted && assignedAllocations.length >= capacity;
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-bold text-secondary text-[9px] uppercase font-mono">Active Shift</label>
+                      <select
+                        value={selectedShiftId}
+                        onChange={(e) => setSelectedShiftId(e.target.value)}
+                        className="py-1.5 px-3 border border-outline-variant rounded-lg bg-surface-container-lowest font-bold text-[10px] cursor-pointer"
+                      >
+                        {shifts.map(shift => (
+                          <option key={shift.id} value={shift.id}>{shift.name} ({shift.timings})</option>
+                        ))}
+                      </select>
+                    </div>
 
-                  let borderClass = 'border-l-4 border-primary';
-                  let badgeText = 'ACTIVE';
-                  let badgeClass = 'bg-[#d5e3fd] text-[#57657b]';
-                  let staffColorClass = 'text-primary';
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-bold text-secondary text-[9px] uppercase font-mono">Production Date</label>
+                      <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="py-1.5 px-3 border border-outline-variant rounded-lg bg-surface-container-lowest font-bold text-[10px]"
+                      />
+                    </div>
+                  </div>
 
-                  if (isHalted) {
-                    borderClass = 'border-l-4 border-secondary';
-                    badgeText = 'HALTED';
-                    badgeClass = 'bg-surface-container-high text-secondary';
-                  } else if (isCritical) {
-                    borderClass = 'border-l-4 border-error';
-                    badgeText = 'CRITICAL';
-                    badgeClass = 'bg-error-container text-on-error-container';
-                    staffColorClass = 'text-error';
-                  } else if (isUnderstaffed) {
-                    borderClass = 'border-l-4 border-error';
-                    badgeText = 'UNDERSTAFFED';
-                    badgeClass = 'bg-error-container text-on-error-container';
-                    staffColorClass = 'text-error';
-                  } else if (isStaffed) {
-                    borderClass = 'border-l-4 border-primary';
-                    badgeText = 'ACTIVE';
-                    badgeClass = 'bg-primary-container text-on-primary-container';
-                  }
-
-                  const stageIndexStr = String(index + 1).padStart(2, '0');
-
-                  return (
-                    <div
-                      key={ws.id}
-                      className={`bg-surface border border-outline p-md flex flex-col gap-sm rounded-lg hover:shadow-md transition-shadow ${borderClass}`}
+                  <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowFilterPopover(false);
+                        handleAutoAllocate();
+                      }}
+                      disabled={isOptimizing || currentLine.status !== 'ACTIVE'}
+                      className="w-full py-2 bg-primary text-white text-[9px] font-bold rounded-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-1 cursor-pointer uppercase shadow-premium-sm disabled:opacity-50"
                     >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <span className="font-label-caps text-[9px] text-secondary block uppercase tracking-wider font-bold">Stage {stageIndexStr}</span>
-                          <h3 className="font-headline-md text-xs font-black text-on-surface mt-0.5 tracking-tight">{ws.name}</h3>
-                        </div>
-                        <span className={`px-2 py-0.5 text-[8px] font-label-caps font-bold rounded ${badgeClass}`}>{badgeText}</span>
+                      {isOptimizing && <span className="material-symbols-outlined text-xs animate-spin">sync</span>}
+                      <span>{isOptimizing ? 'Running Engine...' : 'Run AI Allocation'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowFilterPopover(false);
+                        if (window.confirm('Clear all assignments for this shift and date?')) {
+                          clearLineAllocations(selectedDate, selectedShiftId, currentLine.id);
+                        }
+                      }}
+                      disabled={currentLine.status !== 'ACTIVE'}
+                      className="w-full py-2 border border-rose-600 text-rose-600 bg-white text-[9px] font-bold rounded-lg hover:bg-rose-50 transition-all flex items-center justify-center gap-1 cursor-pointer uppercase"
+                    >
+                      Clear Allocations
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowPublishToast(true);
+                setTimeout(() => setShowPublishToast(false), 3000);
+              }}
+              className="py-2 px-4 bg-[#091426] text-white font-bold rounded-lg hover:bg-slate-900 transition-all flex items-center gap-1.5 shadow-premium-md cursor-pointer text-[10px] uppercase font-mono tracking-wider"
+            >
+              <span className="material-symbols-outlined text-sm font-bold">publish</span>
+              <span>Publish Shift</span>
+            </button>
+          </div>
+        </header>
+
+        {/* SUMMARY METRICS ROW */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6 select-none font-mono">
+          <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+            <div>
+              <p className="text-[10px] text-secondary font-bold uppercase tracking-wider block">Total Machines</p>
+              <h3 className="text-xl font-bold text-[#0F172A] mt-1">{String(activeWS.length).padStart(2, '0')}</h3>
+              <span className="text-[8px] text-secondary font-medium mt-1.5 inline-block">Active on {currentLine.name}</span>
+            </div>
+            <span className="material-symbols-outlined text-secondary text-[22px]">precision_manufacturing</span>
+          </div>
+
+          <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+            <div>
+              <p className="text-[10px] text-secondary font-bold uppercase tracking-wider block">Unallocated</p>
+              <h3 className="text-xl font-bold text-rose-600 mt-1">{String(unallocatedCount).padStart(2, '0')}</h3>
+              <span className="text-[8px] text-rose-600 font-medium mt-1.5 inline-block animate-pulse">Requires attention</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+              <span className="material-symbols-outlined text-rose-600 text-[20px] font-bold">warning</span>
+            </div>
+          </div>
+
+          <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+            <div>
+              <p className="text-[10px] text-secondary font-bold uppercase tracking-wider block">Efficiency</p>
+              <h3 className="text-xl font-bold text-[#0F172A] mt-1">94.2%</h3>
+              <span className="text-[8px] text-emerald-600 font-bold mt-1.5 inline-block">▲ +2.4% from last shift</span>
+            </div>
+            <span className="material-symbols-outlined text-secondary text-[22px]">trending_up</span>
+          </div>
+
+          <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
+            <div>
+              <p className="text-[10px] text-secondary font-bold uppercase tracking-wider block">Associates</p>
+              <h3 className="text-xl font-bold text-[#0F172A] mt-1">{allocatedCount}/{totalPoolCount}</h3>
+              <span className="text-[8px] text-secondary font-medium mt-1.5 inline-block">On-site today</span>
+            </div>
+            <span className="material-symbols-outlined text-secondary text-[22px]">group</span>
+          </div>
+        </div>
+
+        {/* WORKSTATION ALLOCATION LIST HEADING */}
+        <div className="flex justify-between items-center mb-4 shrink-0 select-none">
+          <h3 className="text-xs font-bold text-[#0f172a] uppercase font-mono tracking-wider">Workstation Allocation</h3>
+          <div className="flex items-center gap-3 text-[10px] font-bold font-mono text-secondary">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-rose-600"></span>
+              <span>Unallocated ({unallocatedCount})</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#14b8a6]"></span>
+              <span>Allocated ({allocatedCount})</span>
+            </span>
+          </div>
+        </div>
+
+        {/* WORKSTATIONS GRID CANVAS */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 pb-4">
+          {activeWS.length === 0 ? (
+            <div className="bg-white border border-outline-variant rounded-xl p-12 flex flex-col items-center justify-center text-center gap-3 shadow-premium-sm animate-fade-in">
+              <span className="material-symbols-outlined text-3xl text-amber-500 animate-pulse">construction</span>
+              <h4 className="font-bold text-xs text-[#0f172a] uppercase font-mono tracking-wider">No Workstations Configured</h4>
+              <p className="text-[10px] text-secondary mt-1">Configure machines and operations for this line in Master Data.</p>
+              <button
+                type="button"
+                onClick={() => setActiveTab('master_data')}
+                className="mt-2 py-1.5 px-4 bg-primary text-white font-bold rounded-lg text-[10px] font-mono tracking-wider uppercase hover:bg-slate-800 transition-all cursor-pointer shadow-premium-sm"
+              >
+                Configure Workstations
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+              {activeWS.map(ws => {
+                const assigned = lineAllocations.find(a => a.workstationId === ws.id);
+                const assoc = assigned ? associates.find(a => a.id === assigned.associateId) : null;
+                const isHalted = currentLine.status === 'HALTED';
+                const isCritical = !isHalted && !assoc;
+
+                // Profile picture matching Unsplash premium style
+                const getAvatarUrl = (name: string) => {
+                  if (name.includes("Marcus")) {
+                    return "https://lh3.googleusercontent.com/aida-public/AB6AXuDfI-JZyjb1pQwgoRAtI8MGXNX2TkA8IMEQGilu9TafNco6H0681KiHavWtbDCOinqxPmMVNW7cH2PGWBix5r5qN2C9dtJepLRZ5jQe-w5EM4EAd4HpvXjXE2ZjUfZ8L0JYCnIpFNelIEATQDAcZpx-hcSk2br-2DUV4G-gnc11DusyAddAz185_iYFO8pJdibyEO4J1XRizRZ5LQl04mYp3jucUv_Ldv1I8ajvM3NZ3OargpKyQvu6reWcSh6mOS_F6lv4y82etqE";
+                  }
+                  if (name.includes("Sarah")) {
+                    return "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80";
+                  }
+                  if (name.includes("David") || name.includes("Chen")) {
+                    return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80";
+                  }
+                  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=091426&color=fff`;
+                };
+
+                return (
+                  <div
+                    key={ws.id}
+                    className={`bg-white border rounded-xl overflow-hidden shadow-premium-sm transition-all hover:shadow-premium-md flex flex-col justify-between ${
+                      isCritical ? 'border-rose-150' : 'border-outline-variant hover:border-slate-350'
+                    }`}
+                  >
+                    {/* Header */}
+                    <div className={`p-4 border-b border-outline-variant flex justify-between items-start ${
+                      isCritical ? 'bg-rose-50/20' : 'bg-slate-50/40'
+                    }`}>
+                      <div>
+                        <h4 className="font-bold text-xs text-[#0F172A] tracking-tight">{ws.name}</h4>
+                        <p className="text-[9px] font-mono text-secondary mt-0.5 uppercase tracking-wider">Asset ID: {ws.id}</p>
                       </div>
-
-                      <div className="flex items-center justify-between">
-                        <span className="font-body-sm text-xs text-secondary font-medium">Staffing:</span>
-                        <span className={`font-data-display text-base font-bold ${staffColorClass}`}>{assignedAllocations.length}/{capacity}</span>
-                      </div>
-
-                      {/* Staffing progress track */}
-                      <div className="h-2 w-full bg-surface-dim rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${isCritical || isUnderstaffed ? 'bg-error' : 'bg-primary'}`}
-                          style={{ width: `${Math.min(100, (assignedAllocations.length / capacity) * 100)}%` }}
-                        ></div>
-                      </div>
-
-                      <div className="text-on-surface-variant pt-1">
-                        <p className="font-label-caps text-[8px] text-secondary uppercase font-bold tracking-wider mb-1">Required Skills</p>
-                        <div className="flex flex-wrap gap-1">
-                          <span className="text-[9px] border border-outline px-2 py-0.2 rounded-full font-mono font-bold">
-                            {ws.requiredSkillId} (Level &gt;= {ws.minSkillLevel})
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Display assigned workers inline */}
-                      {assignedAllocations.length > 0 && (
-                        <div className="mt-2 space-y-1.5 border-t border-outline-variant pt-2">
-                          {assignedAllocations.map(alloc => {
-                            const assocDetails = associates.find(a => a.id === alloc.associateId);
-                            if (!assocDetails) return null;
-                            const consecutiveDays = getConsecutiveWorkDays(assocDetails.id, selectedDate);
-                            return (
-                              <div key={alloc.id} className="flex justify-between items-center gap-2 p-1 bg-surface-dim rounded border border-outline-variant">
-                                <span className="text-[10px] font-bold text-on-surface truncate">{assocDetails.name}</span>
-                                <div className="flex items-center gap-1">
-                                  {consecutiveDays >= 5 && (
-                                    <span className="bg-amber-500 text-white text-[8px] px-1 rounded font-bold font-mono">OT</span>
-                                  )}
-                                  {(role === 'Production Supervisor' || role === 'Plant Admin') && (
-                                    <button
-                                      onClick={() => handleDeallocate(ws.id, assocDetails.id)}
-                                      className="text-rose-600 hover:text-rose-700 font-bold px-1 text-xs cursor-pointer"
-                                    >
-                                      ×
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {/* Primary card assign button */}
-                      {(role === 'Production Supervisor' || role === 'Plant Admin') ? (
-                        <button
-                          onClick={() => handleOpenAssignModal(ws.id)}
-                          className={`mt-auto w-full py-1.5 font-label-caps text-[9px] font-bold rounded transition-colors cursor-pointer border ${
-                            isCritical || isUnderstaffed
-                              ? 'bg-error border-error text-on-error hover:opacity-90'
-                              : 'border-primary text-primary hover:bg-[#d5e3fd]/20'
-                          }`}
-                        >
-                          {isCritical || isUnderstaffed ? 'PRIORITY ASSIGN' : 'ASSIGN'}
-                        </button>
+                      {isCritical ? (
+                        <span className="material-symbols-outlined text-rose-600 text-[18px] font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>error</span>
                       ) : (
-                        <span className="text-[10px] text-secondary text-center italic mt-auto">Read-only view</span>
+                        <span className="material-symbols-outlined text-emerald-600 text-[18px] font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                       )}
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
+
+                    {/* Body */}
+                    <div className="p-5 flex flex-col items-center justify-center gap-2 flex-grow min-h-[90px]">
+                      <span className="text-[8px] font-bold text-secondary uppercase font-mono tracking-widest select-none font-label-caps">Required Skill</span>
+                      <span className="bg-slate-100 border border-slate-200 text-secondary font-mono text-[9px] font-bold px-3 py-1 rounded tracking-wider uppercase select-none">
+                        Required Skill: {ws.minSkillLevel}
+                      </span>
+                    </div>
+
+                    {/* Footer */}
+                    {isCritical ? (
+                      <div className="bg-rose-700 text-white px-4 py-3 flex justify-between items-center select-none shrink-0 border-t border-rose-100">
+                        <span className="text-[9px] font-bold uppercase tracking-wider font-mono flex items-center gap-1">
+                          <span className="material-symbols-outlined text-xs">error</span>
+                          <span>UNALLOCATED</span>
+                        </span>
+                        {(role === 'Production Supervisor' || role === 'Plant Admin') ? (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenAssignModal(ws.id)}
+                            className="px-3 py-1 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded text-[8px] font-bold flex items-center gap-1 transition-all uppercase tracking-wider cursor-pointer"
+                          >
+                            <span>Assign</span>
+                          </button>
+                        ) : (
+                          <span className="text-[8px] italic opacity-75">Read-Only</span>
+                        )}
+                      </div>
+                    ) : (
+                      <div 
+                        onClick={() => {
+                          if (assigned && (role === 'Production Supervisor' || role === 'Plant Admin')) {
+                            if (window.confirm(`Deallocate ${assoc?.name} from ${ws.name}?`)) {
+                              handleDeallocate(ws.id, assoc?.id);
+                            }
+                          }
+                        }}
+                        className="bg-[#0B2C1A] text-white px-4 py-3 flex justify-between items-center select-none shrink-0 border-t border-emerald-900/40 cursor-pointer group hover:bg-rose-800 transition-colors"
+                      >
+                        <div className="flex items-center gap-2 min-w-0 group-hover:hidden">
+                          <img
+                            alt={assoc?.name}
+                            className="w-5 h-5 rounded-full object-cover border border-emerald-500/20 shrink-0 shadow-premium-sm"
+                            src={getAvatarUrl(assoc?.name || '')}
+                          />
+                          <div className="flex flex-col min-w-0 leading-tight">
+                            <span className="text-[7px] text-emerald-400 font-bold uppercase font-mono tracking-widest leading-none">ALLOCATED TO</span>
+                            <span className="text-[10px] font-bold text-white truncate max-w-[110px] mt-0.5">{assoc?.name}</span>
+                          </div>
+                        </div>
+
+                        <span className="text-[8px] font-bold text-emerald-400 uppercase font-mono tracking-widest flex items-center gap-1 shrink-0 group-hover:hidden">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <span>Active</span>
+                        </span>
+
+                        {/* Hover Deallocate Action text */}
+                        <div className="hidden group-hover:flex items-center justify-center gap-1.5 w-full text-center text-[9px] font-bold uppercase tracking-wider text-white">
+                          <span className="material-symbols-outlined text-xs">person_remove</span>
+                          <span>Deallocate Operator</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
       </div>
