@@ -1554,7 +1554,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
           <span className="text-secondary font-semibold font-mono tracking-wide">Last synced: 10m ago</span>
         </section>
 
-        <div className="bg-white border border-outline-variant rounded-xl shadow-premium-sm flex-grow overflow-auto max-h-[500px] relative custom-scrollbar">
+        <div className="bg-white border border-outline-variant rounded-xl shadow-premium-sm overflow-x-auto min-h-[450px] relative custom-scrollbar">
           <table className="w-full text-left text-xs border-collapse">
             <thead className="sticky top-0 z-20 bg-surface-container-low shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
               <tr className="border-b border-outline-variant text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps select-none">
