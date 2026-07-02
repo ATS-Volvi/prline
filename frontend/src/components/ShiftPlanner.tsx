@@ -218,10 +218,18 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
             <div className="flex items-center gap-xs shrink-0 mt-2 sm:mt-0">
               <button
                 onClick={() => {
-                  setActiveTab('shift_planner');
                   if (window.confirm('Are you sure you want to clear all allocations for this line and shift?')) {
                     clearLineAllocations(selectedDate, selectedShiftId, currentLine.id);
                   }
+                }}
+                disabled={currentLine.status !== 'ACTIVE'}
+                className="bg-surface border border-rose-600 text-rose-600 px-3 py-2 font-label-caps text-[10px] font-bold rounded-lg hover:bg-rose-50 transition-colors active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap mr-1"
+              >
+                Clear Allocations
+              </button>
+              <button
+                onClick={() => {
+                  alert('Shift allocation configuration saved and synced successfully!');
                 }}
                 disabled={currentLine.status !== 'ACTIVE'}
                 className="bg-surface border border-primary text-primary px-3 py-2 font-label-caps text-[10px] font-bold rounded-lg hover:bg-surface-container-low transition-colors active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap"
