@@ -830,7 +830,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
 
   // Unified Line and Shift Configuration states
   const [expandedLineId, setExpandedLineId] = useState<string | null>('LINE-01');
-  const [selectedLineFilter, setSelectedLineFilter] = useState('ALL');
+  const [selectedLineFilter, setSelectedLineFilter] = useState('LINE-01');
   const [showConflictAlert, setShowConflictAlert] = useState(true);
   const [activeDaysShiftA, setActiveDaysShiftA] = useState<string[]>(['M', 'T', 'W', 'T', 'F']);
   const [activeDaysShiftB, setActiveDaysShiftB] = useState<string[]>(['M', 'T', 'W', 'T', 'F']);
@@ -894,13 +894,10 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
               value={selectedLineFilter}
               onChange={(e) => {
                 setSelectedLineFilter(e.target.value);
-                if (e.target.value !== 'ALL') {
-                  setExpandedLineId(e.target.value);
-                }
+                setExpandedLineId(e.target.value);
               }}
               className="py-1.5 px-3 border border-outline-variant rounded-lg bg-white font-bold text-[10px] cursor-pointer shadow-premium-sm"
             >
-              <option value="ALL">All Production Lines</option>
               {productionLines.map(l => (
                 <option key={l.id} value={l.id}>{l.name}</option>
               ))}
@@ -943,7 +940,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
               {/* Accordion List */}
               <div className="flex flex-col gap-3">
                 {productionLines
-                  .filter(l => selectedLineFilter === 'ALL' || l.id === selectedLineFilter)
+                  .filter(l => l.id === selectedLineFilter)
                   .map(line => {
                   const isExpanded = expandedLineId === line.id;
                   const lineWS = workstations.filter(w => w.lineId === line.id);
@@ -994,31 +991,6 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
               </div>
             </div>
 
-            {/* Asset Location Context Card */}
-            <div className="bg-white border border-outline-variant rounded-xl p-5 shadow-premium-sm">
-              <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider font-mono mb-4 flex items-center gap-1.5 select-none">
-                <span className="material-symbols-outlined text-primary text-[18px]">location_on</span>
-                Asset Location Context
-              </h3>
-              
-              <div className="relative rounded-xl overflow-hidden border border-outline-variant aspect-[16/10] bg-slate-900 flex items-center justify-center">
-                <img 
-                  src="/live_floor_tracking.png" 
-                  alt="Live Floor Tracking Map" 
-                  className="w-full h-full object-cover opacity-85"
-                />
-                
-                {/* Button overlay */}
-                <button
-                  type="button"
-                  onClick={() => alert("Live floor tracking system launched!")}
-                  className="absolute bg-[#091426]/90 border border-slate-700 text-white font-bold px-4 py-2 rounded-lg text-[10px] uppercase font-mono tracking-wider hover:bg-slate-900 transition-all flex items-center gap-2 cursor-pointer shadow-premium-lg"
-                >
-                  <span className="material-symbols-outlined text-[16px] text-emerald-400 font-bold">radar</span>
-                  <span>Live Floor Tracking</span>
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* Right Column: Shift Definitions & Conflict Alerts (xl:col-span-7) */}
