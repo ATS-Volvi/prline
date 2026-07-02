@@ -68,7 +68,7 @@ function MainAppContent() {
           />
         );
       case 'lines':
-        return <MasterData initialSubTab="lines" setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
+        return <MasterData initialSubTab="lines" selectedLineId={selectedLineId} setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
       case 'associates':
         return <MasterData initialSubTab="associates" setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
       case 'workstations':
@@ -76,7 +76,7 @@ function MainAppContent() {
       case 'skills':
         return <MasterData initialSubTab="skills" setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
       case 'shifts':
-        return <MasterData initialSubTab="shifts" setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
+        return <MasterData initialSubTab="shifts" selectedLineId={selectedLineId} setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
       case 'analytics':
         return <Analytics />;
       case 'ai_reports':

@@ -17,359 +17,217 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
   const { productionLines, workstations, allocations, associates, associateSkills, leaveRecords, role, user } = useApp();
 
   const [dashboardSubTab, setDashboardSubTab] = useState<'overview' | 'assets' | 'schedules'>('overview');
+  const [assetsFilterTab, setAssetsFilterTab] = useState<'ALL' | 'UNALLOCATED'>('ALL');
   
-  // Asset filter state
-  const [filterLine, setFilterLine] = useState('All Lines');
-  const [filterStatus, setFilterStatus] = useState('All');
 
-  const [assetsList, setAssetsList] = useState([
-    { id: 'CNC-01', name: 'Milling Station', status: 'ACTIVE', load: 94, loadMap: [94, 88, 75, 92, 85, 90, 94, 91, 95, 94], line: 'Assembly Line A' },
-    { id: 'CNC-02', name: 'Turning Center', status: 'IDLE', load: 12, loadMap: [10, 8, 12, 15, 12, 8, 10, 11, 14, 12], line: 'Assembly Line A' },
-    { id: 'ARM-09', name: 'Pick & Place Bot', status: 'MAINTENANCE', load: 0, loadMap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], line: 'Assembly Line A' },
-    { id: 'CNC-04', name: 'Precision Grinder', status: 'CRITICAL', load: 68, loadMap: [85, 90, 88, 92, 94, 91, 68, 68, 68, 68], line: 'Assembly Line A', issue: 'High Vibration' },
-    { id: 'PR-01', name: '3D Printer Array', status: 'ACTIVE', load: 88, loadMap: [80, 82, 85, 88, 87, 85, 88, 86, 88, 88], line: 'Assembly Line A' },
-    { id: 'WLD-02', name: 'Laser Welder', status: 'ACTIVE', load: 75, loadMap: [70, 72, 75, 74, 76, 73, 75, 74, 75, 75], line: 'Assembly Line A' },
-  ]);
-
-  const [criticalAlert, setCriticalAlert] = useState<{ id: string; assetId: string; issue: string; desc: string; time: string } | null>({
-    id: 'ALERT-01',
-    assetId: 'CNC-04',
-    issue: 'High Vibration',
-    desc: 'Spindle vibration exceeded threshold (12.4mm/s). Immediate inspection required.',
-    time: '2m ago'
-  });
-
-  const [timelineActivities, setTimelineActivities] = useState([
-    { id: 'ACT-01', title: 'ARM-09 Maintenance Start', desc: 'Routine hydraulic fluid replacement initiated by User: J. Doe.', time: '10:35 AM', color: 'bg-emerald-500' },
-    { id: 'ACT-02', title: 'CNC-02 Status Change', desc: 'System transitioned from Active to Idle. Queue cleared.', time: '10:12 AM', color: 'bg-[#64748B]' },
-    { id: 'ACT-03', title: 'PR-01 Batch Completed', desc: 'Batch ID #9822 successfully completed (48/48 parts).', time: '09:45 AM', color: 'bg-emerald-500' },
-    { id: 'ACT-04', title: 'System Login', desc: 'Administrator session started from Terminal-12.', time: '09:00 AM', color: 'bg-[#64748B]' },
-  ]);
 
   const renderAssetsSubTab = () => {
-    const activeAssets = assetsList.filter(a => {
-      const lineMatch = filterLine === 'All Lines' || a.line === filterLine;
-      const statusMatch = filterStatus === 'All' || a.status === filterStatus;
-      return lineMatch && statusMatch;
+    // Determine today's allocations
+    const todayAllocations = allocations.filter(a => a.date === todayDateStr);
+    
+    // Build list of assets (workstations)
+    const assets = workstations.map(ws => {
+      // Find allocation for today
+      const alloc = todayAllocations.find(a => a.workstationId === ws.id);
+      const assoc = alloc ? associates.find(a => a.id === alloc.associateId) : null;
+      
+      return {
+        id: ws.id,
+        name: ws.name,
+        requiredSkillId: ws.requiredSkillId,
+        minSkillLevel: ws.minSkillLevel,
+        lineId: ws.lineId,
+        isAllocated: !!assoc,
+        associate: assoc
+      };
     });
 
-    const totalUptime = "96.4%";
-    const underMaintenanceCount = assetsList.filter(a => a.status === 'MAINTENANCE').length;
-    
-    const activeUtilization = Math.round(
-      assetsList.filter(a => a.status === 'ACTIVE').reduce((sum, curr) => sum + curr.load, 0) / 
-      assetsList.filter(a => a.status === 'ACTIVE').length
-    ) || 82;
+    // Count statistics
+    const totalAssets = assets.length;
+    const allocatedCount = assets.filter(a => a.isAllocated).length;
+    const criticalGapsCount = totalAssets - allocatedCount;
+    const dynamicCapacity = Math.min(100, Math.round((allocatedCount / totalAssets) * 100));
 
-    const criticalCount = criticalAlert ? 1 : 0;
+    // Filter assets list based on filter tab selection
+    const filteredAssets = assets.filter(a => {
+      if (assetsFilterTab === 'UNALLOCATED') {
+        return !a.isAllocated;
+      }
+      return true;
+    });
 
-    const handleDispatchTech = (assetId: string) => {
-      setAssetsList(prev => prev.map(a => {
-        if (a.id === assetId) {
-          return { ...a, status: 'MAINTENANCE', load: 0, loadMap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };
-        }
-        return a;
-      }));
-      setCriticalAlert(null);
-      
-      const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-      setTimelineActivities(prev => [
-        {
-          id: `ACT-${Date.now()}`,
-          title: `${assetId} Technician Dispatched`,
-          desc: `Maintenance team dispatched to resolve active warning alert. Status set to Maintenance.`,
-          time: timeStr,
-          color: 'bg-blue-500'
-        },
-        ...prev
-      ]);
-    };
-
-    const handleAcknowledge = (assetId: string) => {
-      setAssetsList(prev => prev.map(a => {
-        if (a.id === assetId) {
-          return { ...a, status: 'ACTIVE' };
-        }
-        return a;
-      }));
-      setCriticalAlert(null);
-      
-      const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-      setTimelineActivities(prev => [
-        {
-          id: `ACT-${Date.now()}`,
-          title: `${assetId} Alert Acknowledged`,
-          desc: `Critical vibration warning acknowledged by Supervisor. Status set back to Active.`,
-          time: timeStr,
-          color: 'bg-emerald-500'
-        },
-        ...prev
-      ]);
+    // Get initials for profile bubble
+    const getInitials = (name: string) => {
+      const parts = name.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      }
+      return name.slice(0, 2).toUpperCase();
     };
 
     return (
-      <div className="flex-grow flex flex-col lg:flex-row gap-6 p-margin-desktop overflow-y-auto custom-scrollbar select-text bg-surface-container-low/40">
-        <div className="flex-1 flex flex-col gap-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-outline-variant rounded-xl p-5 shadow-premium-sm">
-            <div>
-              <h2 className="text-lg font-bold text-primary">Asset Health & Utilization</h2>
-              <p className="text-[11px] text-secondary mt-0.5">Operational status monitoring for all connected hardware.</p>
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-3 select-none">
-              <div className="flex flex-col gap-1">
-                <label className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Filter By Line</label>
-                <select
-                  value={filterLine}
-                  onChange={(e) => setFilterLine(e.target.value)}
-                  className="py-1.5 px-3 border border-outline-variant rounded-lg bg-surface-container-lowest font-bold text-[10px] cursor-pointer shadow-premium-sm"
-                >
-                  <option value="All Lines">All Lines</option>
-                  <option value="Assembly Line A">Assembly Line A</option>
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Status</label>
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="py-1.5 px-3 border border-outline-variant rounded-lg bg-surface-container-lowest font-bold text-[10px] cursor-pointer shadow-premium-sm"
-                >
-                  <option value="All">All Statuses</option>
-                  <option value="ACTIVE">Active</option>
-                  <option value="IDLE">Idle</option>
-                  <option value="MAINTENANCE">Maintenance</option>
-                  <option value="CRITICAL">Critical</option>
-                </select>
-              </div>
-
-              <button
-                type="button"
-                className="mt-4 py-1.5 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-900 flex items-center gap-1.5 shadow-premium-md cursor-pointer transition-all uppercase tracking-wider font-mono"
-              >
-                <span className="material-symbols-outlined text-xs">filter_alt</span> Filter
-              </button>
-            </div>
+      <div className="flex-grow flex flex-col h-full overflow-hidden select-text bg-slate-50/40">
+        {/* TOP CONTROLS & METRICS */}
+        <div className="px-6 py-5 bg-white border-b border-outline-variant flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 shadow-premium-sm">
+          {/* Filters (Left) */}
+          <div className="flex items-center gap-2 select-none">
+            <button
+              type="button"
+              onClick={() => setAssetsFilterTab('ALL')}
+              className={`py-1.5 px-4 font-bold text-[10px] font-mono tracking-wider rounded-lg border transition-all uppercase cursor-pointer ${
+                assetsFilterTab === 'ALL'
+                  ? 'bg-[#091426] text-white border-[#091426] shadow-premium-md'
+                  : 'bg-white text-secondary border-outline-variant hover:bg-slate-50 hover:text-primary shadow-premium-sm'
+              }`}
+            >
+              All Machines
+            </button>
+            <button
+              type="button"
+              onClick={() => setAssetsFilterTab('UNALLOCATED')}
+              className={`py-1.5 px-4 font-bold text-[10px] font-mono tracking-wider rounded-lg border transition-all uppercase cursor-pointer ${
+                assetsFilterTab === 'UNALLOCATED'
+                  ? 'bg-[#091426] text-white border-[#091426] shadow-premium-md'
+                  : 'bg-white text-secondary border-outline-variant hover:bg-slate-50 hover:text-primary shadow-premium-sm'
+              }`}
+            >
+              Unallocated ({criticalGapsCount})
+            </button>
+            <button
+              type="button"
+              onClick={() => alert("Advanced filters: filter by line, shift, or workstation group.")}
+              className="p-1.5 border border-outline-variant rounded-lg bg-white hover:bg-slate-55 transition-all shadow-premium-sm cursor-pointer flex items-center justify-center text-secondary hover:text-primary"
+            >
+              <span className="material-symbols-outlined text-sm font-bold">filter_list</span>
+            </button>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
-              <div>
-                <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Total Uptime</p>
-                <h3 className="text-xl font-bold text-[#0F172A] mt-1">{totalUptime}</h3>
-                <span className="text-[9px] font-bold text-emerald-600 mt-1 inline-block">+1.2%</span>
-              </div>
-              <span className="material-symbols-outlined text-emerald-500 text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+          {/* Metrics summary (Right) */}
+          <div className="flex items-center gap-6 select-none font-mono">
+            <div className="text-right">
+              <span className="text-[8px] font-bold text-secondary uppercase tracking-widest block leading-none">Total Assets</span>
+              <span className="text-sm font-bold text-[#0F172A] mt-1 block">{String(totalAssets).padStart(2, '0')}</span>
             </div>
-
-            <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
-              <div>
-                <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Under Maintenance</p>
-                <h3 className="text-xl font-bold text-[#0F172A] mt-1">{underMaintenanceCount} units</h3>
-                <span className="text-[9px] text-secondary font-medium mt-1 inline-block">Scheduled</span>
-              </div>
-              <span className="material-symbols-outlined text-secondary text-lg">build</span>
+            <div className="w-[1px] h-6 bg-outline-variant" />
+            <div className="text-right">
+              <span className="text-[8px] font-bold text-secondary uppercase tracking-widest block leading-none">Line Capacity</span>
+              <span className="text-sm font-bold text-emerald-600 mt-1 block">{dynamicCapacity}%</span>
             </div>
-
-            <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
-              <div>
-                <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Avg. Utilization</p>
-                <h3 className="text-xl font-bold text-[#0F172A] mt-1">{activeUtilization}%</h3>
-                <span className="text-[9px] text-secondary font-medium mt-1 inline-block">Target 85%</span>
-              </div>
-              <span className="material-symbols-outlined text-secondary text-lg">speed</span>
-            </div>
-
-            <div className="bg-white border-l-4 border-l-rose-500 border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
-              <div>
-                <p className="text-[10px] text-secondary font-bold uppercase font-mono tracking-wider">Critical Alerts</p>
-                <h3 className="text-xl font-bold text-[#0F172A] mt-1">{criticalCount}</h3>
-                <span className={`text-[9px] font-bold mt-1 inline-block ${criticalCount > 0 ? 'text-rose-600 animate-pulse' : 'text-secondary'}`}>
-                  {criticalCount > 0 ? 'Action Required' : 'No Action Required'}
-                </span>
-              </div>
-              <span className={`material-symbols-outlined text-lg ${criticalCount > 0 ? 'text-rose-500 animate-pulse' : 'text-secondary'}`} style={{ fontVariationSettings: criticalCount > 0 ? "'FILL' 1" : "" }}>error</span>
+            <div className="w-[1px] h-6 bg-outline-variant" />
+            <div className="text-right">
+              <span className="text-[8px] font-bold text-secondary uppercase tracking-widest block leading-none">Critical Gaps</span>
+              <span className="text-sm font-bold text-rose-600 mt-1 block">{String(criticalGapsCount).padStart(2, '0')}</span>
             </div>
           </div>
+        </div>
 
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider font-mono">Assembly Line A</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {activeAssets.map(asset => {
-                const isCritical = asset.status === 'CRITICAL';
+        {/* CARDS GRID AREA */}
+        <div className="flex-1 overflow-y-auto p-6 lg:p-8 custom-scrollbar">
+          {filteredAssets.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-white border border-outline-variant rounded-xl shadow-premium-sm">
+              <span className="material-symbols-outlined text-4xl text-secondary mb-2">precision_manufacturing</span>
+              <h3 className="font-bold text-xs text-[#0F172A] uppercase font-mono tracking-wider">No Assets Found</h3>
+              <p className="text-[10px] text-secondary mt-1">All workstations are currently allocated, or no active filters match.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+              {filteredAssets.map(asset => {
+                const badgeText = `${asset.minSkillLevel} Level`;
                 
-                let cardBorder = "border-outline-variant hover:border-primary";
-                let headerBg = "bg-surface-container-lowest";
-                
-                if (isCritical) {
-                  cardBorder = "border-rose-350 bg-rose-50/20";
-                  headerBg = "bg-rose-50 border-b border-rose-100";
-                }
-
                 return (
-                  <div key={asset.id} className={`bg-white border rounded-xl overflow-hidden shadow-premium-sm transition-all flex flex-col ${cardBorder}`}>
-                    <div className={`px-4 py-3 border-b flex justify-between items-center ${headerBg} shrink-0`}>
+                  <div 
+                    key={asset.id} 
+                    className={`bg-white border border-outline-variant rounded-xl overflow-hidden shadow-premium-sm hover:shadow-premium-md hover:border-slate-350 transition-all flex flex-col justify-between ${
+                      !asset.isAllocated ? 'border-rose-150' : ''
+                    }`}
+                  >
+                    {/* Card Header */}
+                    <div className={`p-4 border-b border-outline-variant flex justify-between items-start ${
+                      !asset.isAllocated ? 'bg-rose-50/20' : 'bg-slate-50/40'
+                    }`}>
                       <div>
-                        <h4 className="font-bold text-xs text-[#0F172A]">{asset.id}</h4>
-                        <p className="text-[9px] text-secondary font-medium mt-0.5">{asset.name}</p>
+                        <h4 className="font-bold text-xs text-[#0F172A] tracking-tight">{asset.name}</h4>
+                        <p className="text-[9px] font-mono text-secondary mt-0.5 uppercase tracking-wider">Asset ID: {asset.id}</p>
                       </div>
-                      
-                      <span className={`px-2 py-0.5 rounded text-[8px] font-bold font-mono tracking-wider border shadow-premium-sm ${
-                        asset.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                        asset.status === 'IDLE' ? 'bg-slate-50 text-slate-600 border-slate-200' :
-                        asset.status === 'MAINTENANCE' ? 'bg-blue-50 text-blue-700 border-blue-100' :
-                        'bg-rose-50 text-rose-700 border-rose-100 animate-pulse'
-                      }`}>
-                        {asset.status}
+                      {!asset.isAllocated ? (
+                        <span className="material-symbols-outlined text-rose-600 text-[18px] font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>error</span>
+                      ) : (
+                        <span className="material-symbols-outlined text-emerald-600 text-[18px] font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                      )}
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="p-5 flex flex-col items-center justify-center gap-2 flex-grow min-h-[90px]">
+                      <span className="text-[8px] font-bold text-secondary uppercase font-mono tracking-widest select-none font-label-caps">Required Skill</span>
+                      <span className="bg-slate-900 text-white font-mono text-[9px] font-bold px-3 py-1 rounded tracking-wider uppercase select-none">
+                        {badgeText}
                       </span>
                     </div>
 
-                    <div className="p-4 flex items-center justify-between gap-6 flex-grow">
-                      <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
-                        <svg className="w-12 h-12 transform -rotate-90">
-                          <circle cx="24" cy="24" r="18" className="stroke-slate-100" strokeWidth="3" fill="transparent" />
-                          <circle 
-                            cx="24" 
-                            cy="24" 
-                            r="18" 
-                            className={
-                              asset.status === 'CRITICAL' ? 'stroke-rose-500' :
-                              asset.status === 'MAINTENANCE' ? 'stroke-blue-400' :
-                              asset.status === 'IDLE' ? 'stroke-slate-300' : 'stroke-primary'
-                            } 
-                            strokeWidth="3.5" 
-                            fill="transparent" 
-                            strokeDasharray={2 * Math.PI * 18}
-                            strokeDashoffset={2 * Math.PI * 18 * (1 - asset.load / 100)}
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                        <span className="absolute text-[10px] font-bold text-[#0F172A]">{asset.load}%</span>
+                    {/* Card Footer */}
+                    {!asset.isAllocated ? (
+                      <div className="bg-rose-700 text-white px-4 py-3 flex justify-between items-center select-none shrink-0">
+                        <span className="text-[9px] font-bold uppercase tracking-wider font-mono">UNALLOCATED</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedLineId(asset.lineId);
+                            setActiveTab('shift_planner');
+                          }}
+                          className="px-2.5 py-1 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded text-[8px] font-bold flex items-center gap-1 transition-all uppercase tracking-wider cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-[12px] font-bold">person_add</span>
+                          <span>Assign</span>
+                        </button>
                       </div>
-
-                      <div className="flex-1 flex flex-col items-end">
-                        {isCritical ? (
-                          <div className="text-right mb-1">
-                            <span className="text-[8px] font-bold text-rose-600 uppercase font-mono tracking-widest animate-pulse">HIGH VIBRATION DETECTED</span>
+                    ) : (
+                      <div className="bg-[#0B2C1A] text-white px-4 py-3 flex justify-between items-center select-none shrink-0">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-5 h-5 rounded-full bg-emerald-600/30 text-emerald-400 flex items-center justify-center font-bold text-[9px] font-mono border border-emerald-500/20 shrink-0">
+                            {getInitials(asset.associate?.name || '')}
                           </div>
-                        ) : (
-                          <span className="text-[8px] font-bold text-secondary uppercase font-mono tracking-wider mb-1">24H Load Map</span>
-                        )}
-
-                        <div className="flex items-end gap-[3px] h-8 mt-1 select-none">
-                          {asset.loadMap.map((height, barIdx) => {
-                            const scaledHeight = (height / 100) * 32;
-                            let barBg = "bg-[#091426]";
-                            if (asset.status === 'CRITICAL') {
-                              barBg = "bg-rose-500";
-                            } else if (asset.status === 'MAINTENANCE') {
-                              barBg = "bg-blue-200/40";
-                            } else if (asset.status === 'IDLE') {
-                              barBg = "bg-[#091426]/10";
-                            }
-                            return (
-                              <div 
-                                key={barIdx} 
-                                style={{ height: `${scaledHeight}px` }} 
-                                className={`w-[6px] rounded-t-sm transition-all duration-300 ${barBg}`}
-                              />
-                            );
-                          })}
+                          <div className="flex flex-col min-w-0 leading-tight">
+                            <span className="text-[7px] text-emerald-400 font-bold uppercase font-mono tracking-widest leading-none">ALLOCATED TO</span>
+                            <span className="text-[10px] font-bold text-white truncate max-w-[110px] mt-0.5">{asset.associate?.name}</span>
+                          </div>
                         </div>
+                        <span className="text-[8px] font-bold text-emerald-400 uppercase font-mono tracking-widest flex items-center gap-1 shrink-0">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <span>Active</span>
+                        </span>
                       </div>
-                    </div>
-
+                    )}
                   </div>
                 );
               })}
             </div>
+          )}
+        </div>
+
+        {/* BOTTOM STATUS BAR */}
+        <footer className="h-10 bg-white border-t border-outline-variant px-6 flex justify-between items-center text-[10px] text-secondary font-mono tracking-wider select-none shrink-0">
+          <div>
+            <span>System Refresh: 05:04:05</span>
+            <span className="mx-2">|</span>
+            <span>Version 4.8.2-stable</span>
           </div>
-
-        </div>
-
-        <div className="w-full lg:w-80 shrink-0 flex flex-col gap-6">
-          <section className="bg-white border border-outline-variant rounded-xl p-5 shadow-premium-sm flex flex-col gap-4">
-            <div className="flex items-center gap-2 text-rose-600 font-bold uppercase font-mono tracking-wider text-[10px]">
-              <span className="material-symbols-outlined text-[18px]">report</span>
-              <span>Critical Alerts</span>
-            </div>
-            
-            {criticalAlert ? (
-              <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 flex flex-col gap-3">
-                <div className="flex justify-between items-start">
-                  <h4 className="font-bold text-xs text-rose-950">{criticalAlert.assetId}: {criticalAlert.issue}</h4>
-                  <span className="text-[8px] text-rose-500 font-mono font-semibold">{criticalAlert.time}</span>
-                </div>
-                <p className="text-[10px] text-rose-800 leading-normal">{criticalAlert.desc}</p>
-                
-                <div className="flex gap-2 mt-1">
-                  <button
-                    type="button"
-                    onClick={() => handleDispatchTech(criticalAlert.assetId)}
-                    className="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded text-[9px] font-bold cursor-pointer transition-all shadow-premium-sm"
-                  >
-                    DISPATCH TECH
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAcknowledge(criticalAlert.assetId)}
-                    className="flex-1 py-1.5 border border-rose-300 hover:bg-rose-100 text-rose-850 rounded text-[9px] font-bold cursor-pointer transition-all"
-                  >
-                    ACKNOWLEDGE
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl p-4 flex items-center gap-2.5 text-[10px] font-bold shadow-premium-sm">
-                <span className="material-symbols-outlined text-sm font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                <span>No active critical alerts on connected nodes.</span>
-              </div>
-            )}
-          </section>
-
-          <section className="bg-white border border-outline-variant rounded-xl p-5 shadow-premium-sm flex flex-col gap-4">
-            <div className="flex items-center gap-2 text-secondary font-bold uppercase font-mono tracking-wider text-[10px]">
-              <span className="material-symbols-outlined text-[18px]">history</span>
-              <span>Recent Activity</span>
-            </div>
-            
-            <div className="relative border-l border-outline-variant pl-4 ml-2.5 py-1 space-y-5">
-              {timelineActivities.map(activity => (
-                <div key={activity.id} className="relative">
-                  <div className={`absolute left-[-21px] top-1.5 w-2.5 h-2.5 rounded-full border border-white shadow-premium-sm ${activity.color}`} />
-                  
-                  <div>
-                    <div className="flex justify-between items-start gap-2">
-                      <h5 className="font-bold text-[10.5px] text-[#0F172A]">{activity.title}</h5>
-                      <span className="text-[8px] text-secondary font-mono font-semibold shrink-0 mt-0.5">{activity.time}</span>
-                    </div>
-                    <p className="text-[10px] text-secondary leading-normal mt-0.5">{activity.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="bg-white border border-outline-variant rounded-xl p-5 shadow-premium-sm flex flex-col gap-3">
-            <div className="flex justify-between items-center text-[10px] font-bold text-secondary uppercase font-mono tracking-wider">
-              <span>Connected Nodes</span>
-              <span className="text-emerald-600">93.3% Online</span>
-            </div>
-            <div className="flex items-baseline gap-1 mt-1">
-              <span className="text-xl font-bold text-[#0F172A]">42</span>
-              <span className="text-xs text-secondary">/45</span>
-            </div>
-            
-            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1 border border-slate-200/50 shadow-premium-sm">
-              <div className="h-full bg-emerald-500 transition-all duration-500 rounded-full" style={{ width: '93.3%' }} />
-            </div>
-          </section>
-        </div>
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1.5 text-rose-600">
+              <span className="w-2 h-2 rounded-full bg-rose-600"></span>
+              <span>LIVE INCIDENTS: 0</span>
+            </span>
+            <span className="flex items-center gap-1.5 text-[#14b8a6]">
+              <span className="w-2 h-2 rounded-full bg-[#14b8a6]"></span>
+              <span>SYSTEM HEALTH: NOMINAL</span>
+            </span>
+          </div>
+        </footer>
       </div>
     );
   };
+
+
+
 
   // Get current date string formatted as YYYY-MM-DD (e.g. 2026-06-29)
   const todayDateStr = new Date().toISOString().split('T')[0];

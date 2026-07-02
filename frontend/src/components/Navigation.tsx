@@ -32,7 +32,6 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
   // Top-level tabs (excluding the master data ones which are grouped)
   const topTabs = [
     { id: 'dashboard', name: 'Dashboard', icon: 'dashboard', roles: allRoles },
-    { id: 'shift_planner', name: 'Shift Allocation', icon: 'group_add', roles: ['Plant Admin', 'Production Supervisor', 'Plant Manager'] },
     { id: 'analytics', name: 'Reports', icon: 'analytics', roles: allRoles },
     { id: 'ai_reports', name: 'AI Reports', icon: 'smart_toy', roles: allRoles },
     { id: 'audit_logs', name: 'Audit Logs', icon: 'terminal', roles: allRoles },

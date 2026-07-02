@@ -1100,11 +1100,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Auto Allocation Algorithm
   const autoAllocateLine = async (date: string, shiftId: string, lineId: string): Promise<{ success: boolean; allocatedCount: number }> => {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 200);
+
       const res = await fetch("/api/v1/allocation/auto-allocate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date, shiftId, lineId })
+        body: JSON.stringify({ date, shiftId, lineId }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
+
       if (res.ok) {
         const data = await res.json();
         fetchState();
@@ -1113,7 +1120,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         throw new Error("Failed to auto-allocate on backend");
       }
     } catch (err) {
-      console.error("Backend error on auto-allocate, falling back to local optimization algorithm:", err);
+      console.error("Backend error or timeout on auto-allocate, falling back to local optimization algorithm:", err);
       // Local Algorithm Fallback
       const lineWS = workstations.filter(w => w.lineId === lineId);
       if (lineWS.length === 0) return { success: false, allocatedCount: 0 };
