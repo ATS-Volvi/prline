@@ -144,18 +144,32 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
   // allocations placeholder
 
   return (
-    <div className="flex-1 h-full flex flex-col overflow-hidden bg-background select-none animate-fade-in">
+    <div className="flex-1 h-full flex flex-col overflow-hidden bg-background select-none animate-fade-in shift-planner-view">
+      <style>{`
+        .shift-planner-view {
+          --po-canvas: #F4F5F3;        /* warm-neutral steel-gray */
+          --po-surface: #FFFFFF;       /* card background */
+          --po-surface-border: #E2E4E1;/* card borders */
+          --po-ink: #1C2321;           /* primary text */
+          --po-ink-muted: #6B7370;     /* secondary text */
+          --po-line-teal: #0F766E;     /* primary accent */
+          --po-line-teal-soft: #CCEAE6;/* light teal */
+          --po-amber: #B45309;         /* attention states */
+          --po-focus: #0F766E;         /* focus outline */
+        }
+      `}</style>
+      
       {/* Top Tabs */}
       <div className="flex items-center gap-4 px-md pt-md pb-0 border-b border-outline-variant bg-surface shrink-0">
         <button 
           onClick={() => setPlannerTab('allocation')}
-          className={`pb-2 px-2 text-[10px] font-label-caps font-bold uppercase tracking-wider transition-colors border-b-2 ${plannerTab === 'allocation' ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-on-surface cursor-pointer'}`}
+          className={`pb-2 px-2 text-[10px] font-label-caps font-bold uppercase tracking-wider transition-colors border-b-2 ${plannerTab === 'allocation' ? 'border-[var(--po-line-teal)] text-[var(--po-line-teal)]' : 'border-transparent text-secondary hover:text-on-surface cursor-pointer'}`}
         >
           Shift Allocation
         </button>
         <button 
           onClick={() => setPlannerTab('availability')}
-          className={`pb-2 px-2 text-[10px] font-label-caps font-bold uppercase tracking-wider transition-colors border-b-2 ${plannerTab === 'availability' ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-on-surface cursor-pointer'}`}
+          className={`pb-2 px-2 text-[10px] font-label-caps font-bold uppercase tracking-wider transition-colors border-b-2 ${plannerTab === 'availability' ? 'border-[var(--po-line-teal)] text-[var(--po-line-teal)]' : 'border-transparent text-secondary hover:text-on-surface cursor-pointer'}`}
         >
           Availability & Attendance
         </button>
@@ -164,7 +178,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
       {plannerTab === 'availability' ? (
         <AvailabilityTab />
       ) : (
-      <div className="flex-grow flex flex-col overflow-hidden bg-gradient-to-tr from-[#E2E8F0] via-[#F1F5F9] to-[#CBD5E1] select-text p-6 lg:p-8 relative animate-fade-in">
+      <div className="flex-grow flex flex-col overflow-hidden bg-[var(--po-canvas)] select-text p-6 lg:p-8 relative animate-fade-in">
         
         {/* Publish Shift Toast Alert */}
         {showPublishToast && (
@@ -175,15 +189,15 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
         )}
 
         {/* HEADER AND FILTERS BOX */}
-        <div className="border-2 border-[#4F46E5]/15 rounded-3xl p-6 bg-white/95 backdrop-blur-md shadow-premium-lg flex flex-col gap-6 mb-6 select-none relative">
+        <div className="border-2 border-[var(--po-surface-border)] rounded-3xl p-6 bg-[var(--po-surface)] shadow-premium-lg flex flex-col gap-6 mb-6 select-none relative">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {/* PRODUCTION LINE */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-extrabold text-[#4F46E5] uppercase tracking-widest font-mono">PRODUCTION LINE</label>
+              <label className="text-[10px] font-extrabold text-[var(--po-ink-muted)] uppercase tracking-widest font-mono">PRODUCTION LINE</label>
               <select
                 value={selectedLineId}
                 onChange={(e) => setSelectedLineId(e.target.value)}
-                className="py-2.5 px-3 bg-[#F8FAFC] border-2 border-slate-200 hover:border-slate-350 focus:border-[#4F46E5] focus:ring-0 rounded-xl text-xs font-bold text-slate-800 transition-all duration-200 cursor-pointer w-full"
+                className="py-2.5 px-3 bg-[var(--po-canvas)] border-2 border-[var(--po-surface-border)] hover:border-slate-350 focus:border-[var(--po-focus)] focus:ring-0 rounded-xl text-xs font-bold text-[var(--po-ink)] transition-all duration-200 cursor-pointer w-full"
               >
                 {productionLines.map(l => (
                   <option key={l.id} value={l.id}>{l.name}</option>
@@ -193,11 +207,11 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
 
             {/* ACTIVE SHIFT */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-extrabold text-[#4F46E5] uppercase tracking-widest font-mono">ACTIVE SHIFT</label>
+              <label className="text-[10px] font-extrabold text-[var(--po-ink-muted)] uppercase tracking-widest font-mono">ACTIVE SHIFT</label>
               <select
                 value={selectedShiftId}
                 onChange={(e) => setSelectedShiftId(e.target.value)}
-                className="py-2.5 px-3 bg-[#F8FAFC] border-2 border-slate-200 hover:border-slate-350 focus:border-[#4F46E5] focus:ring-0 rounded-xl text-xs font-bold text-slate-800 transition-all duration-200 cursor-pointer w-full"
+                className="py-2.5 px-3 bg-[var(--po-canvas)] border-2 border-[var(--po-surface-border)] hover:border-slate-350 focus:border-[var(--po-focus)] focus:ring-0 rounded-xl text-xs font-bold text-[var(--po-ink)] transition-all duration-200 cursor-pointer w-full"
               >
                 {shifts.map(shift => (
                   <option key={shift.id} value={shift.id}>{shift.name} ({shift.timings})</option>
@@ -207,13 +221,13 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
 
             {/* PRODUCTION DATE */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-extrabold text-[#4F46E5] uppercase tracking-widest font-mono">PRODUCTION DATE</label>
+              <label className="text-[10px] font-extrabold text-[var(--po-ink-muted)] uppercase tracking-widest font-mono">PRODUCTION DATE</label>
               <div className="relative">
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="py-2.5 px-3 pr-10 bg-[#F8FAFC] border-2 border-slate-200 hover:border-slate-350 focus:border-[#4F46E5] focus:ring-0 rounded-xl text-xs font-bold text-slate-800 transition-all duration-200 cursor-pointer w-full"
+                  className="py-2.5 px-3 pr-10 bg-[var(--po-canvas)] border-2 border-[var(--po-surface-border)] hover:border-slate-350 focus:border-[var(--po-focus)] focus:ring-0 rounded-xl text-xs font-bold text-[var(--po-ink)] transition-all duration-200 cursor-pointer w-full"
                 />
                 <span className="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none">calendar_today</span>
               </div>
@@ -228,7 +242,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                 setShowPublishToast(true);
                 setTimeout(() => setShowPublishToast(false), 3000);
               }}
-              className="py-2.5 px-6 border-2 border-[#0B192C] text-[#0B192C] font-extrabold rounded-full hover:bg-[#0B192C] hover:text-white text-[10px] uppercase tracking-widest transition-all duration-300 hover:scale-[1.03] shadow-md bg-white cursor-pointer"
+              className="py-2.5 px-6 border-2 border-[var(--po-ink)] text-[var(--po-ink)] font-extrabold rounded-full hover:bg-[var(--po-ink)] hover:text-white text-[10px] uppercase tracking-widest transition-all duration-300 hover:scale-[1.03] shadow-md bg-[var(--po-surface)] cursor-pointer"
             >
               SAVE CONFIGURATION
             </button>
@@ -237,7 +251,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
               type="button"
               onClick={() => handleAutoAllocate()}
               disabled={isOptimizing || currentLine.status !== 'ACTIVE'}
-              className="py-2.5 px-6 bg-gradient-to-r from-[#4F46E5] to-[#06B6D4] hover:from-[#4338CA] hover:to-[#0891B2] text-white font-extrabold rounded-full text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer shadow-lg hover:shadow-[#4F46E5]/20 hover:scale-[1.03] disabled:opacity-50"
+              className="py-2.5 px-6 bg-[var(--po-line-teal)] hover:bg-[#0d635c] text-white font-extrabold rounded-full text-[10px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer shadow-lg hover:shadow-[var(--po-line-teal)]/10 hover:scale-[1.03] disabled:opacity-50"
             >
               {isOptimizing ? (
                 <>
@@ -254,9 +268,9 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
         {/* WORKSTATIONS GRID CANVAS */}
         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 pb-4">
           {activeWS.length === 0 ? (
-            <div className="bg-white border-2 border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center gap-3 shadow-premium-lg animate-fade-in">
+            <div className="bg-[var(--po-surface)] border-2 border-[var(--po-surface-border)] rounded-2xl p-12 flex flex-col items-center justify-center text-center gap-3 shadow-premium-lg animate-fade-in">
               <span className="material-symbols-outlined text-3xl text-amber-500 animate-pulse">construction</span>
-              <h4 className="font-bold text-xs text-[#0f172a] uppercase font-mono tracking-wider">No Workstations Configured</h4>
+              <h4 className="font-bold text-xs text-[var(--po-ink)] uppercase font-mono tracking-wider">No Workstations Configured</h4>
               <p className="text-[10px] text-secondary mt-1">Configure machines and operations for this line in Master Data.</p>
               <button
                 type="button"
@@ -276,26 +290,26 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                 return (
                   <div
                     key={ws.id}
-                    className="bg-white border-2 border-slate-200 border-l-[6px] border-l-[#4F46E5] rounded-3xl overflow-hidden shadow-md hover:shadow-xl hover:border-slate-300 hover:border-l-[#06B6D4] transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col p-6 h-full relative cursor-pointer"
+                    className="bg-[var(--po-surface)] border-2 border-[var(--po-surface-border)] border-l-[6px] border-l-[var(--po-line-teal)] rounded-3xl overflow-hidden shadow-md hover:shadow-xl hover:border-slate-350 transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col p-6 h-full relative cursor-pointer"
                   >
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider font-mono">STAGE {index < 9 ? `0${index + 1}` : index + 1}</span>
-                      <span className="bg-[#E0F2FE] text-[#0369A1] border border-[#BCE4FC] text-[8px] font-extrabold px-2.5 py-0.5 rounded-full font-mono uppercase tracking-wider shadow-sm">ACTIVE</span>
+                      <span className="text-[9px] font-extrabold text-[var(--po-ink-muted)] uppercase tracking-wider font-mono">STAGE {index < 9 ? `0${index + 1}` : index + 1}</span>
+                      <span className="bg-[var(--po-line-teal-soft)] text-[var(--po-line-teal)] border border-[var(--po-line-teal-soft)] text-[8px] font-extrabold px-2.5 py-0.5 rounded-full font-mono uppercase tracking-wider shadow-sm">ACTIVE</span>
                     </div>
                     
-                    <h4 className="text-xl font-black text-slate-900 leading-tight mb-4 min-h-[48px] hover:text-[#4F46E5] transition-colors">{ws.name}</h4>
+                    <h4 className="text-xl font-black text-[var(--po-ink)] leading-tight mb-4 min-h-[48px] hover:text-[var(--po-line-teal)] transition-colors">{ws.name}</h4>
                     
                     <div className="flex justify-between items-center text-xs mt-1.5 mb-2">
-                      <span className="text-slate-400 font-extrabold font-mono text-[9px] uppercase tracking-widest">Staffing:</span>
-                      <span className={`font-extrabold text-sm ${assoc ? 'text-[#047857]' : 'text-[#B91C1C]'}`}>{assoc ? '1' : '0'}/1</span>
+                      <span className="text-[var(--po-ink-muted)] font-extrabold font-mono text-[9px] uppercase tracking-widest">Staffing:</span>
+                      <span className={`font-extrabold text-sm ${assoc ? 'text-[var(--po-line-teal)]' : 'text-[var(--po-amber)]'}`}>{assoc ? '1' : '0'}/1</span>
                     </div>
-                    <div className="w-full bg-slate-100 h-2.5 rounded-full mb-5 overflow-hidden border border-slate-200">
-                      <div className={`h-full ${assoc ? 'bg-gradient-to-r from-[#4F46E5] to-[#06B6D4] w-full shadow-[0_0_8px_rgba(79,70,229,0.35)]' : 'bg-slate-200 w-0'}`}></div>
+                    <div className="w-full bg-[var(--po-canvas)] h-2.5 rounded-full mb-5 overflow-hidden border border-[var(--po-surface-border)]">
+                      <div className={`h-full ${assoc ? 'bg-[var(--po-line-teal)] w-full shadow-[0_0_8px_rgba(15,118,110,0.3)]' : 'bg-[var(--po-amber)] w-0'}`}></div>
                     </div>
                     
                     <div className="flex flex-col gap-1.5 select-none">
-                      <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest font-mono mb-1">REQUIRED SKILLS</span>
-                      <div className="inline-block border-2 border-indigo-100/80 rounded-xl px-3.5 py-2 text-[10px] text-indigo-700 bg-indigo-50/50 font-mono font-bold tracking-tight shadow-premium-sm truncate max-w-full">
+                      <span className="text-[9px] font-extrabold text-[var(--po-ink-muted)] uppercase tracking-widest font-mono mb-1">REQUIRED SKILLS</span>
+                      <div className="inline-block border border-[var(--po-surface-border)] rounded-xl px-3.5 py-2 text-[10px] text-[var(--po-line-teal)] bg-[var(--po-line-teal-soft)] font-mono font-bold tracking-tight shadow-premium-sm truncate max-w-full">
                         {ws.requiredSkillId} (Level &gt;= {ws.minSkillLevel})
                       </div>
                     </div>
@@ -303,7 +317,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                     {/* ASSIGNED OPERATOR ROW */}
                     <div className="mt-5 min-h-[44px] flex items-center justify-center">
                       {assoc ? (
-                        <div className="w-full bg-gradient-to-r from-[#F8FAFC] to-[#F1F5F9] text-slate-800 rounded-xl py-2.5 px-3 flex items-center justify-between text-xs font-bold font-mono border-2 border-slate-200/80 shadow-sm">
+                        <div className="w-full bg-[var(--po-surface)] text-[var(--po-ink)] rounded-xl py-2.5 px-3 flex items-center justify-between text-xs font-bold font-mono border-2 border-[var(--po-surface-border)] shadow-sm">
                           <span className="truncate max-w-[150px]">{assoc.name}</span>
                           <button
                             type="button"
@@ -320,7 +334,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                           </button>
                         </div>
                       ) : (
-                        <div className="text-[10px] text-slate-400 italic select-none">Unallocated</div>
+                        <div className="text-[10px] text-[var(--po-ink-muted)] italic select-none">Unallocated</div>
                       )}
                     </div>
 
@@ -329,7 +343,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                       <button
                         type="button"
                         onClick={() => handleOpenAssignModal(ws.id)}
-                        className="w-full py-2.5 border-2 border-[#4F46E5] text-[#4F46E5] hover:bg-[#4F46E5] hover:text-white font-extrabold rounded-xl bg-white transition-all duration-200 text-[10px] uppercase tracking-widest cursor-pointer font-mono hover:scale-[1.02] shadow-sm hover:shadow-md"
+                        className="w-full py-2.5 border-2 border-[var(--po-line-teal)] text-[var(--po-line-teal)] hover:bg-[var(--po-line-teal)] hover:text-white font-extrabold rounded-xl bg-white transition-all duration-200 text-[10px] uppercase tracking-widest cursor-pointer font-mono hover:scale-[1.02] shadow-sm hover:shadow-md"
                       >
                         ASSIGN
                       </button>
