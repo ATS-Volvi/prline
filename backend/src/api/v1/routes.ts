@@ -601,5 +601,6 @@ router.post("/audit-logs", AuthHandler.authMiddleware, async (req: Request, res:
 
 // RAG CHAT REPORT ROUTE
 router.post("/reports/rag-chat", AuthHandler.authMiddleware, reportsController.ragChatController);
+router.get("/reports/rag-status", AuthHandler.authMiddleware, reportsController.ragStatusController);
 
 export default router;

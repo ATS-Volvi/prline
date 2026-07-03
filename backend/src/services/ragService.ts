@@ -3,6 +3,9 @@ import { RagChunk, Skill, ProductionLine, Workstation, Shift, Associate, Associa
 import axios from 'axios';
 
 let embedderPipeline: any = null;
+export let lastRefreshAt: string | null = null;
+export let lastRefreshError: string | null = null;
+export let embeddingModelLoaded = false;
 
 // Lazy-load the Xenova transformers pipeline
 async function getEmbedder() {
@@ -12,6 +15,19 @@ async function getEmbedder() {
     embedderPipeline = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
   }
   return embedderPipeline;
+}
+
+export async function initializeModel() {
+  console.log('[RAG] Loading embedding model...');
+  try {
+    await getEmbedder();
+    embeddingModelLoaded = true;
+    console.log('[RAG] Embedding model ready.');
+  } catch (error: any) {
+    embeddingModelLoaded = false;
+    const errorMsg = error.message || String(error);
+    console.error(`[RAG] FAILED to load embedding model: ${errorMsg}. RAG chat will not function until this is resolved.`);
+  }
 }
 
 export async function embedText(text: string): Promise<number[]> {
@@ -213,7 +229,7 @@ export async function refreshEmbeddings(userId: string) {
           entityId: chunk.entityId,
           content: chunk.content,
           metadata: chunk.metadata,
-          embedding
+          embedding: `[${embedding.join(',')}]` as any
         });
       } else if (existing.hash !== currentHash) {
         // Embed and update
@@ -221,7 +237,7 @@ export async function refreshEmbeddings(userId: string) {
         await RagChunk.update({
           content: chunk.content,
           metadata: chunk.metadata,
-          embedding
+          embedding: `[${embedding.join(',')}]` as any
         }, { where: { id: existing.id } });
       }
     }
@@ -233,8 +249,18 @@ export async function refreshEmbeddings(userId: string) {
       }
     }
 
-  } catch (error) {
-    console.error('Error refreshing RAG embeddings:', error);
+    lastRefreshAt = new Date().toISOString();
+    lastRefreshError = null;
+    const finalCount = await RagChunk.count();
+    console.log(`[RAG] Embeddings refreshed successfully. ${chunks.length} chunks processed. Total database chunks: ${finalCount}`);
+    return { success: true, chunksIndexed: chunks.length };
+
+  } catch (error: any) {
+    const errorMsg = error.message || String(error);
+    lastRefreshAt = new Date().toISOString();
+    lastRefreshError = errorMsg;
+    console.error('[RAG] Error refreshing RAG embeddings:', error);
+    return { success: false, chunksIndexed: 0, error: errorMsg };
   }
 }
 

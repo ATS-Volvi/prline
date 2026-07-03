@@ -109,6 +109,14 @@ class Server{
           }
         }
 
+        // Initialize RAG embedding model pre-flight
+        try {
+          const { initializeModel } = await import('./src/services/ragService');
+          await initializeModel();
+        } catch (ragErr) {
+          console.error("Failed to initialize RAG model on startup:", ragErr);
+        }
+
         this.port = port
         this.app.listen(this.port, () => {
           console.log(`Listening on ${this.port}`)

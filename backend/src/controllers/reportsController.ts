@@ -14,7 +14,11 @@ export const ragChatController = async (req: Request, res: Response) => {
     }
 
     // Proactively refresh embeddings first (so we always run on relatively fresh state)
-    await ragService.refreshEmbeddings(userId);
+    const refreshResult = await ragService.refreshEmbeddings(userId);
+    if (!refreshResult.success) {
+      console.error('RAG refresh failed:', refreshResult.error);
+      // still attempt retrieve() in case older embeddings exist from a prior successful run
+    }
 
     // Filters formulation
     const filters: any = {};
@@ -80,6 +84,22 @@ export const ragChatController = async (req: Request, res: Response) => {
 
   } catch (error: any) {
     console.error('Error in ragChatController:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const ragStatusController = async (req: Request, res: Response) => {
+  try {
+    const { RagChunk } = await import('../../../database/models/models/models');
+    const chunkCount = await RagChunk.count();
+    res.json({
+      chunkCount,
+      lastRefreshAt: ragService.lastRefreshAt,
+      lastRefreshError: ragService.lastRefreshError,
+      embeddingModelLoaded: ragService.embeddingModelLoaded
+    });
+  } catch (error: any) {
+    console.error('Error in ragStatusController:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
