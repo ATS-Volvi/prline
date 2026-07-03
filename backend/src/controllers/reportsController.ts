@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import * as ragService from '../services/ragService';
 import { logAction } from '../services/auditService';
+import * as queryRouter from '../services/queryRouter';
 
 export const ragChatController = async (req: Request, res: Response) => {
   try {
-    const { query, dateRange, lineId } = req.body;
+    const { query, dateRange, lineId, conversationHistory } = req.body;
     const userId = req.authData?.userId || 'unknown-user';
     const userRole = req.authData?.userType || 'reviewer';
 
@@ -38,6 +39,32 @@ export const ragChatController = async (req: Request, res: Response) => {
       }
     }
 
+    // Query Router / Hybrid Intelligence check
+    const intent = queryRouter.classifyIntent(query);
+    if (intent) {
+      const result = await queryRouter.handle(intent, userId, filters);
+      
+      // Log structured interaction
+      await logAction(
+        'RAG_CHAT_QUERY',
+        `Query: "${query}". Answered via Hybrid Router [${intent}] with ${result.rows.length} rows.`,
+        userId,
+        userRole
+      );
+
+      res.json({
+        answer: result.answer,
+        sources: result.rows.map((r: any) => ({ 
+          entityType: intent, 
+          entityId: r.id || 'N/A', 
+          content: r.summary || '', 
+          score: 1 
+        })),
+        chart: result.chart
+      });
+      return;
+    }
+
     // 1. Retrieve top-8 similar chunks
     const chunks = await ragService.retrieve(query, 8, filters);
 
@@ -51,7 +78,7 @@ export const ragChatController = async (req: Request, res: Response) => {
       answer = "I don't have enough data to answer that query.";
     } else {
       // 3. Generate answer
-      answer = await ragService.generateAnswer(query, filteredChunks);
+      answer = await ragService.generateAnswer(query, filteredChunks, conversationHistory);
       
       // 4. Suggest chart
       chartSpec = ragService.suggestChart(query, filteredChunks);

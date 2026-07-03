@@ -302,11 +302,21 @@ export async function retrieve(query: string, k = 8, filters?: { lineId?: string
   }));
 }
 
-export async function generateAnswer(query: string, chunks: any[]): Promise<string> {
+export async function generateAnswer(
+  query: string, 
+  chunks: any[], 
+  conversationHistory?: { role: 'user' | 'assistant'; content: string }[]
+): Promise<string> {
   const context = chunks.map(c => `[${c.entityType} | ${c.entityId}]: ${c.content}`).join('\n');
 
   if (USE_LOCAL_LLM) {
     try {
+      let historyPrompt = '';
+      if (conversationHistory && conversationHistory.length > 0) {
+        const last3 = conversationHistory.slice(-3);
+        historyPrompt = 'Conversation History:\n' + last3.map(turn => `${turn.role === 'user' ? 'User' : 'Assistant'}: ${turn.content}`).join('\n') + '\n\n';
+      }
+
       const prompt = `You are PlantOps AI. Answer the question using ONLY the context below. 
 If the context doesn't contain the answer, say so — do not guess. 
 Cite specific entity IDs/names from the context in your answer.
@@ -314,7 +324,7 @@ Cite specific entity IDs/names from the context in your answer.
 Context:
 ${context}
 
-Question: ${query}`;
+${historyPrompt}Question: ${query}`;
 
       const response = await axios.post(`${OLLAMA_URL}/api/generate`, {
         model: 'llama3.2:3b', // fallback is phi3:mini
@@ -322,7 +332,33 @@ Question: ${query}`;
         stream: false
       }, { timeout: 15000 });
 
-      return response.data.response;
+      const generatedAnswer = response.data.response;
+
+      // Grounding Check
+      let isGrounded = true;
+      const potentialIds = generatedAnswer.match(/[A-Z0-9_-]{3,}/g) || [];
+      const contextLower = context.toLowerCase();
+      
+      for (const id of potentialIds) {
+        if (['RAG', 'LLM', 'AI', 'NOT', 'AND', 'ONLY', 'THE', 'YOU', 'ARE', 'FOR'].includes(id.toUpperCase())) {
+          continue;
+        }
+        if (/^\d+$/.test(id)) {
+          continue;
+        }
+        
+        if (!contextLower.includes(id.toLowerCase())) {
+          console.warn(`[RAG Grounding] Grounding check failed. Model generated ungrounded entity ID/name: "${id}"`);
+          isGrounded = false;
+          break;
+        }
+      }
+
+      if (isGrounded) {
+        return generatedAnswer;
+      } else {
+        console.warn('[RAG Grounding] Discarding Ollama answer due to grounding check failure, falling back to extractive summary.');
+      }
     } catch (err) {
       console.warn('Ollama local generation failed, falling back to extractive RAG:', err);
     }
