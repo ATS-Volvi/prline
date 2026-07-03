@@ -16,7 +16,6 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
     associates,
     shifts,
     autoAllocateLine,
-    clearLineAllocations,
     getEligibilityList,
     allocateAssociate,
     deallocateWorkstation,
@@ -142,9 +141,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
   const lineAllocations = allocations.filter(
     a => a.date === selectedDate && a.shiftId === selectedShiftId && a.lineId === currentLine.id
   );
-  const allocatedCount = lineAllocations.length;
-  const unallocatedCount = Math.max(0, activeWS.length - allocatedCount);
-  const totalPoolCount = associates.filter(a => a.status === 'Active').length;
+  // allocations placeholder
 
   return (
     <div className="flex-1 h-full flex flex-col overflow-hidden bg-background select-none animate-fade-in">
@@ -167,7 +164,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
       {plannerTab === 'availability' ? (
         <AvailabilityTab />
       ) : (
-      <div className="flex-1 flex flex-col overflow-hidden bg-slate-50/20 select-text p-6 lg:p-8 relative animate-fade-in">
+      <div className="flex-grow flex flex-col overflow-hidden bg-slate-50/10 select-text p-6 lg:p-8 relative animate-fade-in">
         
         {/* Publish Shift Toast Alert */}
         {showPublishToast && (
@@ -177,151 +174,80 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
           </div>
         )}
 
-        {/* PAGE HEADER */}
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 mb-6 select-none relative">
-          <div>
-            <div className="flex items-center gap-1.5 text-secondary">
-              <span className="material-symbols-outlined text-sm font-bold">precision_manufacturing</span>
-              <span className="text-[10px] font-bold uppercase tracking-wider font-mono">Line {currentLine.name}</span>
-            </div>
-            <h2 className="text-xl font-bold text-[#0F172A] mt-1">Shift Planning</h2>
-            <p className="text-[11px] text-secondary mt-0.5 font-mono">
-              {shifts.find(s => s.id === selectedShiftId)?.name} ({shifts.find(s => s.id === selectedShiftId)?.timings}) • {
-                new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })
-              }
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-2.5">
-            <div className="flex items-center bg-white border border-outline-variant rounded-lg p-1 shadow-premium-sm mr-2">
+        {/* HEADER AND FILTERS BOX */}
+        <div className="border border-slate-200 rounded-2xl p-5 bg-white shadow-sm flex flex-col gap-5 mb-6 select-none relative">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* PRODUCTION LINE */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PRODUCTION LINE</label>
               <select
                 value={selectedLineId}
                 onChange={(e) => setSelectedLineId(e.target.value)}
-                className="py-1.5 px-2 bg-transparent text-[10px] font-bold text-[#0F172A] focus:outline-none cursor-pointer border-r border-outline-variant"
+                className="py-2.5 px-3 bg-[#EAEFF5]/60 border border-slate-200 rounded-lg text-xs font-semibold text-[#0F172A] focus:outline-none cursor-pointer w-full"
               >
                 {productionLines.map(l => (
                   <option key={l.id} value={l.id}>{l.name}</option>
                 ))}
               </select>
-              
+            </div>
+
+            {/* ACTIVE SHIFT */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ACTIVE SHIFT</label>
               <select
                 value={selectedShiftId}
                 onChange={(e) => setSelectedShiftId(e.target.value)}
-                className="py-1.5 px-2 bg-transparent text-[10px] font-bold text-[#0F172A] focus:outline-none cursor-pointer border-r border-outline-variant"
+                className="py-2.5 px-3 bg-[#EAEFF5]/60 border border-slate-200 rounded-lg text-xs font-semibold text-[#0F172A] focus:outline-none cursor-pointer w-full"
               >
                 {shifts.map(shift => (
                   <option key={shift.id} value={shift.id}>{shift.name} ({shift.timings})</option>
                 ))}
               </select>
-
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="py-1.5 px-2 bg-transparent text-[10px] font-bold text-[#0F172A] focus:outline-none cursor-pointer"
-              />
             </div>
 
-            <button
-              type="button"
-              onClick={() => handleAutoAllocate()}
-              disabled={isOptimizing || currentLine.status !== 'ACTIVE'}
-              className="py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase font-mono tracking-wider shadow-premium-md disabled:opacity-50"
-            >
-              {isOptimizing ? (
-                <>
-                  <span className="material-symbols-outlined text-[16px] animate-spin">sync</span>
-                  <span>Running Engine...</span>
-                </>
-              ) : (
-                <>
-                  <span className="material-symbols-outlined text-[16px]">smart_toy</span>
-                  <span>Auto Allocate</span>
-                </>
-              )}
-            </button>
+            {/* PRODUCTION DATE */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PRODUCTION DATE</label>
+              <div className="relative">
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="py-2 px-3 pr-10 bg-[#EAEFF5]/60 border border-slate-200 rounded-lg text-xs font-semibold text-[#0F172A] focus:outline-none cursor-pointer w-full"
+                />
+                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none">calendar_today</span>
+              </div>
+            </div>
+          </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                if (window.confirm('Clear all assignments for this shift and date?')) {
-                  clearLineAllocations(selectedDate, selectedShiftId, currentLine.id);
-                }
-              }}
-              disabled={currentLine.status !== 'ACTIVE'}
-              className="py-2 px-3 bg-white border border-rose-600 text-rose-600 text-[10px] font-bold rounded-lg hover:bg-rose-50 transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase font-mono tracking-wider shadow-premium-sm disabled:opacity-50"
-            >
-              Clear
-            </button>
-            
+          {/* ACTION BUTTONS */}
+          <div className="flex items-center gap-3 mt-1">
             <button
               type="button"
               onClick={() => {
                 setShowPublishToast(true);
                 setTimeout(() => setShowPublishToast(false), 3000);
               }}
-              className="py-2 px-4 bg-[#091426] text-white font-bold rounded-lg hover:bg-slate-900 transition-all flex items-center gap-1.5 shadow-premium-md cursor-pointer text-[10px] uppercase font-mono tracking-wider"
+              className="py-2 px-5 border border-slate-350 text-[#0B192C] font-bold rounded-full hover:bg-slate-50 text-[10px] uppercase tracking-wider transition-all cursor-pointer bg-white"
             >
-              <span className="material-symbols-outlined text-[16px] font-bold">publish</span>
-              <span>Publish Shift</span>
+              SAVE CONFIGURATION
             </button>
-          </div>
-        </header>
 
-        {/* SUMMARY METRICS ROW */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6 select-none font-mono">
-          <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
-            <div>
-              <p className="text-[10px] text-secondary font-bold uppercase tracking-wider block">Total Machines</p>
-              <h3 className="text-xl font-bold text-[#0F172A] mt-1">{String(activeWS.length).padStart(2, '0')}</h3>
-              <span className="text-[8px] text-secondary font-medium mt-1.5 inline-block">Active on {currentLine.name}</span>
-            </div>
-            <span className="material-symbols-outlined text-secondary text-[22px]">precision_manufacturing</span>
-          </div>
-
-          <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
-            <div>
-              <p className="text-[10px] text-secondary font-bold uppercase tracking-wider block">Unallocated</p>
-              <h3 className="text-xl font-bold text-rose-600 mt-1">{String(unallocatedCount).padStart(2, '0')}</h3>
-              <span className="text-[8px] text-rose-600 font-medium mt-1.5 inline-block animate-pulse">Requires attention</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
-              <span className="material-symbols-outlined text-rose-600 text-[20px] font-bold">warning</span>
-            </div>
-          </div>
-
-          <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
-            <div>
-              <p className="text-[10px] text-secondary font-bold uppercase tracking-wider block">Efficiency</p>
-              <h3 className="text-xl font-bold text-[#0F172A] mt-1">94.2%</h3>
-              <span className="text-[8px] text-emerald-600 font-bold mt-1.5 inline-block">▲ +2.4% from last shift</span>
-            </div>
-            <span className="material-symbols-outlined text-secondary text-[22px]">trending_up</span>
-          </div>
-
-          <div className="bg-white border border-outline-variant rounded-xl p-4 shadow-premium-sm flex justify-between items-start">
-            <div>
-              <p className="text-[10px] text-secondary font-bold uppercase tracking-wider block">Associates</p>
-              <h3 className="text-xl font-bold text-[#0F172A] mt-1">{allocatedCount}/{totalPoolCount}</h3>
-              <span className="text-[8px] text-secondary font-medium mt-1.5 inline-block">On-site today</span>
-            </div>
-            <span className="material-symbols-outlined text-secondary text-[22px]">group</span>
-          </div>
-        </div>
-
-        {/* WORKSTATION ALLOCATION LIST HEADING */}
-        <div className="flex justify-between items-center mb-4 shrink-0 select-none">
-          <h3 className="text-xs font-bold text-[#0f172a] uppercase font-mono tracking-wider">Workstation Allocation</h3>
-          <div className="flex items-center gap-3 text-[10px] font-bold font-mono text-secondary">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-rose-600"></span>
-              <span>Unallocated ({unallocatedCount})</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#14b8a6]"></span>
-              <span>Allocated ({allocatedCount})</span>
-            </span>
+            <button
+              type="button"
+              onClick={() => handleAutoAllocate()}
+              disabled={isOptimizing || currentLine.status !== 'ACTIVE'}
+              className="py-2 px-5 bg-[#0B192C] hover:bg-slate-800 text-white font-bold rounded-full text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              {isOptimizing ? (
+                <>
+                  <span className="material-symbols-outlined text-xs animate-spin">sync</span>
+                  <span>RUNNING ENGINE...</span>
+                </>
+              ) : (
+                <span>AUTO-ALLOCATE STAFF</span>
+              )}
+            </button>
           </div>
         </div>
 
@@ -345,62 +271,68 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
               {activeWS.map((ws, index) => {
                 const assigned = lineAllocations.find(a => a.workstationId === ws.id);
                 const assoc = assigned ? associates.find(a => a.id === assigned.associateId) : null;
-                const isHalted = currentLine.status === 'HALTED';
-                const isCritical = !isHalted && !assoc;
-                // Profile picture matching Unsplash premium style
+                // assigned associate lookup
 
                 return (
                   <div
                     key={ws.id}
-                    className="bg-white border-2 border-slate-300 rounded-xl overflow-hidden shadow-sm flex flex-col p-5 h-full"
+                    className="bg-white border border-slate-200 border-l-[4px] border-l-[#0B192C] rounded-2xl overflow-hidden shadow-md flex flex-col p-5 h-full relative"
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">STAGE {index < 9 ? `0${index + 1}` : index + 1}</span>
-                      {isCritical && (
-                        <span className="bg-[#FECDD3] text-[#9F1239] text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">CRITICAL</span>
-                      )}
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider font-mono">STAGE {index < 9 ? `0${index + 1}` : index + 1}</span>
+                      <span className="bg-[#1A2536] text-white text-[8px] font-bold px-2 py-0.5 rounded font-mono uppercase tracking-wider">ACTIVE</span>
                     </div>
                     
-                    <h4 className="text-2xl font-bold text-[#0F172A] leading-tight mb-4 min-h-[60px]">{ws.name}</h4>
+                    <h4 className="text-xl font-bold text-[#0F172A] leading-tight mb-4 min-h-[48px]">{ws.name}</h4>
                     
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-[11px] text-slate-500 font-medium">Staffing:</span>
-                      <span className={`text-sm font-bold ${assoc ? 'text-[#0F172A]' : 'text-[#B91C1C]'}`}>{assoc ? '1' : '0'}/1</span>
+                    <div className="flex justify-between items-center text-xs mt-1.5 mb-1.5">
+                      <span className="text-slate-400 font-medium font-mono text-[10px] uppercase tracking-wider">Staffing:</span>
+                      <span className="font-bold text-[#0F172A]">{assoc ? '1' : '0'}/1</span>
                     </div>
-                    <div className="w-full bg-slate-200 h-1.5 rounded-full mb-6 overflow-hidden">
-                      {assoc && <div className="h-full bg-emerald-500 w-full"></div>}
+                    <div className="w-full bg-slate-100 h-1.5 rounded-full mb-5 overflow-hidden">
+                      <div className={`h-full ${assoc ? 'bg-[#0B192C] w-full' : 'bg-slate-200 w-0'}`}></div>
                     </div>
                     
-                    <div className="mt-auto">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">REQUIRED SKILLS</p>
-                      <div className="inline-block border border-slate-400 rounded-full px-3 py-1 text-[10px] text-slate-600 font-medium mb-5 truncate max-w-full">
+                    <div className="flex flex-col gap-1.5 select-none">
+                      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider font-mono">REQUIRED SKILLS</span>
+                      <div className="inline-block border border-slate-200 rounded-lg px-2.5 py-1.5 text-[9px] text-slate-700 bg-slate-50 font-mono font-medium truncate max-w-full">
                         {ws.requiredSkillId} (Level &gt;= {ws.minSkillLevel})
                       </div>
-                      
-                      {!assoc ? (
-                        <button
-                          type="button"
-                          onClick={() => handleOpenAssignModal(ws.id)}
-                          className="w-full py-2.5 bg-[#B91C1C] text-white text-[11px] font-bold rounded-lg hover:bg-red-800 transition-all uppercase tracking-wider cursor-pointer"
-                        >
-                          PRIORITY ASSIGN
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (assigned && (role === 'Production Supervisor' || role === 'Plant Admin')) {
-                              if (window.confirm(`Deallocate ${assoc?.name} from ${ws.name}?`)) {
-                                handleDeallocate(ws.id, assoc?.id);
+                    </div>
+
+                    {/* ASSIGNED OPERATOR ROW */}
+                    <div className="mt-4 min-h-[42px] flex items-center justify-center">
+                      {assoc ? (
+                        <div className="w-full bg-[#E2E8F0] text-slate-800 rounded-lg py-2 px-3 flex items-center justify-between text-xs font-bold font-mono border border-slate-300">
+                          <span className="truncate max-w-[150px]">{assoc.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (assigned && (role === 'Production Supervisor' || role === 'Plant Admin')) {
+                                if (window.confirm(`Deallocate ${assoc?.name} from ${ws.name}?`)) {
+                                  handleDeallocate(ws.id, assoc?.id);
+                                }
                               }
-                            }
-                          }}
-                          className="w-full py-2.5 bg-[#0B2C1A] text-emerald-400 text-[11px] font-bold rounded-lg hover:bg-rose-800 hover:text-white transition-all uppercase tracking-wider cursor-pointer flex items-center justify-center gap-2 group"
-                        >
-                          <span className="group-hover:hidden truncate max-w-[150px]">{assoc.name}</span>
-                          <span className="hidden group-hover:block">DEALLOCATE</span>
-                        </button>
+                            }}
+                            className="text-rose-600 hover:text-rose-800 cursor-pointer font-bold text-xs select-none"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-[10px] text-slate-400 italic select-none">Unallocated</div>
                       )}
+                    </div>
+
+                    {/* ASSIGN BUTTON */}
+                    <div className="mt-4">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenAssignModal(ws.id)}
+                        className="w-full py-2 border border-[#0B192C] text-[#0B192C] font-bold rounded-lg bg-white hover:bg-slate-50 text-[10px] uppercase tracking-wider cursor-pointer font-mono"
+                      >
+                        ASSIGN
+                      </button>
                     </div>
                   </div>
                 );
@@ -408,7 +340,6 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
             </div>
           )}
         </div>
-
       </div>
       )}
 
