@@ -155,66 +155,19 @@ export async function exportPDF(
       }
     };
 
-    // Text parsing
+    // Split text into pre-table, table, and post-table lines
     const lines = messageData.text.split('\n');
-    let inTable = false;
+    let preTableLines: string[] = [];
     let tableHeaders: string[] = [];
     let tableRows: string[][] = [];
-
-    const flushTable = () => {
-      if (tableHeaders.length > 0 || tableRows.length > 0) {
-        const colCount = Math.max(tableHeaders.length, ...tableRows.map(r => r.length));
-        if (colCount > 0) {
-          const cleanHeaders = tableHeaders.map(h => h.replace(/\*\*/g, '').trim());
-          const cleanRows = tableRows.map(row => 
-            row.map(cell => cell.replace(/\*\*/g, '').trim())
-          );
-
-          checkPageBreak(30);
-
-          autoTable(pdf, {
-            startY: y,
-            head: [cleanHeaders],
-            body: cleanRows,
-            theme: 'striped',
-            headStyles: { fillColor: [24, 44, 71] }, // BRAND_COLOR
-            styles: { fontSize: 8.5, cellPadding: 6, font: 'helvetica' },
-            didParseCell: (data) => {
-              if (data.section === 'body') {
-                const cellText = String(data.cell.raw || '');
-                const cellTextLower = cellText.toLowerCase();
-                
-                // Color the Status column matching our StatusBadge colors
-                if (cellTextLower.includes('expired')) {
-                  data.cell.styles.fillColor = '#FEE2E2';
-                  data.cell.styles.textColor = '#B91C1C';
-                  data.cell.styles.fontStyle = 'bold';
-                } else if (cellTextLower.includes('expiring') || cellTextLower.includes('soon')) {
-                  data.cell.styles.fillColor = '#FEF3C7';
-                  data.cell.styles.textColor = '#B45309';
-                  data.cell.styles.fontStyle = 'bold';
-                } else if (cellTextLower.includes('valid')) {
-                  data.cell.styles.fillColor = '#D1FAE5';
-                  data.cell.styles.textColor = '#047857';
-                  data.cell.styles.fontStyle = 'bold';
-                }
-              }
-            }
-          });
-
-          y = (pdf as any).lastAutoTable.finalY + 15;
-        }
-        tableHeaders = [];
-        tableRows = [];
-      }
-      inTable = false;
-    };
+    let postTableLines: string[] = [];
+    let seenTable = false;
+    let finishedTable = false;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
-
       if (line.startsWith('|')) {
-        inTable = true;
+        seenTable = true;
         const cols = line.split('|').map(c => c.trim()).filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
         if (line.includes(':---') || line.includes('---')) {
           continue;
@@ -225,62 +178,109 @@ export async function exportPDF(
           tableRows.push(cols);
         }
       } else {
-        if (inTable) {
-          flushTable();
+        if (seenTable) {
+          finishedTable = true;
         }
-
-        if (line.startsWith('###')) {
-          const titleText = line.replace(/^###\s+/, '').replace(/\*\*/g, '');
-          checkPageBreak(25);
-          pdf.setTextColor(BRAND_COLOR);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(10.5);
-          pdf.text(titleText, 20, y + 5);
-          y += 20;
-        } else if (line.startsWith('####')) {
-          const subTitleText = line.replace(/^####\s+/, '').replace(/\*\*/g, '');
-          checkPageBreak(20);
-          pdf.setTextColor('#475569');
-          pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(9);
-          pdf.text(subTitleText, 20, y + 3);
-          y += 15;
-        } else if (line.startsWith('-')) {
-          const bulletText = line.replace(/^-\s+/, '').replace(/\*\*/g, '');
-          const wrapped = pdf.splitTextToSize(bulletText, pageW - 60);
-          checkPageBreak(wrapped.length * 11 + 5);
-          pdf.setTextColor('#334155');
-          pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(8.5);
-          wrapped.forEach((wLine: string, idx: number) => {
-            if (idx === 0) {
-              pdf.text('•', 22, y + 2);
-            }
-            pdf.text(wLine, 32, y + 2);
-            y += 10.5;
-          });
-          y += 3;
-        } else if (line !== '') {
-          const cleanLine = line.replace(/\*\*/g, '');
-          const wrapped = pdf.splitTextToSize(cleanLine, pageW - 40);
-          checkPageBreak(wrapped.length * 11 + 5);
-          pdf.setTextColor('#334155');
-          pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(8.5);
-          wrapped.forEach((wLine: string) => {
-            pdf.text(wLine, 20, y + 2);
-            y += 10.5;
-          });
-          y += 4;
+        if (finishedTable) {
+          postTableLines.push(line);
+        } else {
+          preTableLines.push(line);
         }
       }
     }
 
-    if (inTable) {
-      flushTable();
+    // 1. Render pre-table text (Summary, title, etc.)
+    for (let i = 0; i < preTableLines.length; i++) {
+      const line = preTableLines[i].trim();
+      if (line.startsWith('###')) {
+        const titleText = line.replace(/^###\s+/, '').replace(/\*\*/g, '');
+        checkPageBreak(25);
+        pdf.setTextColor(BRAND_COLOR);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(10.5);
+        pdf.text(titleText, 20, y + 5);
+        y += 20;
+      } else if (line.startsWith('####')) {
+        const subTitleText = line.replace(/^####\s+/, '').replace(/\*\*/g, '');
+        checkPageBreak(20);
+        pdf.setTextColor('#475569');
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(9);
+        pdf.text(subTitleText, 20, y + 3);
+        y += 15;
+      } else if (line.startsWith('-')) {
+        const bulletText = line.replace(/^-\s+/, '').replace(/\*\*/g, '');
+        const wrapped = pdf.splitTextToSize(bulletText, pageW - 60);
+        checkPageBreak(wrapped.length * 11 + 5);
+        pdf.setTextColor('#334155');
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8.5);
+        wrapped.forEach((wLine: string, idx: number) => {
+          if (idx === 0) {
+            pdf.text('•', 22, y + 2);
+          }
+          pdf.text(wLine, 32, y + 2);
+          y += 10.5;
+        });
+        y += 3;
+      } else if (line !== '') {
+        const cleanLine = line.replace(/\*\*/g, '');
+        const wrapped = pdf.splitTextToSize(cleanLine, pageW - 40);
+        checkPageBreak(wrapped.length * 11 + 5);
+        pdf.setTextColor('#334155');
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8.5);
+        wrapped.forEach((wLine: string) => {
+          pdf.text(wLine, 20, y + 2);
+          y += 10.5;
+        });
+        y += 4;
+      }
     }
 
-    // Embed chart cleanly if present
+    // 2. Render table using jspdf-autotable
+    if (tableHeaders.length > 0) {
+      const cleanHeaders = tableHeaders.map(h => h.replace(/\*\*/g, '').trim());
+      const cleanRows = tableRows.map(row => 
+        row.map(cell => cell.replace(/\*\*/g, '').trim())
+      );
+
+      checkPageBreak(30);
+
+      autoTable(pdf, {
+        startY: y,
+        head: [cleanHeaders],
+        body: cleanRows,
+        theme: 'striped',
+        headStyles: { fillColor: [24, 44, 71] }, // BRAND_COLOR
+        styles: { fontSize: 8.5, cellPadding: 6, font: 'helvetica' },
+        didParseCell: (data) => {
+          if (data.section === 'body') {
+            const cellText = String(data.cell.raw || '');
+            const cellTextLower = cellText.toLowerCase();
+            
+            // Color the Status column matching our StatusBadge colors
+            if (cellTextLower.includes('expired')) {
+              data.cell.styles.fillColor = '#FEE2E2';
+              data.cell.styles.textColor = '#B91C1C';
+              data.cell.styles.fontStyle = 'bold';
+            } else if (cellTextLower.includes('expiring') || cellTextLower.includes('soon')) {
+              data.cell.styles.fillColor = '#FEF3C7';
+              data.cell.styles.textColor = '#B45309';
+              data.cell.styles.fontStyle = 'bold';
+            } else if (cellTextLower.includes('valid')) {
+              data.cell.styles.fillColor = '#D1FAE5';
+              data.cell.styles.textColor = '#047857';
+              data.cell.styles.fontStyle = 'bold';
+            }
+          }
+        }
+      });
+
+      y = (pdf as any).lastAutoTable.finalY + 15;
+    }
+
+    // 3. Render chart with height bound to remaining space
     if (messageData.chart) {
       const chartEl = element.querySelector('.recharts-responsive-container') || element.querySelector('.chart-container');
       if (chartEl) {
@@ -292,15 +292,74 @@ export async function exportPDF(
         });
         const imgData = canvas.toDataURL('image/png');
         const imgW = pageW - 60;
-        const imgH = (canvas.height / canvas.width) * imgW;
         
-        checkPageBreak(imgH + 30);
+        // Estimate post-table insights height to reserve space
+        const insightsSectionH = postTableLines.length * 11.5 + 40;
+        
+        // Push chart to next page if remaining space is too tight
+        const remainingSpace = pageH - footerH - y - 20;
+        if (remainingSpace < 120) {
+          checkPageBreak(120);
+        }
+
+        const chartMaxH = Math.max(100, pageH - footerH - y - insightsSectionH - 25);
+        const imgH = Math.min(chartMaxH, (canvas.height / canvas.width) * imgW);
+        
         pdf.setFillColor('#f8fafc');
         pdf.rect(20, y, pageW - 40, imgH + 15, 'F');
         pdf.setDrawColor('#e2e8f0');
         pdf.rect(20, y, pageW - 40, imgH + 15);
         pdf.addImage(imgData, 'PNG', 30, y + 7, imgW, imgH);
         y += imgH + 25;
+      }
+    }
+
+    // 4. Render post-table text (Key Insights & Recommended Actions)
+    for (let i = 0; i < postTableLines.length; i++) {
+      const line = postTableLines[i].trim();
+      if (line.startsWith('###')) {
+        const titleText = line.replace(/^###\s+/, '').replace(/\*\*/g, '');
+        checkPageBreak(25);
+        pdf.setTextColor(BRAND_COLOR);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(10.5);
+        pdf.text(titleText, 20, y + 5);
+        y += 20;
+      } else if (line.startsWith('####')) {
+        const subTitleText = line.replace(/^####\s+/, '').replace(/\*\*/g, '');
+        checkPageBreak(20);
+        pdf.setTextColor('#475569');
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(9);
+        pdf.text(subTitleText, 20, y + 3);
+        y += 15;
+      } else if (line.startsWith('-')) {
+        const bulletText = line.replace(/^-\s+/, '').replace(/\*\*/g, '');
+        const wrapped = pdf.splitTextToSize(bulletText, pageW - 60);
+        checkPageBreak(wrapped.length * 11 + 5);
+        pdf.setTextColor('#334155');
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8.5);
+        wrapped.forEach((wLine: string, idx: number) => {
+          if (idx === 0) {
+            pdf.text('•', 22, y + 2);
+          }
+          pdf.text(wLine, 32, y + 2);
+          y += 10.5;
+        });
+        y += 3;
+      } else if (line !== '') {
+        const cleanLine = line.replace(/\*\*/g, '');
+        const wrapped = pdf.splitTextToSize(cleanLine, pageW - 40);
+        checkPageBreak(wrapped.length * 11 + 5);
+        pdf.setTextColor('#334155');
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8.5);
+        wrapped.forEach((wLine: string) => {
+          pdf.text(wLine, 20, y + 2);
+          y += 10.5;
+        });
+        y += 4;
       }
     }
 

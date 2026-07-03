@@ -108,6 +108,36 @@ async function handleExpiredCertifications(userId: string, referenceDate: string
     summarySentence = `All operator certifications are valid. No immediate action is required.\n\n`;
   }
 
+  // Group rows by operator ID
+  const byOperator: Record<string, typeof rows> = {};
+  rows.forEach(r => {
+    if (!byOperator[r.associateId]) byOperator[r.associateId] = [];
+    byOperator[r.associateId].push(r);
+  });
+
+  const repeatOffenders = Object.entries(byOperator).filter(([, v]) => v.length > 1);
+
+  let insightsMarkdown = '';
+  let actionsMarkdown = '';
+
+  if (rows.length > 0 && mostOverdue) {
+    const repeatNames = repeatOffenders.map(([, v]) => v[0].associateName);
+
+    insightsMarkdown = `### Key Insights\n` +
+      `- ${certCount} certifications expired across ${Object.keys(byOperator).length} operator(s).\n` +
+      `- ${mostOverdue.associateName} has the most overdue item: ${mostOverdue.skillName}, ${mostOverdue.daysOverdue} days past expiry.\n` +
+      `- ${repeatOffenders.length > 0 
+        ? `${repeatOffenders.length} operator(s) have more than one expired certification and should be prioritized for retraining.` 
+        : `No operator currently has more than one expired certification.`}\n\n`;
+
+    actionsMarkdown = `### Recommended Actions\n` +
+      `- Schedule recertification for all operators listed above before their next assigned shift.\n` +
+      `- Flag affected workstations for supervisor review until recertification is complete.\n` +
+      (repeatOffenders.length > 0 
+        ? `- Prioritize ${repeatNames.join(', ')} for immediate retraining scheduling.\n\n` 
+        : `\n`);
+  }
+
   // Text answer (No emojis to prevent encoding corruptions)
   let answer = `### Expired Operator Certifications\n\n`;
   answer += summarySentence;
@@ -117,6 +147,9 @@ async function handleExpiredCertifications(userId: string, referenceDate: string
     rows.forEach(r => {
       answer += `| **${r.associateName}** (ID: ${r.associateId}) | ${r.skillName} | ${r.expiryDate} | Expired (${r.daysOverdue}d) |\n`;
     });
+    answer += `\n`;
+    answer += insightsMarkdown;
+    answer += actionsMarkdown;
   }
 
   // Redesign Chart: One bar per person/skill combination, color-graded by urgency
