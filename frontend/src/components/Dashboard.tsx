@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { SchedulesTab } from './SchedulesTab';
 
 interface DashboardProps {
   setActiveTab: (tab: string) => void;
@@ -16,54 +15,54 @@ const AVATAR_MAP: Record<string, string> = {
 export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedLineId }) => {
   const { productionLines, workstations, allocations, associates, associateSkills, leaveRecords, role, user } = useApp();
 
-  const [dashboardSubTab, setDashboardSubTab] = useState<'overview' | 'assets' | 'schedules'>('overview');
-  const [assetsFilterTab, setAssetsFilterTab] = useState<'ALL' | 'UNALLOCATED'>('ALL');
+  const [dashboardSubTab, setDashboardSubTab] = useState<'overview' | 'assets'>('overview');
+  const [assetsFilterTab, setAssetsFilterTab] = useState<'ALL' | 'ATTENTION'>('ALL');
   
 
 
   const renderAssetsSubTab = () => {
-    // Determine today's allocations
-    const todayAllocations = allocations.filter(a => a.date === todayDateStr);
-    
-    // Build list of assets (workstations)
-    const assets = workstations.map(ws => {
-      // Find allocation for today
-      const alloc = todayAllocations.find(a => a.workstationId === ws.id);
-      const assoc = alloc ? associates.find(a => a.id === alloc.associateId) : null;
+    // Generate mock maintenance data for assets
+    const assetsWithMaintenance = workstations.map((ws, index) => {
+      // Mock some issues based on index
+      const isFault = index % 7 === 0;
+      const isWarning = index % 5 === 0 && !isFault;
       
+      let status: 'Operational' | 'Maintenance Required' | 'Critical Fault' = 'Operational';
+      let complaint = 'No active issues';
+      let nextService = new Date();
+      nextService.setDate(nextService.getDate() + 30 + (index * 5));
+
+      if (isFault) {
+        status = 'Critical Fault';
+        complaint = 'Motor vibration detected exceeding safety thresholds.';
+        nextService = new Date(); // Today
+      } else if (isWarning) {
+        status = 'Maintenance Required';
+        complaint = 'Routine calibration overdue.';
+        nextService.setDate(nextService.getDate() - 2); // Past due
+      }
+
       return {
         id: ws.id,
         name: ws.name,
-        requiredSkillId: ws.requiredSkillId,
-        minSkillLevel: ws.minSkillLevel,
         lineId: ws.lineId,
-        isAllocated: !!assoc,
-        associate: assoc
+        status,
+        complaint,
+        nextService: nextService.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        isHealthy: status === 'Operational'
       };
     });
 
-    // Count statistics
-    const totalAssets = assets.length;
-    const allocatedCount = assets.filter(a => a.isAllocated).length;
-    const criticalGapsCount = totalAssets - allocatedCount;
-    const dynamicCapacity = Math.min(100, Math.round((allocatedCount / totalAssets) * 100));
+    const totalAssets = assetsWithMaintenance.length;
+    const healthyCount = assetsWithMaintenance.filter(a => a.isHealthy).length;
+    const issueCount = totalAssets - healthyCount;
 
-    // Filter assets list based on filter tab selection
-    const filteredAssets = assets.filter(a => {
-      if (assetsFilterTab === 'UNALLOCATED') {
-        return !a.isAllocated;
+    const filteredAssets = assetsWithMaintenance.filter(a => {
+      if (assetsFilterTab === 'ATTENTION') {
+        return !a.isHealthy;
       }
       return true;
     });
-
-    // Get initials for profile bubble
-    const getInitials = (name: string) => {
-      const parts = name.trim().split(/\s+/);
-      if (parts.length >= 2) {
-        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-      }
-      return name.slice(0, 2).toUpperCase();
-    };
 
     return (
       <div className="flex-grow flex flex-col h-full overflow-hidden select-text bg-slate-50/40">
@@ -84,21 +83,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
             </button>
             <button
               type="button"
-              onClick={() => setAssetsFilterTab('UNALLOCATED')}
+              onClick={() => setAssetsFilterTab('ATTENTION')}
               className={`py-1.5 px-4 font-bold text-[10px] font-mono tracking-wider rounded-lg border transition-all uppercase cursor-pointer ${
-                assetsFilterTab === 'UNALLOCATED'
-                  ? 'bg-[#091426] text-white border-[#091426] shadow-premium-md'
-                  : 'bg-white text-secondary border-outline-variant hover:bg-slate-50 hover:text-primary shadow-premium-sm'
+                assetsFilterTab === 'ATTENTION'
+                  ? 'bg-rose-600 text-white border-rose-600 shadow-premium-md'
+                  : 'bg-white text-secondary border-outline-variant hover:bg-rose-50 hover:text-rose-600 shadow-premium-sm'
               }`}
             >
-              Unallocated ({criticalGapsCount})
-            </button>
-            <button
-              type="button"
-              onClick={() => alert("Advanced filters: filter by line, shift, or workstation group.")}
-              className="p-1.5 border border-outline-variant rounded-lg bg-white hover:bg-slate-55 transition-all shadow-premium-sm cursor-pointer flex items-center justify-center text-secondary hover:text-primary"
-            >
-              <span className="material-symbols-outlined text-sm font-bold">filter_list</span>
+              Attention Needed ({issueCount})
             </button>
           </div>
 
@@ -110,13 +102,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
             </div>
             <div className="w-[1px] h-6 bg-outline-variant" />
             <div className="text-right">
-              <span className="text-[8px] font-bold text-secondary uppercase tracking-widest block leading-none">Line Capacity</span>
-              <span className="text-sm font-bold text-emerald-600 mt-1 block">{dynamicCapacity}%</span>
+              <span className="text-[8px] font-bold text-secondary uppercase tracking-widest block leading-none">Healthy</span>
+              <span className="text-sm font-bold text-emerald-600 mt-1 block">{String(healthyCount).padStart(2, '0')}</span>
             </div>
             <div className="w-[1px] h-6 bg-outline-variant" />
             <div className="text-right">
-              <span className="text-[8px] font-bold text-secondary uppercase tracking-widest block leading-none">Critical Gaps</span>
-              <span className="text-sm font-bold text-rose-600 mt-1 block">{String(criticalGapsCount).padStart(2, '0')}</span>
+              <span className="text-[8px] font-bold text-secondary uppercase tracking-widest block leading-none">Active Issues</span>
+              <span className="text-sm font-bold text-rose-600 mt-1 block">{String(issueCount).padStart(2, '0')}</span>
             </div>
           </div>
         </div>
@@ -125,78 +117,87 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
         <div className="flex-1 overflow-y-auto p-6 lg:p-8 custom-scrollbar">
           {filteredAssets.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-white border border-outline-variant rounded-xl shadow-premium-sm">
-              <span className="material-symbols-outlined text-4xl text-secondary mb-2">precision_manufacturing</span>
-              <h3 className="font-bold text-xs text-[#0F172A] uppercase font-mono tracking-wider">No Assets Found</h3>
-              <p className="text-[10px] text-secondary mt-1">All workstations are currently allocated, or no active filters match.</p>
+              <span className="material-symbols-outlined text-4xl text-emerald-500 mb-2">check_circle</span>
+              <h3 className="font-bold text-xs text-[#0F172A] uppercase font-mono tracking-wider">All Clear</h3>
+              <p className="text-[10px] text-secondary mt-1">All machines are currently operational and healthy.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
               {filteredAssets.map(asset => {
-                const badgeText = `${asset.minSkillLevel} Level`;
+                const isFault = asset.status === 'Critical Fault';
+                const isWarning = asset.status === 'Maintenance Required';
+                
+                let borderColor = 'border-outline-variant hover:border-slate-350';
+                let headerBg = 'bg-slate-50/40';
+                let iconColor = 'text-emerald-600';
+                let iconName = 'check_circle';
+                let footerBg = 'bg-[#091426]';
+                
+                if (isFault) {
+                  borderColor = 'border-rose-300 shadow-rose-100 hover:border-rose-400';
+                  headerBg = 'bg-rose-50/50';
+                  iconColor = 'text-rose-600';
+                  iconName = 'error';
+                  footerBg = 'bg-rose-700';
+                } else if (isWarning) {
+                  borderColor = 'border-amber-300 shadow-amber-100 hover:border-amber-400';
+                  headerBg = 'bg-amber-50/50';
+                  iconColor = 'text-amber-600';
+                  iconName = 'warning';
+                  footerBg = 'bg-amber-600';
+                }
                 
                 return (
                   <div 
                     key={asset.id} 
-                    className={`bg-white border border-outline-variant rounded-xl overflow-hidden shadow-premium-sm hover:shadow-premium-md hover:border-slate-350 transition-all flex flex-col justify-between ${
-                      !asset.isAllocated ? 'border-rose-150' : ''
-                    }`}
+                    className={`bg-white border rounded-xl overflow-hidden shadow-premium-sm hover:shadow-premium-md transition-all flex flex-col justify-between ${borderColor}`}
                   >
                     {/* Card Header */}
-                    <div className={`p-4 border-b border-outline-variant flex justify-between items-start ${
-                      !asset.isAllocated ? 'bg-rose-50/20' : 'bg-slate-50/40'
-                    }`}>
+                    <div className={`p-4 border-b border-outline-variant flex justify-between items-start ${headerBg}`}>
                       <div>
                         <h4 className="font-bold text-xs text-[#0F172A] tracking-tight">{asset.name}</h4>
                         <p className="text-[9px] font-mono text-secondary mt-0.5 uppercase tracking-wider">Asset ID: {asset.id}</p>
                       </div>
-                      {!asset.isAllocated ? (
-                        <span className="material-symbols-outlined text-rose-600 text-[18px] font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>error</span>
-                      ) : (
-                        <span className="material-symbols-outlined text-emerald-600 text-[18px] font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                      )}
+                      <span className={`material-symbols-outlined ${iconColor} text-[18px] font-bold`} style={{ fontVariationSettings: "'FILL' 1" }}>{iconName}</span>
                     </div>
 
                     {/* Card Body */}
-                    <div className="p-5 flex flex-col items-center justify-center gap-2 flex-grow min-h-[90px]">
-                      <span className="text-[8px] font-bold text-secondary uppercase font-mono tracking-widest select-none font-label-caps">Required Skill</span>
-                      <span className="bg-slate-900 text-white font-mono text-[9px] font-bold px-3 py-1 rounded tracking-wider uppercase select-none">
-                        {badgeText}
-                      </span>
+                    <div className="p-5 flex flex-col gap-4 flex-grow">
+                      <div>
+                        <span className="text-[8px] font-bold text-secondary uppercase font-mono tracking-widest block mb-1">Status</span>
+                        <span className={`font-bold text-[10px] uppercase ${iconColor}`}>{asset.status}</span>
+                      </div>
+                      
+                      <div>
+                        <span className="text-[8px] font-bold text-secondary uppercase font-mono tracking-widest block mb-1">Active Complaint</span>
+                        <p className="text-[10px] text-slate-700 leading-tight line-clamp-2">{asset.complaint}</p>
+                      </div>
                     </div>
 
                     {/* Card Footer */}
-                    {!asset.isAllocated ? (
-                      <div className="bg-rose-700 text-white px-4 py-3 flex justify-between items-center select-none shrink-0">
-                        <span className="text-[9px] font-bold uppercase tracking-wider font-mono">UNALLOCATED</span>
+                    <div className={`${footerBg} text-white px-4 py-3 flex justify-between items-center select-none shrink-0`}>
+                      <div className="flex flex-col">
+                        <span className="text-[7px] text-white/70 font-bold uppercase font-mono tracking-widest leading-none">NEXT SERVICE</span>
+                        <span className="text-[10px] font-bold text-white mt-0.5">{asset.nextService}</span>
+                      </div>
+                      
+                      {!asset.isHealthy ? (
                         <button
                           type="button"
-                          onClick={() => {
-                            setSelectedLineId(asset.lineId);
-                            setActiveTab('shift_planner');
-                          }}
                           className="px-2.5 py-1 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded text-[8px] font-bold flex items-center gap-1 transition-all uppercase tracking-wider cursor-pointer"
                         >
-                          <span className="material-symbols-outlined text-[12px] font-bold">person_add</span>
-                          <span>Assign</span>
+                          <span className="material-symbols-outlined text-[12px] font-bold">build</span>
+                          <span>Fix</span>
                         </button>
-                      </div>
-                    ) : (
-                      <div className="bg-[#0B2C1A] text-white px-4 py-3 flex justify-between items-center select-none shrink-0">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="w-5 h-5 rounded-full bg-emerald-600/30 text-emerald-400 flex items-center justify-center font-bold text-[9px] font-mono border border-emerald-500/20 shrink-0">
-                            {getInitials(asset.associate?.name || '')}
-                          </div>
-                          <div className="flex flex-col min-w-0 leading-tight">
-                            <span className="text-[7px] text-emerald-400 font-bold uppercase font-mono tracking-widest leading-none">ALLOCATED TO</span>
-                            <span className="text-[10px] font-bold text-white truncate max-w-[110px] mt-0.5">{asset.associate?.name}</span>
-                          </div>
-                        </div>
-                        <span className="text-[8px] font-bold text-emerald-400 uppercase font-mono tracking-widest flex items-center gap-1 shrink-0">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                          <span>Active</span>
-                        </span>
-                      </div>
-                    )}
+                      ) : (
+                        <button
+                          type="button"
+                          className="px-2.5 py-1 bg-white/5 hover:bg-white/10 text-white/80 rounded text-[8px] font-bold flex items-center gap-1 transition-all uppercase tracking-wider cursor-pointer"
+                        >
+                          <span>Logs</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -214,11 +215,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-rose-600">
               <span className="w-2 h-2 rounded-full bg-rose-600"></span>
-              <span>LIVE INCIDENTS: 0</span>
+              <span>LIVE INCIDENTS: {issueCount}</span>
             </span>
             <span className="flex items-center gap-1.5 text-[#14b8a6]">
               <span className="w-2 h-2 rounded-full bg-[#14b8a6]"></span>
-              <span>SYSTEM HEALTH: NOMINAL</span>
+              <span>SYSTEM HEALTH: {issueCount > 0 ? 'ATTENTION' : 'NOMINAL'}</span>
             </span>
           </div>
         </footer>
@@ -340,17 +341,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
             >
               Overview
               {dashboardSubTab === 'overview' && (
-                <div className="absolute bottom-[-18px] left-0 right-0 h-[2px] bg-primary rounded-full" />
-              )}
-            </button>
-            <button
-              onClick={() => setDashboardSubTab('schedules')}
-              className={`pb-1 text-xs font-bold transition-all cursor-pointer relative ${
-                dashboardSubTab === 'schedules' ? 'text-primary' : 'text-secondary hover:text-primary'
-              }`}
-            >
-              Schedules
-              {dashboardSubTab === 'schedules' && (
                 <div className="absolute bottom-[-18px] left-0 right-0 h-[2px] bg-primary rounded-full" />
               )}
             </button>
@@ -710,8 +700,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
         </section>
 
       </div>
-      ) : dashboardSubTab === 'schedules' ? (
-        <SchedulesTab />
       ) : (
         renderAssetsSubTab()
       )}

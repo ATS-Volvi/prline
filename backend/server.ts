@@ -87,8 +87,11 @@ class Server{
         await this.connectToDb()
 
         try {
-          const { Associate } = await import('../database/models/models/models');
+          const { Associate, RagChunk } = await import('../database/models/models/models');
           const { seedDatabase } = await import('../database/models/seed');
+          const { sequelize } = await import('./config/dbConn');
+          await sequelize.query('CREATE EXTENSION IF NOT EXISTS vector;');
+          await sequelize.sync({ alter: true });
           const count = await (Associate as any).count();
           if (count === 0) {
             console.log("No associates found. Seeding database...");

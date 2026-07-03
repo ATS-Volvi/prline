@@ -31,6 +31,79 @@ const mapColor = (c: string) => {
   return c;
 };
 
+interface ChartSpec {
+  type: 'bar' | 'barH' | 'composed' | 'line' | 'table';
+  title: string;
+  data: any[];
+  xKey: string;
+  bars?: { key: string; color: string }[];
+  lines?: { key: string; color: string }[];
+  stacked?: boolean;
+  domain?: [number | string, number | string];
+}
+
+const CustomChartTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-900/90 text-white px-2 py-1 rounded text-[8px] font-mono shadow border border-slate-700">
+        <p className="font-bold border-b border-slate-700 pb-0.5 mb-0.5">{payload[0].payload.name}</p>
+        {payload.map((p: any, idx: number) => (
+          <div key={idx} className="flex gap-2 items-center justify-between">
+            <span style={{ color: p.color || '#14b8a6' }}>{p.name}:</span>
+            <span className="font-bold">{p.value}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+const ChartRenderer: React.FC<{ spec: ChartSpec }> = ({ spec }) => {
+  if (!spec || !spec.data || spec.data.length === 0) return null;
+
+  return (
+    <div className="border-t border-slate-100 pt-2 flex flex-col gap-1">
+      <h4 className="text-[8px] font-bold text-slate-400 uppercase tracking-wider font-mono">{spec.title}</h4>
+      <div className="h-[100px] w-full text-[8px] font-mono">
+        <ResponsiveContainer width="100%" height="100%">
+          {spec.type === 'barH' ? (
+            <BarChart layout="vertical" data={spec.data} margin={{ top: 2, right: 10, left: -25, bottom: 0 }}>
+              <XAxis type="number" stroke="#94a3b8" tick={{ fontSize: 7 }} />
+              <YAxis type="category" dataKey={spec.xKey} stroke="#94a3b8" tick={{ fontSize: 7 }} width={45} />
+              <Tooltip content={<CustomChartTooltip />} />
+              {(spec.bars || []).map((b) => (
+                <Bar key={b.key} dataKey={b.key} fill={mapColor(b.color)} stackId={spec.stacked ? 'a' : undefined} radius={[0, 2, 2, 0]} />
+              ))}
+            </BarChart>
+          ) : spec.type === 'composed' ? (
+            <ComposedChart data={spec.data} margin={{ top: 2, right: 10, left: -25, bottom: 0 }}>
+              <XAxis dataKey={spec.xKey} stroke="#94a3b8" tick={{ fontSize: 7 }} />
+              <YAxis stroke="#94a3b8" tick={{ fontSize: 7 }} />
+              <Tooltip content={<CustomChartTooltip />} />
+              {(spec.bars || []).map((b) => (
+                <Bar key={b.key} dataKey={b.key} fill={mapColor(b.color)} name={b.key} />
+              ))}
+              {(spec.lines || []).map((l) => (
+                <Line key={l.key} type="monotone" dataKey={l.key} stroke={mapColor(l.color)} strokeWidth={1} dot={false} name={l.key} />
+              ))}
+            </ComposedChart>
+          ) : (
+            <BarChart data={spec.data} margin={{ top: 2, right: 10, left: -25, bottom: 0 }}>
+              <XAxis dataKey={spec.xKey} stroke="#94a3b8" tick={{ fontSize: 7 }} />
+              <YAxis stroke="#94a3b8" tick={{ fontSize: 7 }} domain={spec.domain || [0, 'auto']} />
+              <Tooltip content={<CustomChartTooltip />} />
+              {(spec.bars || []).map((b) => (
+                <Bar key={b.key} dataKey={b.key} fill={mapColor(b.color)} stackId={spec.stacked ? 'a' : undefined} radius={spec.stacked ? undefined : [2, 2, 0, 0]} name={b.key} />
+              ))}
+            </BarChart>
+          )}
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+};
+
 // ─── Component ──────────────────────────────────────────────────────────────
 export const AiReports: React.FC = () => {
   const { logout } = useApp();
@@ -463,7 +536,7 @@ export const AiReports: React.FC = () => {
   };
 
   // ── Chat Send Handler ────────────────────────────────────────────────────
-  const handleSendMessage = (text: string) => {
+  const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
 
     setMessages(prev => [...prev, {
@@ -474,394 +547,37 @@ export const AiReports: React.FC = () => {
     setChatInput('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      const q   = text.toLowerCase();
-      const data = computed;
-      const raw  = reportData;
+    try {
+      const token = localStorage.getItem('pepsico_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      if (!data || !raw) {
-        setMessages(prev => [...prev, {
-          sender:    'copilot',
-          text:      'Live data is still loading. Please wait a moment and try again.',
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }]);
-        setIsTyping(false);
-        return;
-      }
+      const res = await fetch('/api/v1/reports/rag-chat', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ query: text, dateRange, lineId: selectedLine })
+      });
 
-      const insights: { type: string; message: string }[] = [];
-      let lineName = 'ALL LINES';
-      let kpis: any   = null;
-      let chartData: any = null;
-
-      // ── helpers ───────────────────────────────────────────────────────────
-      const allAssociates:    any[] = raw.associates       || [];
-      const activeAssociates: any[] = data.activeAssociates || [];
-      const associateSkills:  any[] = raw.associateSkills  || [];
-      const allocations:      any[] = raw.allocations      || [];
-      const leaveRecords:     any[] = raw.leaveRecords     || [];
-      const workstations:     any[] = raw.workstations     || [];
-      const productionLines:  any[] = raw.productionLines  || [];
-      const shifts:           any[] = raw.shifts           || [];
-      const skills:           any[] = raw.skills           || [];
-      const auditLogs:        any[] = raw.auditLogs        || [];
-      const today = data.todayDateStr;
-
-      // Detect which production line the user is asking about
-      const matchedLine = productionLines.find((l: any) =>
-        q.includes(l.name?.toLowerCase()) ||
-        q.includes(l.id?.toLowerCase()) ||
-        (l.name && q.includes(l.name.split(' - ')[0]?.toLowerCase()))
-      );
-      if (matchedLine) lineName = matchedLine.name;
-
-      // ── Intent Classification ─────────────────────────────────────────────
-
-      // 1. Certification / Skill Expiry
-      if (q.match(/expir|certif|renewal|laps|overdue|skill.gap|missing.skill/)) {
-        const expired    = data.certExpired;
-        const expiring30 = data.certExpiringIn30;
-        const valid      = data.certValid;
-
-        const expiredNames = expired.slice(0, 5).map((s: any) => {
-          const assoc = allAssociates.find((a: any) => a.id === s.associateId);
-          const skill = skills.find((sk: any) => sk.id === s.skillId);
-          return `${assoc?.name || s.associateId} (${skill?.name || s.skillId})`;
-        });
-
-        insights.push({
-          type:    expired.length > 0 ? 'critical' : 'good',
-          message: `${expired.length} operator certifications are currently expired across all lines.${expiredNames.length ? ' Affected: ' + expiredNames.join(', ') + (expired.length > 5 ? ` and ${expired.length - 5} more.` : '.') : ''}`
-        });
-        insights.push({
-          type:    expiring30.length > 5 ? 'warning' : 'good',
-          message: `${expiring30.length} certifications expire within the next 30 days and require scheduled renewal.`
-        });
-        insights.push({
-          type:    'good',
-          message: `${valid.length} certifications are active and valid. Overall cert health: ${Math.round((valid.length / (valid.length + expired.length || 1)) * 100)}%.`
-        });
-
-        kpis = {
-          output:      { value: `${expired.length} Expired`,         trend: expired.length > 0 ? 'Action Required' : 'Clean',   color: '#f43f5e' },
-          utilization: { value: `${valid.length} Valid`,             trend: 'Certified',                                         color: '#14b8a6' },
-          downtime:    { value: `${expiring30.length} Due Soon`,     trend: 'Monitor',                                           color: '#f59e0b' },
-          operators:   { value: `${activeAssociates.length} Active`, trend: 'Nominal',                                           color: '#64748b' }
-        };
-        chartData = {
-          type: 'bar', title: 'Certification Status by Skill',
-          data: skills.map((sk: any) => {
-            const all = associateSkills.filter((s: any) => s.skillId === sk.id);
-            const exp = all.filter((s: any) => new Date(s.expiryDate) < new Date(today)).length;
-            const v   = all.filter((s: any) => new Date(s.expiryDate) >= new Date(today)).length;
-            return { name: sk.name?.split(' ')[0] || sk.id, Valid: v, Expired: exp };
-          }),
-          bars: [{ key: 'Valid', color: '#14b8a6' }, { key: 'Expired', color: '#f43f5e' }],
-          xKey: 'name', stacked: true
-        };
-      }
-
-      // 2. Leave / Absenteeism
-      else if (q.match(/leave|absent|off.day|holiday|sick|availab/)) {
-        const todayLeaves  = leaveRecords.filter((l: any) => l.date === today);
-        const futureLeaves = leaveRecords.filter((l: any) => l.date > today);
-        const onLeaveNames = todayLeaves.slice(0, 5).map((l: any) => {
-          const assoc = allAssociates.find((a: any) => a.id === l.associateId);
-          return assoc?.name || l.associateId;
-        });
-
-        insights.push({
-          type:    todayLeaves.length > 0 ? 'warning' : 'good',
-          message: `Today (${today}): ${todayLeaves.length} operator(s) on leave.${onLeaveNames.length ? ' Names: ' + onLeaveNames.join(', ') + '.' : ''}`
-        });
-        insights.push({
-          type:    'good',
-          message: `${activeAssociates.length - todayLeaves.length} operators available today across all lines and shifts.`
-        });
-        if (futureLeaves.length > 0) {
-          insights.push({
-            type:    'warning',
-            message: `${futureLeaves.length} future leave request(s) registered. Earliest: ${futureLeaves[0]?.date}. Review staffing plan proactively.`
-          });
-        }
-
-        kpis = {
-          output:      { value: `${todayLeaves.length} On Leave`,              trend: todayLeaves.length > 3 ? 'High Absence' : 'Normal', color: '#f59e0b' },
-          utilization: { value: `${activeAssociates.length - todayLeaves.length} Available`, trend: 'Staffed', color: '#14b8a6' },
-          downtime:    { value: `${futureLeaves.length} Upcoming`,             trend: 'Plan Ahead',                                       color: '#f59e0b' },
-          operators:   { value: `${activeAssociates.length} Total Active`,     trend: 'Nominal',                                          color: '#64748b' }
-        };
-        chartData = {
-          type: 'bar', title: 'Leave vs Availability — Next 7 Days',
-          data: Array.from({ length: 7 }, (_, i) => {
-            const d = new Date(today); d.setDate(d.getDate() + i);
-            const ds      = d.toISOString().split('T')[0];
-            const onLeave = leaveRecords.filter((l: any) => l.date === ds).length;
-            return { name: d.toLocaleDateString('en', { weekday: 'short', day: 'numeric' }), 'On Leave': onLeave, Available: Math.max(0, activeAssociates.length - onLeave) };
-          }),
-          bars: [{ key: 'Available', color: '#14b8a6' }, { key: 'On Leave', color: '#f59e0b' }],
-          xKey: 'name', stacked: true
-        };
-      }
-
-      // 3. Allocation / Staffing
-      else if (q.match(/allocat|staff|assign|roster|deployed|workstation|filled|coverage/)) {
-        const todayAllocs = allocations.filter((a: any) => a.date === today);
-        const filledWS    = new Set(todayAllocs.map((a: any) => a.workstationId)).size;
-        const totalWS     = workstations.length;
-        const fillRate    = totalWS > 0 ? Math.round((filledWS / totalWS) * 100) : 0;
-        const overrides   = todayAllocs.filter((a: any) => a.overrideReasonCode).length;
-
-        const understaffed = workstations.filter((ws: any) => {
-          const count = todayAllocs.filter((a: any) => a.workstationId === ws.id).length;
-          return count < (ws.maxStaffCount || 1);
-        });
-
-        insights.push({
-          type:    fillRate >= 80 ? 'good' : fillRate >= 50 ? 'warning' : 'critical',
-          message: `Today's fill rate: ${filledWS}/${totalWS} workstations staffed (${fillRate}%).`
-        });
-        if (understaffed.length > 0) {
-          insights.push({
-            type:    'warning',
-            message: `${understaffed.length} workstation(s) are understaffed today: ${understaffed.slice(0, 3).map((w: any) => w.name).join(', ')}${understaffed.length > 3 ? ` and ${understaffed.length - 3} more` : ''}.`
-          });
-        }
-        if (overrides > 0) {
-          insights.push({
-            type:    'warning',
-            message: `${overrides} override allocation(s) active today. Review audit log for justification details.`
-          });
-        }
-        insights.push({
-          type:    'good',
-          message: `${todayAllocs.length} total operator-workstation assignments recorded for ${today}.`
-        });
-
-        kpis = {
-          output:      { value: `${fillRate}% Fill Rate`,     trend: fillRate >= 80 ? 'Optimal' : 'Below Target', color: fillRate >= 80 ? '#14b8a6' : '#f43f5e' },
-          utilization: { value: `${filledWS}/${totalWS} Staffed`, trend: 'Today',                               color: '#14b8a6' },
-          downtime:    { value: `${overrides} Overrides`,     trend: overrides > 0 ? 'Review' : 'Clean',        color: '#f59e0b' },
-          operators:   { value: `${todayAllocs.length} Deployed`, trend: 'Live',                                color: '#64748b' }
-        };
-        chartData = {
-          type: 'barH', title: 'Workstation Staffing Status — Today',
-          data: workstations.slice(0, 12).map((ws: any) => ({
-            name:      ws.name?.split(' ').slice(0, 2).join(' ') || ws.id,
-            Allocated: todayAllocs.filter((a: any) => a.workstationId === ws.id).length,
-            Capacity:  ws.maxStaffCount || 1
-          })),
-          bars: [{ key: 'Allocated', color: '#14b8a6' }, { key: 'Capacity', color: '#64748b' }],
-          xKey: 'name', stacked: false
-        };
-      }
-
-      // 4. Headcount / Associates
-      else if (q.match(/headcount|how many|associate|operator|employee|total.staff|workforce|manpower/)) {
-        const company  = allAssociates.filter((a: any) => a.category === 'Company').length;
-        const contract = allAssociates.filter((a: any) => a.category === 'Contract').length;
-        const ntci     = allAssociates.filter((a: any) => a.category === 'NTCI').length;
-        const inactive = allAssociates.filter((a: any) => a.status !== 'Active').length;
-
-        insights.push({ type: 'good', message: `Total workforce: ${allAssociates.length} associates — ${activeAssociates.length} Active, ${inactive} Inactive.` });
-        insights.push({ type: 'good', message: `Category breakdown: Company = ${company}, Contract = ${contract}, NTCI = ${ntci}.` });
-        const topDeployed = data.deploymentFreq.slice(0, 3);
-        if (topDeployed.length > 0) {
-          insights.push({ type: 'good', message: `Top 3 most deployed operators: ${topDeployed.map((d: any) => `${d.name} (${d.count} shifts)`).join(', ')}.` });
-        }
-
-        kpis = {
-          output:      { value: `${allAssociates.length} Total`,                  trend: 'Headcount',   color: '#14b8a6' },
-          utilization: { value: `${activeAssociates.length} Active`,              trend: 'On Roster',   color: '#14b8a6' },
-          downtime:    { value: `${inactive} Inactive`,                           trend: inactive > 0 ? 'Review' : 'None', color: '#f59e0b' },
-          operators:   { value: `${company}C / ${contract}Ct / ${ntci}N`,         trend: 'Categories',  color: '#64748b' }
-        };
-        chartData = {
-          type: 'barH', title: 'Top Deployed Operators (Total Shifts)',
-          data: data.deploymentFreq.slice(0, 10).map((d: any) => ({ name: d.name?.split(' ')[0] || d.name, Deployments: d.count })),
-          bars: [{ key: 'Deployments', color: '#14b8a6' }],
-          xKey: 'name', stacked: false
-        };
-      }
-
-      // 5. Shift questions
-      else if (q.match(/shift|schedule|timing|rotation/)) {
-        shifts.forEach((s: any) => {
-          const shiftAllocs = allocations.filter((a: any) => a.shiftId === s.id && a.date === today).length;
-          insights.push({
-            type:    shiftAllocs > 0 ? 'good' : 'warning',
-            message: `${s.name} (${s.timings}): ${shiftAllocs} operator allocations active today.`
-          });
-        });
-        if (shifts.length === 0) insights.push({ type: 'warning', message: 'No shift configurations found in database.' });
-
-        const todayAllocs = allocations.filter((a: any) => a.date === today).length;
-        kpis = {
-          output:      { value: `${shifts.length} Shifts`,        trend: 'Configured', color: '#14b8a6' },
-          utilization: { value: `${todayAllocs} Allocated`,       trend: 'Today',      color: '#14b8a6' },
-          downtime:    { value: 'See Chart',                      trend: 'Below',      color: '#64748b' },
-          operators:   { value: `${activeAssociates.length} Available`, trend: 'Nominal', color: '#64748b' }
-        };
-        chartData = {
-          type: 'bar', title: 'Operator Allocations per Shift — Today',
-          data: shifts.map((s: any) => ({
-            name:      s.name,
-            Allocated: allocations.filter((a: any) => a.shiftId === s.id && a.date === today).length
-          })),
-          bars: [{ key: 'Allocated', color: '#14b8a6' }],
-          xKey: 'name', stacked: false
-        };
-      }
-
-      // 6. Production line / plant / fill-rate-by-line
-      else if (q.match(/line|production|plant|output|throughput|fill.rate.by.line|fill rate/)) {
-        const targetLine = matchedLine || null;
-        const lineWS     = targetLine ? workstations.filter((w: any) => w.lineId === targetLine.id) : workstations;
-
-        const todayAllocs = allocations.filter((a: any) => a.date === today && (targetLine ? a.lineId === targetLine.id : true));
-        const filledCount = new Set(todayAllocs.map((a: any) => a.workstationId)).size;
-        const fillRate    = lineWS.length > 0 ? Math.round((filledCount / lineWS.length) * 100) : 0;
-
-        lineName = targetLine ? targetLine.name : 'ALL LINES COMBINED';
-        insights.push({
-          type:    fillRate >= 80 ? 'good' : 'warning',
-          message: `${lineName}: ${filledCount}/${lineWS.length} workstations staffed today. Fill rate: ${fillRate}%.`
-        });
-        productionLines.forEach((l: any) => {
-          const lWS    = workstations.filter((w: any) => w.lineId === l.id).length;
-          const lAllocs = new Set(allocations.filter((a: any) => a.date === today && a.lineId === l.id).map((a: any) => a.workstationId)).size;
-          const rate   = lWS > 0 ? Math.round((lAllocs / lWS) * 100) : 0;
-          insights.push({
-            type:    rate >= 80 ? 'good' : rate >= 50 ? 'warning' : 'critical',
-            message: `${l.name}: ${lAllocs}/${lWS} WS staffed (${rate}%) — Status: ${l.status}`
-          });
-        });
-
-        kpis = {
-          output:      { value: `${fillRate}% Staffed`,       trend: fillRate >= 80 ? 'Optimal' : 'Gap Detected', color: fillRate >= 80 ? '#14b8a6' : '#f43f5e' },
-          utilization: { value: `${filledCount}/${lineWS.length} WS`, trend: 'Today',                             color: '#14b8a6' },
-          downtime:    { value: `${productionLines.length} Lines`,    trend: 'In System',                         color: '#64748b' },
-          operators:   { value: `${todayAllocs.length} Assigned`,     trend: 'Live',                              color: '#64748b' }
-        };
-        chartData = {
-          type: 'bar', title: 'Fill Rate by Production Line — Today',
-          data: productionLines.map((l: any) => {
-            const lWS     = workstations.filter((w: any) => w.lineId === l.id).length;
-            const lAllocs = new Set(allocations.filter((a: any) => a.date === today && a.lineId === l.id).map((a: any) => a.workstationId)).size;
-            const rate    = lWS > 0 ? Math.round((lAllocs / lWS) * 100) : 0;
-            return { name: l.name?.split(' - ')[0] || l.id, 'Fill Rate %': rate };
-          }),
-          bars: [{ key: 'Fill Rate %', color: '#14b8a6' }],
-          xKey: 'name', stacked: false, domain: [0, 100]
-        };
-      }
-
-      // 7. Audit / Override
-      else if (q.match(/audit|override|log|action|change|history/)) {
-        const last10       = auditLogs.slice(0, 10);
-        const overrideCount = auditLogs.filter((l: any) => l.actionType === 'OVERRIDE_ALLOCATION').length;
-        const allocCount   = auditLogs.filter((l: any) => l.actionType === 'ALLOCATION_CONFIRMED').length;
-
-        insights.push({ type: 'good', message: `Total audit log entries: ${auditLogs.length}. Last recorded action: "${last10[0]?.actionType}" at ${last10[0]?.timestamp?.split('T')[0] || 'N/A'}.` });
-        insights.push({ type: overrideCount > 0 ? 'warning' : 'good', message: `Override allocations logged: ${overrideCount}. Standard allocations: ${allocCount}.` });
-        last10.slice(0, 3).forEach((log: any) => {
-          insights.push({ type: 'good', message: `[${log.actionType}] ${log.details} — by ${log.userRole}` });
-        });
-
-        kpis = {
-          output:      { value: `${auditLogs.length} Total Logs`, trend: 'Full History',                                           color: '#14b8a6' },
-          utilization: { value: `${overrideCount} Overrides`,      trend: overrideCount > 5 ? 'High' : 'Normal',                   color: overrideCount > 5 ? '#f43f5e' : '#14b8a6' },
-          downtime:    { value: `${allocCount} Confirmed`,         trend: 'Standard',                                               color: '#14b8a6' },
-          operators:   { value: `${activeAssociates.length} Active`, trend: 'Nominal',                                             color: '#64748b' }
-        };
-        chartData = {
-          type: 'bar', title: 'Audit Log — Action Type Breakdown',
-          data: [
-            { name: 'Override',       Count: overrideCount },
-            { name: 'Alloc Confirmed', Count: allocCount },
-            { name: 'Master Data',    Count: auditLogs.filter((l: any) => l.actionType === 'MASTER_DATA_UPDATED').length },
-            { name: 'Attendance',     Count: auditLogs.filter((l: any) => l.actionType === 'ATTENDANCE_MARKED').length }
-          ],
-          bars: [{ key: 'Count', color: '#f43f5e' }],
-          xKey: 'name', stacked: false
-        };
-      }
-
-      // 8. Skills inventory
-      else if (q.match(/skill|competenc|trained|training|capability/)) {
-        const skillCoverage = skills.map((sk: any) => {
-          const holders = associateSkills.filter((s: any) => s.skillId === sk.id && new Date(s.expiryDate) >= new Date(today)).length;
-          return { name: sk.name, holders };
-        }).sort((a: any, b: any) => b.holders - a.holders);
-
-        skillCoverage.slice(0, 5).forEach((sk: any) => {
-          insights.push({ type: sk.holders > 2 ? 'good' : sk.holders > 0 ? 'warning' : 'critical', message: `${sk.name}: ${sk.holders} qualified operator(s) with valid certification.` });
-        });
-        const riskSkills = skillCoverage.filter((s: any) => s.holders <= 1);
-        if (riskSkills.length > 0) {
-          insights.push({ type: 'critical', message: `Critical risk: ${riskSkills.length} skill(s) covered by only 1 or 0 operators — single point of failure risk.` });
-        }
-
-        kpis = {
-          output:      { value: `${skills.length} Skills`,         trend: 'In Matrix',                              color: '#14b8a6' },
-          utilization: { value: `${associateSkills.length} Certs`, trend: 'Total Records',                          color: '#14b8a6' },
-          downtime:    { value: `${riskSkills.length} At Risk`,    trend: riskSkills.length > 0 ? 'Mitigate' : 'Good', color: riskSkills.length > 0 ? '#f43f5e' : '#14b8a6' },
-          operators:   { value: `${data.certValid.length} Valid`,  trend: 'Active',                                 color: '#64748b' }
-        };
-        chartData = {
-          type: 'barH', title: 'Qualified Operators per Skill (Valid Certs Only)',
-          data: skillCoverage.map((s: any) => ({ name: s.name?.split(' ')[0] || s.name, 'Qualified': s.holders })),
-          bars: [{ key: 'Qualified', color: '#14b8a6' }],
-          xKey: 'name', stacked: false
-        };
-      }
-
-      // 9. Default summary / general overview
-      else {
-        const todayAllocs = allocations.filter((a: any) => a.date === today);
-        const filledWS    = new Set(todayAllocs.map((a: any) => a.workstationId)).size;
-        const fillRate    = workstations.length > 0 ? Math.round((filledWS / workstations.length) * 100) : 0;
-
-        insights.push({ type: 'good',    message: `Workforce: ${activeAssociates.length} active operators. Today's staffing fill rate: ${fillRate}% (${filledWS}/${workstations.length} workstations).` });
-        if (data.certExpired.length > 0) {
-          insights.push({ type: 'warning', message: `${data.certExpired.length} expired certifications detected. ${data.certExpiringIn30.length} more expire within 30 days.` });
-        }
-        const todayLeaves = leaveRecords.filter((l: any) => l.date === today).length;
-        if (todayLeaves > 0) {
-          insights.push({ type: 'warning', message: `${todayLeaves} operator(s) on leave today.` });
-        }
-        insights.push({ type: 'good', message: `You can ask me about: certifications, leave/attendance, staffing allocations, headcount, skills, shifts, production lines, or audit logs.` });
-
-        kpis = {
-          output:      { value: `${fillRate}% Fill Rate`,        trend: 'Today',                                                   color: fillRate >= 80 ? '#14b8a6' : '#f59e0b' },
-          utilization: { value: `${activeAssociates.length} Active`, trend: 'Operators',                                           color: '#14b8a6' },
-          downtime:    { value: `${data.certExpired.length} Expired`, trend: data.certExpired.length > 0 ? 'Action' : 'Clean',     color: data.certExpired.length > 0 ? '#f43f5e' : '#14b8a6' },
-          operators:   { value: `${workstations.length} Workstations`, trend: 'Total',                                             color: '#64748b' }
-        };
-        chartData = {
-          type: 'composed', title: '14-Day Staffing Demand Forecast',
-          data: data.forecast,
-          bars:  [{ key: 'Available', color: '#14b8a6' }],
-          lines: [{ key: 'Required',  color: '#f43f5e' }],
-          xKey: 'name', stacked: false
-        };
-      }
-
-      // Dynamic recommendations
-      const dynamicRecs = generateRecommendations({
-        associates: allAssociates, associateSkills, workstations,
-        productionLines, shifts, allocations, leaveRecords, skills,
-      }).slice(0, 3);
+      if (!res.ok) throw new Error(`RAG API returned status ${res.status}`);
+      const data = await res.json();
 
       setMessages(prev => [...prev, {
         sender: 'copilot',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        isDashboardResponse: true,
-        lineName, kpis, insights, chartData,
-        recommendations: dynamicRecs
+        text: data.answer,
+        sources: data.sources,
+        chart: data.chart
       }]);
+    } catch (err: any) {
+      console.error(err);
+      setMessages(prev => [...prev, {
+        sender: 'copilot',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        text: 'Something went wrong, try again'
+      }]);
+    } finally {
       setIsTyping(false);
-    }, 800);
+    }
   };
 
   // ── Chat Interface Renderer ───────────────────────────────────────────────
@@ -906,7 +622,7 @@ export const AiReports: React.FC = () => {
                   </div>
                 ) : (
                   <div className="self-start w-full flex flex-col gap-3 animate-card-entrance">
-                    {/* Executive Dashboard Response Card */}
+                    {/* Executive Dashboard Response Card (Legacy fallback if needed) */}
                     {m.isDashboardResponse && (
                       <div id={`copilot-card-${idx}`} className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm flex flex-col gap-3">
                         <div className="flex justify-between items-center border-b border-slate-100 pb-2">
@@ -1025,7 +741,7 @@ export const AiReports: React.FC = () => {
 
                         {/* Machine Health mini panel */}
                         <div className="border-t border-slate-100 pt-2 flex flex-col gap-2">
-                          <h4 className="text-[8px] font-bold text-slate-400 uppercase tracking-wider font-mono">Machine Health Status</h4>
+                          <h4 className="text-[8px] font-bold text-slate-400 uppercase tracking-wider font-mono">Machine Health Status (Illustrative — pending sensor integration)</h4>
                           <div className="flex flex-col gap-2">
                             {machineRegistry.map(machine => {
                               const isHealthy  = machine.oee >= 90;
@@ -1074,7 +790,64 @@ export const AiReports: React.FC = () => {
                       </div>
                     )}
 
-                    {m.text && (
+                    {/* Grounded RAG Response Card */}
+                    {m.sources && (
+                      <div id={`copilot-card-${idx}`} className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm flex flex-col gap-3">
+                        <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                          <div>
+                            <h4 className="text-[8px] font-bold text-slate-400 font-mono uppercase tracking-wider">AI Grounded Report</h4>
+                            <h3 className="text-[11px] font-bold text-slate-800 mt-0.5 uppercase">RAG Engine Response</h3>
+                          </div>
+                        </div>
+
+                        <div className="text-slate-700 text-[11px] leading-relaxed whitespace-pre-line font-sans select-text">
+                          {m.text}
+                        </div>
+
+                        {m.chart && <ChartRenderer spec={m.chart} />}
+
+                        {m.sources.length > 0 && (
+                          <div className="border-t border-slate-100 pt-2 flex flex-col gap-1.5">
+                            <h4 className="text-[8px] font-bold text-slate-400 uppercase tracking-wider font-mono">Grounded Sources ({m.sources.length})</h4>
+                            <div className="flex flex-wrap gap-1">
+                              {m.sources.map((src: any, sIdx: number) => (
+                                <div
+                                  key={sIdx}
+                                  title={src.content}
+                                  className="px-2 py-0.5 bg-slate-50 border border-slate-200 rounded text-[8px] font-mono text-slate-500 cursor-help hover:bg-slate-100 transition-colors flex items-center gap-1"
+                                >
+                                  <span className="material-symbols-outlined text-[10px] text-slate-400">description</span>
+                                  <span>{src.entityType.toUpperCase()}:{src.entityId}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100 items-center justify-between">
+                          <button
+                            onClick={() => {
+                              const speech = new SpeechSynthesisUtterance(m.text);
+                              window.speechSynthesis.cancel();
+                              window.speechSynthesis.speak(speech);
+                            }}
+                            className="py-1 px-2 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[9px] font-mono rounded cursor-pointer transition-all border border-slate-200 flex items-center gap-1 shrink-0"
+                          >
+                            <span className="material-symbols-outlined text-xs">volume_up</span>
+                            Read
+                          </button>
+                          <ExportToolbar
+                            elementId={`copilot-card-${idx}`}
+                            reportTitle={`AI Grounded RAG Report`}
+                            filename="AI_RAG_Report"
+                            csvRows={m.chart?.data}
+                            jsonData={m}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {m.text && !m.sources && (
                       <div className="bg-white border border-slate-200 text-slate-700 rounded-lg p-3 text-[11px] max-w-[90%] shadow-sm leading-relaxed">
                         {m.text}
                       </div>

@@ -239,3 +239,23 @@ Allocation.belongsTo(Shift, { foreignKey: 'shiftId', as: 'shift' });
 
 Associate.hasMany(AttendanceRecord, { foreignKey: 'associateId', as: 'attendanceRecords', onDelete: 'CASCADE' });
 AttendanceRecord.belongsTo(Associate, { foreignKey: 'associateId', as: 'associate' });
+
+// 9. RAG CHUNK MODEL
+export class RagChunk extends Model {
+  public id!: number;
+  public entityType!: string;
+  public entityId!: string;
+  public content!: string;
+  public metadata!: any;
+  public embedding!: number[];
+  public updatedAt!: Date;
+}
+RagChunk.init({
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  entityType: { type: DataTypes.STRING, allowNull: false, field: 'entity_type' },
+  entityId: { type: DataTypes.STRING, allowNull: false, field: 'entity_id' },
+  content: { type: DataTypes.TEXT, allowNull: false },
+  metadata: { type: DataTypes.JSONB, allowNull: true },
+  embedding: { type: 'VECTOR(384)', allowNull: true },
+}, { sequelize, tableName: 'rag_chunks', timestamps: true, updatedAt: 'updated_at', createdAt: false });
+

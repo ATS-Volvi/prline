@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import type { Associate, Workstation, AssociateCategory, SkillLevel, ProductionLine, LineStatus, Skill, Shift } from '../types';
-import { ShiftPlanner } from './ShiftPlanner';
 
 interface MasterDataProps {
   initialSubTab?: 'associates' | 'workstations' | 'skills' | 'lines' | 'shifts';
@@ -527,21 +526,8 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {/* Mock Row matching the screen exactly */}
-                      <tr className="hover:bg-slate-50/50 transition-colors">
-                        <td className="p-3 flex items-center gap-2">
-                          <span className="material-symbols-outlined text-emerald-600 text-base">verified</span>
-                          <span className="font-bold text-[#0F172A]">OSHA Food Safety Master</span>
-                        </td>
-                        <td className="p-3 font-mono text-[10px]">CRT-0988-X</td>
-                        <td className="p-3 font-medium text-secondary">12 May 2022</td>
-                        <td className="p-3 font-medium text-secondary">12 May 2025</td>
-                        <td className="p-3 text-right">
-                          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded text-[9px] font-bold">Valid</span>
-                        </td>
-                      </tr>
                       {/* Dynamic row based on mySkills if any */}
-                      {mySkills.slice(0, 2).map(ms => {
+                      {mySkills.map(ms => {
                         const sk = skills.find(s => s.id === ms.skillId);
                         const isExpired = new Date(ms.expiryDate) < new Date();
                         return (
@@ -832,7 +818,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
 
   // Unified Line and Shift Configuration states
   const [expandedLineId, setExpandedLineId] = useState<string | null>('LINE-01');
-  const [selectedLineFilter, setSelectedLineFilter] = useState('LINE-01');
+  const [selectedLineFilter, setSelectedLineFilter] = useState('ALL');
   const [showConflictAlert, setShowConflictAlert] = useState(true);
   const [activeDaysShiftA, setActiveDaysShiftA] = useState<string[]>(['M', 'T', 'W', 'T', 'F']);
   const [activeDaysShiftB, setActiveDaysShiftB] = useState<string[]>(['M', 'T', 'W', 'T', 'F']);
@@ -896,10 +882,13 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
               value={selectedLineFilter}
               onChange={(e) => {
                 setSelectedLineFilter(e.target.value);
-                setExpandedLineId(e.target.value);
+                if (e.target.value !== 'ALL') {
+                  setExpandedLineId(e.target.value);
+                }
               }}
               className="py-1.5 px-3 border border-outline-variant rounded-lg bg-white font-bold text-[10px] cursor-pointer shadow-premium-sm"
             >
+              <option value="ALL">All Production Lines</option>
               {productionLines.map(l => (
                 <option key={l.id} value={l.id}>{l.name}</option>
               ))}
@@ -942,7 +931,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
               {/* Accordion List */}
               <div className="flex flex-col gap-3">
                 {productionLines
-                  .filter(l => l.id === selectedLineFilter)
+                  .filter(l => selectedLineFilter === 'ALL' || l.id === selectedLineFilter)
                   .map(line => {
                   const isExpanded = expandedLineId === line.id;
                   const lineWS = workstations.filter(w => w.lineId === line.id);
@@ -993,6 +982,32 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
               </div>
             </div>
 
+            {/* Asset Location Context Card */}
+            <div className="bg-white border border-outline-variant rounded-xl p-5 shadow-premium-sm">
+              <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider font-mono mb-4 flex items-center gap-1.5 select-none">
+                <span className="material-symbols-outlined text-primary text-[18px]">location_on</span>
+                Asset Location Context
+              </h3>
+              
+              <div className="relative rounded-xl overflow-hidden border border-outline-variant aspect-[16/10] bg-slate-900 flex items-center justify-center">
+                <img 
+                  src="/live_floor_tracking.png" 
+                  alt="Live Floor Tracking Map" 
+                  className="w-full h-full object-cover opacity-85"
+                />
+                
+                {/* Button overlay */}
+                <button
+                  type="button"
+                  onClick={() => alert("Live floor tracking system launched!")}
+                  className="absolute bg-[#091426]/90 border border-slate-700 text-white font-bold px-4 py-2 rounded-lg text-[10px] uppercase font-mono tracking-wider hover:bg-slate-900 transition-all flex items-center gap-2 cursor-pointer shadow-premium-lg"
+                >
+                  <span className="material-symbols-outlined text-[16px] text-emerald-400 font-bold">radar</span>
+                  <span>Live Floor Tracking</span>
+                </button>
+              </div>
+            </div>
+
           </div>
 
           {/* Right Column: Shift Definitions & Conflict Alerts (xl:col-span-7) */}
@@ -1021,7 +1036,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
                       <span className="mt-1 text-[8px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100 inline-block uppercase font-mono tracking-wider">MORNING</span>
                     </div>
 
-                    <div className="lg:col-span-5 grid grid-cols-2 gap-3 w-full">
+                    <div className="lg:col-span-6 grid grid-cols-2 gap-3 w-full">
                       <div className="flex flex-col gap-1">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider select-none">Start Time</span>
                         <div className="relative">
@@ -1051,7 +1066,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
                     </div>
 
                     {/* Active Toggle & Days */}
-                    <div className="lg:col-span-5 flex flex-col items-start lg:items-end gap-2.5 select-none w-full">
+                    <div className="lg:col-span-4 flex flex-col items-start lg:items-end gap-2.5 select-none w-full">
                       <div className="flex items-center gap-2">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Active</span>
                         <button
@@ -1092,7 +1107,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
                       <span className="mt-1 text-[8px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-100 inline-block uppercase font-mono tracking-wider">SWING</span>
                     </div>
 
-                    <div className="lg:col-span-5 grid grid-cols-2 gap-3 w-full">
+                    <div className="lg:col-span-6 grid grid-cols-2 gap-3 w-full">
                       <div className="flex flex-col gap-1">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider select-none">Start Time</span>
                         <div className="relative">
@@ -1122,7 +1137,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
                     </div>
 
                     {/* Active Toggle & Days */}
-                    <div className="lg:col-span-5 flex flex-col items-start lg:items-end gap-2.5 select-none w-full">
+                    <div className="lg:col-span-4 flex flex-col items-start lg:items-end gap-2.5 select-none w-full">
                       <div className="flex items-center gap-2">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Active</span>
                         <button
@@ -1163,7 +1178,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
                       <span className="mt-1 text-[8px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 inline-block uppercase font-mono tracking-wider">NIGHT</span>
                     </div>
 
-                    <div className="lg:col-span-5 grid grid-cols-2 gap-3 w-full">
+                    <div className="lg:col-span-6 grid grid-cols-2 gap-3 w-full">
                       <div className="flex flex-col gap-1">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider select-none">Start Time</span>
                         <div className="relative">
@@ -1193,7 +1208,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
                     </div>
 
                     {/* Active Toggle & Days */}
-                    <div className="lg:col-span-5 flex flex-col items-start lg:items-end gap-2.5 select-none w-full">
+                    <div className="lg:col-span-4 flex flex-col items-start lg:items-end gap-2.5 select-none w-full">
                       <div className="flex items-center gap-2">
                         <span className="text-[9px] font-bold text-secondary uppercase font-mono tracking-wider">Active</span>
                         <button
@@ -1335,11 +1350,11 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
     }).length;
 
     const displaySkills = [
-      { id: 'BLADE_OPT', name: 'Hydraulic Press 01', code: 'PAM-HP-01' },
-      { id: 'SEAS_OPT', name: 'CNC Lathe A', code: 'MCH-CN-A1' },
-      { id: 'FRY_OPT', name: 'Laser Cutter 04', code: 'CUT-LX-04' },
-      { id: 'PACK_OPT', name: 'Pneumatic Sorter', code: 'LOC-PS-02' },
-      { id: 'QC_AUDIT', name: 'QC Auditor', code: 'LOC-QC-08' }
+      { id: 'HEAT_SAFETY', name: 'High-Temp Safety', code: 'SFT-HT-01' },
+      { id: 'SPICE_MIX', name: 'Spice Blending', code: 'PRD-SM-02' },
+      { id: 'MECH_OP', name: 'Mechanical Operation', code: 'MNT-MO-03' },
+      { id: 'QA_L1', name: 'Quality Assurance L1', code: 'QAC-L1-04' },
+      { id: 'CHEM_CERT', name: 'Quality Lab Chemist', code: 'LAB-QC-05' }
     ];
 
     const handleAssignTrainingSubmit = (e: React.FormEvent) => {
@@ -2012,17 +2027,17 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
     if (selectedSkillFilter === 'All') return true;
     
     const skills = associateSkills.filter(s => s.associateId === assoc.id);
-    if (selectedSkillFilter === 'Welding') {
-      return skills.some(s => s.skillId.includes("BLADE") || s.skillId.includes("WLD"));
+    if (selectedSkillFilter === 'Operations') {
+      return skills.some(s => s.skillId.includes("OP") || s.skillId.includes("MIX") || s.skillId.includes("FRY") || s.skillId.includes("MECH"));
     }
-    if (selectedSkillFilter === 'Assembly') {
-      return skills.some(s => s.skillId.includes("PACK") || s.skillId.includes("ARM"));
+    if (selectedSkillFilter === 'Packaging') {
+      return skills.some(s => s.skillId.includes("PACK") || s.skillId.includes("BOX"));
     }
     if (selectedSkillFilter === 'Quality Control') {
-      return skills.some(s => s.skillId.includes("QC"));
+      return skills.some(s => s.skillId.includes("QC") || s.skillId.includes("QA"));
     }
-    if (selectedSkillFilter === 'Maintenance') {
-      return skills.some(s => s.skillId.includes("MAINT"));
+    if (selectedSkillFilter === 'Safety') {
+      return skills.some(s => s.skillId.includes("SAFETY"));
     }
     return true;
   });
@@ -2039,70 +2054,20 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
           <h1 className="text-base font-bold text-[#0F172A]">Master Data Configuration</h1>
         </div>
 
-        {/* Sub tabs switcher */}
-        <div className="flex gap-1 bg-surface-container p-1 rounded-lg border border-outline-variant shadow-premium-sm">
-          <button
-            onClick={() => changeSubTab('associates')}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-              activeSubTab === 'associates' ? 'bg-surface-container-lowest text-primary shadow-premium-sm border border-outline-variant' : 'text-secondary hover:text-primary'
-            }`}
-          >
-            Associate Master
-          </button>
-          <button
-            onClick={() => changeSubTab('workstations')}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-              activeSubTab === 'workstations' ? 'bg-surface-container-lowest text-primary shadow-premium-sm border border-outline-variant' : 'text-secondary hover:text-primary'
-            }`}
-          >
-            Workstation Master
-          </button>
-          <button
-            onClick={() => changeSubTab('skills')}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-              activeSubTab === 'skills' ? 'bg-surface-container-lowest text-primary shadow-premium-sm border border-outline-variant' : 'text-secondary hover:text-primary'
-            }`}
-          >
-            Skill Register
-          </button>
-          <button
-            onClick={() => changeSubTab('lines')}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-              activeSubTab === 'lines' ? 'bg-surface-container-lowest text-primary shadow-premium-sm border border-outline-variant' : 'text-secondary hover:text-primary'
-            }`}
-          >
-            Line Master
-          </button>
-          <button
-            onClick={() => changeSubTab('shifts' as any)}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-              activeSubTab === ('shifts' as any) ? 'bg-surface-container-lowest text-primary shadow-premium-sm border border-outline-variant' : 'text-secondary hover:text-primary'
-            }`}
-          >
-            Shift Master
-          </button>
-        </div>
       </header>
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden flex animate-fade-in">
-        {activeSubTab === 'shifts' ? (
-          <ShiftPlanner
-            selectedLineId={selectedLineId || 'LINE-01'}
-            setSelectedLineId={setSelectedLineId || (() => {})}
-            setActiveTab={setActiveTab || (() => {})}
-          />
-        ) : (
-          <>
-            {/* Left Side Table View */}
-            <div className="flex-1 p-margin-desktop overflow-y-auto custom-scrollbar flex flex-col gap-6">
+        
+        {/* Left Side Table View */}
+        <div className="flex-1 p-margin-desktop overflow-y-auto custom-scrollbar flex flex-col gap-6">
           
           {/* Sub-tab: Associates */}
           {activeSubTab === 'associates' && (
             selectedAssociate ? (
               renderAssociateProfile(selectedAssociate)
             ) : (
-              <div className="flex-1 flex flex-col gap-6 overflow-hidden min-h-0">
+              <div className="flex-1 flex flex-col gap-6">
                 {/* Mode Switcher */}
                 <div className="flex justify-between items-center shrink-0 border-b border-outline-variant pb-3 select-none">
                   <div>
@@ -2219,7 +2184,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
                     <div className="bg-slate-50 border border-outline-variant rounded-lg p-3 flex justify-between items-center select-none shrink-0 shadow-premium-sm">
                       {/* Category Filter Pills */}
                       <div className="flex gap-2">
-                        {['All', 'Welding', 'Assembly', 'Quality Control', 'Maintenance'].map(pill => (
+                        {['All', 'Operations', 'Packaging', 'Quality Control', 'Safety'].map(pill => (
                           <button
                             key={pill}
                             onClick={() => { setSelectedSkillFilter(pill); setAssociatesPage(1); }}
@@ -2234,28 +2199,6 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
                         ))}
                       </div>
 
-                      {/* Right pagination preview */}
-                      <div className="flex items-center gap-3">
-                        <span className="text-[10px] text-secondary font-medium">
-                          Showing {filteredAssociatesList.length > 0 ? (associatesPage - 1) * 12 + 1 : 0}-{Math.min(associatesPage * 12, filteredAssociatesList.length)} of {filteredAssociatesList.length}
-                        </span>
-                        <div className="flex gap-1">
-                          <button
-                            disabled={associatesPage === 1}
-                            onClick={() => setAssociatesPage(p => Math.max(1, p - 1))}
-                            className="w-6 h-6 border border-outline-variant rounded flex items-center justify-center bg-white text-secondary hover:text-primary disabled:opacity-40 cursor-pointer shadow-premium-sm"
-                          >
-                            <span className="material-symbols-outlined text-sm font-bold">chevron_left</span>
-                          </button>
-                          <button
-                            disabled={associatesPage === totalPages}
-                            onClick={() => setAssociatesPage(p => Math.min(totalPages, p + 1))}
-                            className="w-6 h-6 border border-outline-variant rounded flex items-center justify-center bg-white text-secondary hover:text-primary disabled:opacity-40 cursor-pointer shadow-premium-sm"
-                          >
-                            <span className="material-symbols-outlined text-sm font-bold">chevron_right</span>
-                          </button>
-                        </div>
-                      </div>
                     </div>
 
                     {/* Team Roster Table Card */}
@@ -2297,17 +2240,17 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
                             
                             if (skills.length > 0) {
                               const mainSkill = skills[0].skillId;
-                              if (mainSkill.includes("BLADE")) {
-                                categoryText = "WELDING";
+                              if (mainSkill.includes("OP") || mainSkill.includes("MIX") || mainSkill.includes("FRY") || mainSkill.includes("MECH")) {
+                                categoryText = "OPERATIONS";
                                 categoryBg = "bg-[#0f172a] text-slate-100 border-[#0f172a]";
-                              } else if (mainSkill.includes("PACK")) {
-                                categoryText = "ASSEMBLY";
+                              } else if (mainSkill.includes("PACK") || mainSkill.includes("BOX")) {
+                                categoryText = "PACKAGING";
                                 categoryBg = "bg-blue-100 text-blue-800 border-blue-200";
-                              } else if (mainSkill.includes("QC")) {
+                              } else if (mainSkill.includes("QC") || mainSkill.includes("QA")) {
                                 categoryText = "QUALITY CONTROL";
                                 categoryBg = "bg-emerald-900 text-emerald-100 border-emerald-950";
-                              } else if (mainSkill.includes("MAINT")) {
-                                categoryText = "MAINTENANCE";
+                              } else if (mainSkill.includes("SAFETY")) {
+                                categoryText = "SAFETY";
                                 categoryBg = "bg-rose-50 text-rose-700 border-rose-100";
                               } else {
                                 categoryText = mainSkill.replace("_OPT", "").replace("_ENG", "");
@@ -2816,42 +2759,42 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
           {/* Sub-tab: Skills */}
           {activeSubTab === 'skills' && (
             <>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h2 className="font-headline-md text-xs font-bold text-on-surface tracking-tight uppercase">Skill Master Register</h2>
-                  <p className="text-[10px] text-secondary">Operational and technical safety skill descriptors</p>
+                  <h2 className="font-headline-md text-2xl font-bold text-on-surface tracking-tight uppercase">SKILL MASTER REGISTER</h2>
+                  <p className="text-sm text-secondary mt-1">Operational and technical safety skill descriptors</p>
                 </div>
                 {canWriteAllMasterData && !isAddingSkill && !editingSkill && (
                   <button
                     onClick={() => { setSkId(''); setSkName(''); setSkDesc(''); setIsAddingSkill(true); }}
-                    className="py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-900 flex items-center gap-1.5 cursor-pointer shadow-premium-md font-label-caps tracking-wider transition-all hover:scale-[1.02]"
+                    className="py-2.5 px-5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-slate-900 flex items-center gap-1.5 cursor-pointer shadow-premium-md font-label-caps tracking-wider transition-all hover:scale-[1.02]"
                   >
-                    <span className="material-symbols-outlined text-sm">add_circle</span> ADD SKILL
+                    <span className="material-symbols-outlined text-[16px]">add_circle</span> ADD SKILL
                   </button>
                 )}
               </div>
 
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-premium-sm">
-                <table className="w-full text-left border-collapse text-xs">
+              <div className="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-premium-sm">
+                <table className="w-full text-left border-collapse text-sm">
                   <thead>
-                    <tr className="bg-surface-container-low border-b border-outline-variant text-on-surface font-semibold font-mono text-[9px] tracking-widest uppercase font-label-caps">
-                      <th className="p-3.5">SKILL CODE</th>
-                      <th className="p-3.5">SKILL NAME</th>
-                      <th className="p-3.5">DESCRIPTION & APPLICATION</th>
-                      {canWriteAllMasterData && <th className="p-3.5 text-right">ACTIONS</th>}
+                    <tr className="bg-slate-50 border-b border-outline-variant text-on-surface font-semibold text-xs tracking-widest uppercase">
+                      <th className="p-4 px-6 text-slate-500 font-bold">SKILL CODE</th>
+                      <th className="p-4 px-6 text-slate-500 font-bold">SKILL NAME</th>
+                      <th className="p-4 px-6 text-slate-500 font-bold">DESCRIPTION & APPLICATION</th>
+                      {canWriteAllMasterData && <th className="p-4 px-6 text-right text-slate-500 font-bold">ACTIONS</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {skills.map(sk => (
-                      <tr key={sk.id} className="hover:bg-surface-container-low/50 transition-colors">
-                        <td className="p-3.5 font-mono font-bold text-primary">{sk.id}</td>
-                        <td className="p-3.5 font-bold text-on-surface">{sk.name}</td>
-                        <td className="p-3.5 text-secondary font-medium leading-relaxed">{sk.description}</td>
+                      <tr key={sk.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="p-4 px-6 font-mono font-bold text-[#0F172A] text-xs">{sk.id}</td>
+                        <td className="p-4 px-6 font-bold text-[#0F172A]">{sk.name}</td>
+                        <td className="p-4 px-6 text-slate-500 font-medium leading-relaxed">{sk.description}</td>
                         {canWriteAllMasterData && (
-                          <td className="p-3.5 text-right select-none space-x-3">
+                          <td className="p-4 px-6 text-right select-none space-x-4">
                             <button
                               onClick={() => startEditSkill(sk)}
-                              className="text-primary hover:underline font-bold text-[10px] cursor-pointer"
+                              className="text-[#0F172A] hover:underline font-bold text-[10px] cursor-pointer tracking-wider"
                             >
                               EDIT
                             </button>
@@ -2861,7 +2804,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
                                   deleteSkill(sk.id);
                                 }
                               }}
-                              className="text-rose-600 hover:underline font-bold text-[10px] cursor-pointer"
+                              className="text-rose-600 hover:underline font-bold text-[10px] cursor-pointer tracking-wider"
                             >
                               REMOVE
                             </button>
@@ -2875,9 +2818,161 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
             </>
           )}
 
-          {/* Unified Sub-tab: Lines configuration */}
+          {/* Sub-tab: Lines */}
           {activeSubTab === 'lines' && (
-            renderLineAndShiftConfig()
+            <>
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="font-headline-md text-2xl font-bold text-on-surface tracking-tight uppercase">PRODUCTION LINES DIRECTORY</h2>
+                  <p className="text-sm text-secondary mt-1">Manage plant floor production channels, current product running, and operational status</p>
+                </div>
+                {canWriteAllMasterData && !isAddingLine && !editingLine && (
+                  <button
+                    onClick={() => { setLineId(''); setLineName(''); setLineProduct(''); setLineStatus('ACTIVE'); setIsAddingLine(true); }}
+                    className="py-2.5 px-5 bg-[#0F172A] text-white text-xs font-bold rounded-lg hover:bg-slate-900 flex items-center gap-1.5 cursor-pointer shadow-premium-md font-label-caps tracking-wider transition-all hover:scale-[1.02]"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">add_circle</span> ADD PRODUCTION LINE
+                  </button>
+                )}
+              </div>
+
+              <div className="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-premium-sm">
+                <table className="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-outline-variant text-on-surface font-semibold text-xs tracking-widest uppercase">
+                      <th className="p-4 px-6 text-slate-500 font-bold">LINE ID</th>
+                      <th className="p-4 px-6 text-slate-500 font-bold">LINE NAME</th>
+                      <th className="p-4 px-6 text-slate-500 font-bold">CURRENT PRODUCT</th>
+                      <th className="p-4 px-6 text-slate-500 font-bold">STATUS</th>
+                      {canWriteAllMasterData && <th className="p-4 px-6 text-right text-slate-500 font-bold">ACTIONS</th>}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {productionLines.map(line => (
+                      <tr key={line.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="p-4 px-6 font-mono font-bold text-[#0F172A] text-xs">{line.id}</td>
+                        <td className="p-4 px-6 font-bold text-[#0F172A]">{line.name}</td>
+                        <td className="p-4 px-6 text-slate-500 font-medium">{line.currentProduct || '-'}</td>
+                        <td className="p-4 px-6">
+                          {line.status === 'ACTIVE' ? (
+                            <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              ACTIVE
+                            </span>
+                          ) : line.status === 'MAINTENANCE' ? (
+                            <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
+                              MAINTENANCE
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-50 text-slate-600 border border-slate-200">
+                              IDLE
+                            </span>
+                          )}
+                        </td>
+                        {canWriteAllMasterData && (
+                          <td className="p-4 px-6 text-right select-none space-x-4">
+                            <button
+                              onClick={() => startEditLine(line)}
+                              className="text-[#0F172A] hover:underline font-bold text-[10px] cursor-pointer tracking-wider"
+                            >
+                              EDIT
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Delete line ${line.name}? This will clear all associated workstations.`)) {
+                                  deleteProductionLine(line.id);
+                                }
+                              }}
+                              className="text-rose-600 hover:underline font-bold text-[10px] cursor-pointer tracking-wider"
+                            >
+                              REMOVE
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
+          {/* Sub-tab: Shifts */}
+          {activeSubTab === 'shifts' && (
+            <div className="animate-fade-in">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="font-headline-md text-2xl font-bold text-on-surface tracking-tight uppercase">SHIFTS DIRECTORY</h2>
+                  <p className="text-sm text-secondary mt-1">Manage plant shift timings, schedule definitions, and active working days</p>
+                </div>
+                {canWriteAllMasterData && (
+                  <button
+                    onClick={() => alert('Add Shift functionality coming soon!')}
+                    className="py-2.5 px-5 bg-[#091426] text-white text-xs font-bold rounded-lg hover:bg-slate-900 flex items-center gap-1.5 cursor-pointer shadow-premium-md font-label-caps tracking-wider transition-all hover:scale-[1.02]"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">add_circle</span> ADD SHIFT
+                  </button>
+                )}
+              </div>
+
+              <div className="bg-[#F8FAFC] border border-outline-variant rounded-xl overflow-hidden shadow-premium-sm">
+                <table className="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr className="bg-slate-100 border-b border-outline-variant text-slate-500 font-semibold text-[10px] tracking-widest uppercase">
+                      <th className="p-4 px-6 font-bold w-[15%]">SHIFT ID</th>
+                      <th className="p-4 px-6 font-bold w-[25%]">SHIFT NAME</th>
+                      <th className="p-4 px-6 font-bold w-[25%]">TIMINGS</th>
+                      <th className="p-4 px-6 font-bold w-[20%]">WORKING DAYS</th>
+                      {canWriteAllMasterData && <th className="p-4 px-6 text-right font-bold w-[15%]">ACTIONS</th>}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {shifts.map(shift => (
+                      <tr key={shift.id} className="hover:bg-slate-50 transition-colors bg-white">
+                        <td className="p-4 px-6 font-mono font-bold text-[#0F172A] text-[11px] uppercase">{shift.id}</td>
+                        <td className="p-4 px-6 font-bold text-[#0F172A] text-xs">{shift.name}</td>
+                        <td className="p-4 px-6 text-slate-500 font-mono text-[11px] font-medium">{shift.timings.replace('-', ' - ')}</td>
+                        <td className="p-4 px-6">
+                          <div className="flex flex-wrap gap-1">
+                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                              <span 
+                                key={day} 
+                                className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider border ${
+                                  shift.workingDays.some(d => d.startsWith(day)) 
+                                    ? 'bg-slate-100 text-[#0F172A] border-slate-300 shadow-sm' 
+                                    : 'bg-transparent text-slate-300 border-slate-200 opacity-50'
+                                }`}
+                              >
+                                {day}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        {canWriteAllMasterData && (
+                          <td className="p-4 px-6 text-right select-none space-x-3">
+                            <button
+                              onClick={() => alert('Edit Shift functionality coming soon!')}
+                              className="text-[#0F172A] hover:underline font-bold text-[10px] cursor-pointer tracking-wider"
+                            >
+                              EDIT
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Delete shift ${shift.name}?`)) {
+                                  alert('Delete Shift functionality coming soon!');
+                                }
+                              }}
+                              className="text-rose-600 hover:underline font-bold text-[10px] cursor-pointer tracking-wider"
+                            >
+                              REMOVE
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
 
         </div>
@@ -3360,9 +3455,8 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
 
           </aside>
         )}
-      </>
-    )}
-  </div>
+
+      </div>
     </div>
   );
 };

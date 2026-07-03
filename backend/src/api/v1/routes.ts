@@ -17,6 +17,7 @@ import UserTypeHandler from "../../../middleware/getUserType";
 import { logAction } from "../../../src/services/auditService";
 import * as allocationController from "../../../src/controllers/allocationController";
 import * as dataController from "../../../src/controllers/dataController";
+import * as reportsController from "../../../src/controllers/reportsController";
 
 const router = Router();
 
@@ -597,5 +598,8 @@ router.post("/audit-logs", AuthHandler.authMiddleware, async (req: Request, res:
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+// RAG CHAT REPORT ROUTE
+router.post("/reports/rag-chat", AuthHandler.authMiddleware, reportsController.ragChatController);
 
 export default router;

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { AvailabilityTab } from './AvailabilityTab';
-import { AiPanelTab } from './AiPanelTab';
 
 interface ShiftPlannerProps {
   selectedLineId: string;
@@ -28,7 +27,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
   // Active filters state
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedShiftId, setSelectedShiftId] = useState('SHIFT-A');
-  const [plannerTab, setPlannerTab] = useState<'allocation' | 'availability' | 'engine'>('allocation');
+  const [plannerTab, setPlannerTab] = useState<'allocation' | 'availability'>('allocation');
   const [showFilterPopover, setShowFilterPopover] = useState(false);
   const [showPublishToast, setShowPublishToast] = useState(false);
 
@@ -164,18 +163,10 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
         >
           Availability & Attendance
         </button>
-        <button 
-          onClick={() => setPlannerTab('engine')}
-          className={`pb-2 px-2 text-[10px] font-label-caps font-bold uppercase tracking-wider transition-colors border-b-2 ${plannerTab === 'engine' ? 'border-primary text-primary' : 'border-transparent text-secondary hover:text-on-surface cursor-pointer'}`}
-        >
-          AI Run Panel
-        </button>
       </div>
 
       {plannerTab === 'availability' ? (
         <AvailabilityTab />
-      ) : plannerTab === 'engine' ? (
-        <AiPanelTab />
       ) : (
       <div className="flex-1 flex flex-col overflow-hidden bg-slate-50/20 select-text p-6 lg:p-8 relative animate-fade-in">
         
@@ -203,96 +194,67 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
           </div>
           
           <div className="flex items-center gap-2.5">
-            {/* Filter Trigger Button */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowFilterPopover(!showFilterPopover)}
-                className={`py-2 px-4 border border-outline-variant rounded-lg font-bold text-[10px] uppercase font-mono tracking-wider flex items-center gap-1.5 transition-all shadow-premium-sm cursor-pointer ${
-                  showFilterPopover ? 'bg-slate-100 text-primary' : 'bg-white text-secondary hover:text-primary hover:bg-slate-55'
-                }`}
+            <div className="flex items-center bg-white border border-outline-variant rounded-lg p-1 shadow-premium-sm mr-2">
+              <select
+                value={selectedLineId}
+                onChange={(e) => setSelectedLineId(e.target.value)}
+                className="py-1.5 px-2 bg-transparent text-[10px] font-bold text-[#0F172A] focus:outline-none cursor-pointer border-r border-outline-variant"
               >
-                <span className="material-symbols-outlined text-sm">filter_alt</span>
-                <span>Filter</span>
-              </button>
+                {productionLines.map(l => (
+                  <option key={l.id} value={l.id}>{l.name}</option>
+                ))}
+              </select>
+              
+              <select
+                value={selectedShiftId}
+                onChange={(e) => setSelectedShiftId(e.target.value)}
+                className="py-1.5 px-2 bg-transparent text-[10px] font-bold text-[#0F172A] focus:outline-none cursor-pointer border-r border-outline-variant"
+              >
+                {shifts.map(shift => (
+                  <option key={shift.id} value={shift.id}>{shift.name} ({shift.timings})</option>
+                ))}
+              </select>
 
-              {/* Collapsible Filter Popover Card */}
-              {showFilterPopover && (
-                <div className="absolute right-0 top-11 mt-2 w-80 bg-white border border-outline-variant rounded-xl p-5 shadow-premium-lg z-50 flex flex-col gap-4 animate-slide-up select-none">
-                  <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                    <h4 className="font-bold text-[10px] font-mono tracking-wider text-[#0F172A] uppercase">Planner Context</h4>
-                    <button onClick={() => setShowFilterPopover(false)} className="text-secondary hover:text-primary font-bold text-xs">×</button>
-                  </div>
-                  
-                  <div className="flex flex-col gap-3 text-xs">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="font-bold text-secondary text-[9px] uppercase font-mono">Production Line</label>
-                      <select
-                        value={selectedLineId}
-                        onChange={(e) => setSelectedLineId(e.target.value)}
-                        className="py-1.5 px-3 border border-outline-variant rounded-lg bg-surface-container-lowest font-bold text-[10px] cursor-pointer"
-                      >
-                        {productionLines.map(l => (
-                          <option key={l.id} value={l.id}>{l.name}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <label className="font-bold text-secondary text-[9px] uppercase font-mono">Active Shift</label>
-                      <select
-                        value={selectedShiftId}
-                        onChange={(e) => setSelectedShiftId(e.target.value)}
-                        className="py-1.5 px-3 border border-outline-variant rounded-lg bg-surface-container-lowest font-bold text-[10px] cursor-pointer"
-                      >
-                        {shifts.map(shift => (
-                          <option key={shift.id} value={shift.id}>{shift.name} ({shift.timings})</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <label className="font-bold text-secondary text-[9px] uppercase font-mono">Production Date</label>
-                      <input
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        className="py-1.5 px-3 border border-outline-variant rounded-lg bg-surface-container-lowest font-bold text-[10px]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowFilterPopover(false);
-                        handleAutoAllocate();
-                      }}
-                      disabled={isOptimizing || currentLine.status !== 'ACTIVE'}
-                      className="w-full py-2 bg-primary text-white text-[9px] font-bold rounded-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-1 cursor-pointer uppercase shadow-premium-sm disabled:opacity-50"
-                    >
-                      {isOptimizing && <span className="material-symbols-outlined text-xs animate-spin">sync</span>}
-                      <span>{isOptimizing ? 'Running Engine...' : 'Run AI Allocation'}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowFilterPopover(false);
-                        if (window.confirm('Clear all assignments for this shift and date?')) {
-                          clearLineAllocations(selectedDate, selectedShiftId, currentLine.id);
-                        }
-                      }}
-                      disabled={currentLine.status !== 'ACTIVE'}
-                      className="w-full py-2 border border-rose-600 text-rose-600 bg-white text-[9px] font-bold rounded-lg hover:bg-rose-50 transition-all flex items-center justify-center gap-1 cursor-pointer uppercase"
-                    >
-                      Clear Allocations
-                    </button>
-                  </div>
-                </div>
-              )}
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="py-1.5 px-2 bg-transparent text-[10px] font-bold text-[#0F172A] focus:outline-none cursor-pointer"
+              />
             </div>
 
+            <button
+              type="button"
+              onClick={() => handleAutoAllocate()}
+              disabled={isOptimizing || currentLine.status !== 'ACTIVE'}
+              className="py-2 px-4 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase font-mono tracking-wider shadow-premium-md disabled:opacity-50"
+            >
+              {isOptimizing ? (
+                <>
+                  <span className="material-symbols-outlined text-[16px] animate-spin">sync</span>
+                  <span>Running Engine...</span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[16px]">smart_toy</span>
+                  <span>Auto Allocate</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('Clear all assignments for this shift and date?')) {
+                  clearLineAllocations(selectedDate, selectedShiftId, currentLine.id);
+                }
+              }}
+              disabled={currentLine.status !== 'ACTIVE'}
+              className="py-2 px-3 bg-white border border-rose-600 text-rose-600 text-[10px] font-bold rounded-lg hover:bg-rose-50 transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase font-mono tracking-wider shadow-premium-sm disabled:opacity-50"
+            >
+              Clear
+            </button>
+            
             <button
               type="button"
               onClick={() => {
@@ -301,7 +263,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
               }}
               className="py-2 px-4 bg-[#091426] text-white font-bold rounded-lg hover:bg-slate-900 transition-all flex items-center gap-1.5 shadow-premium-md cursor-pointer text-[10px] uppercase font-mono tracking-wider"
             >
-              <span className="material-symbols-outlined text-sm font-bold">publish</span>
+              <span className="material-symbols-outlined text-[16px] font-bold">publish</span>
               <span>Publish Shift</span>
             </button>
           </div>
@@ -381,7 +343,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-              {activeWS.map(ws => {
+              {activeWS.map((ws, index) => {
                 const assigned = lineAllocations.find(a => a.workstationId === ws.id);
                 const assoc = assigned ? associates.find(a => a.id === assigned.associateId) : null;
                 const isHalted = currentLine.status === 'HALTED';
@@ -404,87 +366,56 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                 return (
                   <div
                     key={ws.id}
-                    className={`bg-white border rounded-xl overflow-hidden shadow-premium-sm transition-all hover:shadow-premium-md flex flex-col justify-between ${
-                      isCritical ? 'border-rose-150' : 'border-outline-variant hover:border-slate-350'
-                    }`}
+                    className="bg-white border-2 border-slate-300 rounded-xl overflow-hidden shadow-sm flex flex-col p-5 h-full"
                   >
-                    {/* Header */}
-                    <div className={`p-4 border-b border-outline-variant flex justify-between items-start ${
-                      isCritical ? 'bg-rose-50/20' : 'bg-slate-50/40'
-                    }`}>
-                      <div>
-                        <h4 className="font-bold text-xs text-[#0F172A] tracking-tight">{ws.name}</h4>
-                        <p className="text-[9px] font-mono text-secondary mt-0.5 uppercase tracking-wider">Asset ID: {ws.id}</p>
-                      </div>
-                      {isCritical ? (
-                        <span className="material-symbols-outlined text-rose-600 text-[18px] font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>error</span>
-                      ) : (
-                        <span className="material-symbols-outlined text-emerald-600 text-[18px] font-bold" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">STAGE {index < 9 ? `0${index + 1}` : index + 1}</span>
+                      {isCritical && (
+                        <span className="bg-[#FECDD3] text-[#9F1239] text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">CRITICAL</span>
                       )}
                     </div>
-
-                    {/* Body */}
-                    <div className="p-5 flex flex-col items-center justify-center gap-2 flex-grow min-h-[90px]">
-                      <span className="text-[8px] font-bold text-secondary uppercase font-mono tracking-widest select-none font-label-caps">Required Skill</span>
-                      <span className="bg-slate-100 border border-slate-200 text-secondary font-mono text-[9px] font-bold px-3 py-1 rounded tracking-wider uppercase select-none">
-                        Required Skill: {ws.minSkillLevel}
-                      </span>
+                    
+                    <h4 className="text-2xl font-bold text-[#0F172A] leading-tight mb-4 min-h-[60px]">{ws.name}</h4>
+                    
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[11px] text-slate-500 font-medium">Staffing:</span>
+                      <span className={`text-sm font-bold ${assoc ? 'text-[#0F172A]' : 'text-[#B91C1C]'}`}>{assoc ? '1' : '0'}/1</span>
                     </div>
-
-                    {/* Footer */}
-                    {isCritical ? (
-                      <div className="bg-rose-700 text-white px-4 py-3 flex justify-between items-center select-none shrink-0 border-t border-rose-100">
-                        <span className="text-[9px] font-bold uppercase tracking-wider font-mono flex items-center gap-1">
-                          <span className="material-symbols-outlined text-xs">error</span>
-                          <span>UNALLOCATED</span>
-                        </span>
-                        {(role === 'Production Supervisor' || role === 'Plant Admin') ? (
-                          <button
-                            type="button"
-                            onClick={() => handleOpenAssignModal(ws.id)}
-                            className="px-3 py-1 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded text-[8px] font-bold flex items-center gap-1 transition-all uppercase tracking-wider cursor-pointer"
-                          >
-                            <span>Assign</span>
-                          </button>
-                        ) : (
-                          <span className="text-[8px] italic opacity-75">Read-Only</span>
-                        )}
+                    <div className="w-full bg-slate-200 h-1.5 rounded-full mb-6 overflow-hidden">
+                      {assoc && <div className="h-full bg-emerald-500 w-full"></div>}
+                    </div>
+                    
+                    <div className="mt-auto">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">REQUIRED SKILLS</p>
+                      <div className="inline-block border border-slate-400 rounded-full px-3 py-1 text-[10px] text-slate-600 font-medium mb-5 truncate max-w-full">
+                        {ws.requiredSkillId} (Level &gt;= {ws.minSkillLevel})
                       </div>
-                    ) : (
-                      <div 
-                        onClick={() => {
-                          if (assigned && (role === 'Production Supervisor' || role === 'Plant Admin')) {
-                            if (window.confirm(`Deallocate ${assoc?.name} from ${ws.name}?`)) {
-                              handleDeallocate(ws.id, assoc?.id);
+                      
+                      {!assoc ? (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenAssignModal(ws.id)}
+                          className="w-full py-2.5 bg-[#B91C1C] text-white text-[11px] font-bold rounded-lg hover:bg-red-800 transition-all uppercase tracking-wider cursor-pointer"
+                        >
+                          PRIORITY ASSIGN
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (assigned && (role === 'Production Supervisor' || role === 'Plant Admin')) {
+                              if (window.confirm(`Deallocate ${assoc?.name} from ${ws.name}?`)) {
+                                handleDeallocate(ws.id, assoc?.id);
+                              }
                             }
-                          }
-                        }}
-                        className="bg-[#0B2C1A] text-white px-4 py-3 flex justify-between items-center select-none shrink-0 border-t border-emerald-900/40 cursor-pointer group hover:bg-rose-800 transition-colors"
-                      >
-                        <div className="flex items-center gap-2 min-w-0 group-hover:hidden">
-                          <img
-                            alt={assoc?.name}
-                            className="w-5 h-5 rounded-full object-cover border border-emerald-500/20 shrink-0 shadow-premium-sm"
-                            src={getAvatarUrl(assoc?.name || '')}
-                          />
-                          <div className="flex flex-col min-w-0 leading-tight">
-                            <span className="text-[7px] text-emerald-400 font-bold uppercase font-mono tracking-widest leading-none">ALLOCATED TO</span>
-                            <span className="text-[10px] font-bold text-white truncate max-w-[110px] mt-0.5">{assoc?.name}</span>
-                          </div>
-                        </div>
-
-                        <span className="text-[8px] font-bold text-emerald-400 uppercase font-mono tracking-widest flex items-center gap-1 shrink-0 group-hover:hidden">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                          <span>Active</span>
-                        </span>
-
-                        {/* Hover Deallocate Action text */}
-                        <div className="hidden group-hover:flex items-center justify-center gap-1.5 w-full text-center text-[9px] font-bold uppercase tracking-wider text-white">
-                          <span className="material-symbols-outlined text-xs">person_remove</span>
-                          <span>Deallocate Operator</span>
-                        </div>
-                      </div>
-                    )}
+                          }}
+                          className="w-full py-2.5 bg-[#0B2C1A] text-emerald-400 text-[11px] font-bold rounded-lg hover:bg-rose-800 hover:text-white transition-all uppercase tracking-wider cursor-pointer flex items-center justify-center gap-2 group"
+                        >
+                          <span className="group-hover:hidden truncate max-w-[150px]">{assoc.name}</span>
+                          <span className="hidden group-hover:block">DEALLOCATE</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
