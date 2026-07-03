@@ -89,7 +89,7 @@ class Server{
         try {
           const { Associate, RagChunk, ProductionAssumptions, MonthlySeasonality, ManpowerNorm, CoverageBuffers, DailyProductionActual } = await import('../database/models/models/models');
           const { seedDatabase } = await import('../database/models/seed');
-          const { sequelize } = await import('./config/dbConn');
+          const { sequelize } = await import('../database/config/dbConn');
           await sequelize.query('CREATE EXTENSION IF NOT EXISTS vector;');
           await sequelize.sync({ alter: true });
           const count = await (Associate as any).count();
