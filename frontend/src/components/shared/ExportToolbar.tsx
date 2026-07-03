@@ -22,6 +22,7 @@ const ExportToolbar: React.FC<ExportToolbarProps> = ({
   reportTitle = 'PlantOps Report',
   compact = false,
   onPrint,
+  jsonData,
 }) => {
   const [loading, setLoading] = useState<string | null>(null);
 
@@ -45,7 +46,7 @@ const ExportToolbar: React.FC<ExportToolbarProps> = ({
       {/* PDF */}
       <button
         className={btnClass}
-        onClick={() => handle('pdf', () => exportPDF(elementId, reportTitle))}
+        onClick={() => handle('pdf', () => exportPDF(elementId, reportTitle, 'PepsiCo Kolkata Plant', jsonData))}
         title="Export PDF"
         disabled={loading === 'pdf'}
       >

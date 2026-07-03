@@ -9,11 +9,12 @@ import * as XLSX from 'xlsx';
 const BRAND_COLOR = '#182c47';
 const ACCENT_COLOR = '#14b8a6';
 
-/** Screenshot a DOM element and save as PDF with branding header */
+/** Generate a structured, professional, vector-text based PDF with charts embedded */
 export async function exportPDF(
   elementId: string,
   title = 'PlantOps Report',
-  subtitle = 'PepsiCo Kolkata Plant'
+  subtitle = 'PepsiCo Kolkata Plant',
+  messageData?: any
 ): Promise<void> {
   const element = document.getElementById(elementId);
   if (!element) {
@@ -21,17 +22,80 @@ export async function exportPDF(
     return;
   }
 
-  try {
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-    });
+  // Fallback to legacy screenshot export if no structured message data is present
+  if (!messageData || !messageData.text) {
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
 
-    const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+        unit: 'pt',
+        format: 'a4',
+      });
+
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const headerH = 60;
+      const footerH = 30;
+      const contentH = pageH - headerH - footerH;
+
+      // Header bar
+      pdf.setFillColor(BRAND_COLOR);
+      pdf.rect(0, 0, pageW, headerH, 'F');
+      pdf.setFillColor(ACCENT_COLOR);
+      pdf.rect(0, headerH - 3, pageW, 3, 'F');
+
+      // Header text
+      pdf.setTextColor('#ffffff');
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(14);
+      pdf.text(title, 20, 26);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8);
+      pdf.text(subtitle, 20, 40);
+      pdf.text(`Generated: ${new Date().toLocaleString()}`, 20, 52);
+
+      // Logo
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(10);
+      pdf.setTextColor('#14b8a6');
+      pdf.text('PLANTOPS', pageW - 20, 30, { align: 'right' });
+      pdf.setFontSize(7);
+      pdf.setTextColor('#94a3b8');
+      pdf.text('AI Operations Platform', pageW - 20, 42, { align: 'right' });
+
+      // Image
+      const imgW = pageW - 40;
+      const imgH = Math.min(contentH - 10, (canvas.height / canvas.width) * imgW);
+      pdf.addImage(imgData, 'PNG', 20, headerH + 10, imgW, imgH);
+
+      // Footer
+      pdf.setFillColor('#f8fafc');
+      pdf.rect(0, pageH - footerH, pageW, footerH, 'F');
+      pdf.setTextColor('#64748b');
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(7);
+      pdf.text('CONFIDENTIAL — PepsiCo Internal Document', pageW / 2, pageH - 10, { align: 'center' });
+      pdf.text(`Page 1`, pageW - 20, pageH - 10, { align: 'right' });
+
+      const filename = `${title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(filename);
+    } catch (err) {
+      console.error('Legacy screenshot PDF fallback failed:', err);
+    }
+    return;
+  }
+
+  // Structured professional vector layout
+  try {
     const pdf = new jsPDF({
-      orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+      orientation: 'portrait',
       unit: 'pt',
       format: 'a4',
     });
@@ -40,53 +104,214 @@ export async function exportPDF(
     const pageH = pdf.internal.pageSize.getHeight();
     const headerH = 60;
     const footerH = 30;
-    const contentH = pageH - headerH - footerH;
 
-    // Header bar
-    pdf.setFillColor(BRAND_COLOR);
-    pdf.rect(0, 0, pageW, headerH, 'F');
+    const drawHeaderFooter = (pageNum: number) => {
+      // Header
+      pdf.setFillColor(BRAND_COLOR);
+      pdf.rect(0, 0, pageW, headerH, 'F');
+      pdf.setFillColor(ACCENT_COLOR);
+      pdf.rect(0, headerH - 3, pageW, 3, 'F');
 
-    // Accent stripe
-    pdf.setFillColor(ACCENT_COLOR);
-    pdf.rect(0, headerH - 3, pageW, 3, 'F');
+      // Title & metadata
+      pdf.setTextColor('#ffffff');
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(13);
+      pdf.text(title, 20, 26);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8);
+      pdf.text(subtitle, 20, 40);
+      pdf.text(`Report Generated: ${new Date().toLocaleString()}`, 20, 52);
 
-    // Header text
-    pdf.setTextColor('#ffffff');
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(14);
-    pdf.text(title, 20, 26);
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8);
-    pdf.text(subtitle, 20, 40);
-    pdf.text(`Generated: ${new Date().toLocaleString()}`, 20, 52);
+      // Logo
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(10);
+      pdf.setTextColor('#14b8a6');
+      pdf.text('PLANTOPS', pageW - 20, 30, { align: 'right' });
+      pdf.setFontSize(7);
+      pdf.setTextColor('#94a3b8');
+      pdf.text('AI Operations Platform', pageW - 20, 42, { align: 'right' });
 
-    // Logo placeholder (right side)
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(10);
-    pdf.setTextColor('#14b8a6');
-    pdf.text('PLANTOPS', pageW - 20, 30, { align: 'right' });
-    pdf.setFontSize(7);
-    pdf.setTextColor('#94a3b8');
-    pdf.text('AI Operations Platform', pageW - 20, 42, { align: 'right' });
+      // Footer
+      pdf.setFillColor('#f8fafc');
+      pdf.rect(0, pageH - footerH, pageW, footerH, 'F');
+      pdf.setTextColor('#64748b');
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(7);
+      pdf.text('CONFIDENTIAL — PepsiCo Internal Document', pageW / 2, pageH - 10, { align: 'center' });
+      pdf.text(`Page ${pageNum}`, pageW - 20, pageH - 10, { align: 'right' });
+    };
 
-    // Content image
-    const imgW = pageW - 40;
-    const imgH = Math.min(contentH - 10, (canvas.height / canvas.width) * imgW);
-    pdf.addImage(imgData, 'PNG', 20, headerH + 10, imgW, imgH);
+    let y = headerH + 25;
+    let pageNum = 1;
+    drawHeaderFooter(pageNum);
 
-    // Footer
-    pdf.setFillColor('#f8fafc');
-    pdf.rect(0, pageH - footerH, pageW, footerH, 'F');
-    pdf.setTextColor('#64748b');
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(7);
-    pdf.text('CONFIDENTIAL — PepsiCo Internal Document', pageW / 2, pageH - 10, { align: 'center' });
-    pdf.text(`Page 1`, pageW - 20, pageH - 10, { align: 'right' });
+    const checkPageBreak = (neededHeight: number) => {
+      if (y + neededHeight > pageH - footerH - 15) {
+        pdf.addPage();
+        pageNum++;
+        drawHeaderFooter(pageNum);
+        y = headerH + 25;
+      }
+    };
+
+    // Text parsing
+    const lines = messageData.text.split('\n');
+    let inTable = false;
+    let tableHeaders: string[] = [];
+    let tableRows: string[][] = [];
+
+    const flushTable = () => {
+      if (tableHeaders.length > 0 || tableRows.length > 0) {
+        const colCount = Math.max(tableHeaders.length, ...tableRows.map(r => r.length));
+        if (colCount > 0) {
+          const colWidth = (pageW - 40) / colCount;
+          const rowHeight = 18;
+          const totalTableHeight = (tableRows.length + 1) * rowHeight + 10;
+          checkPageBreak(totalTableHeight);
+
+          // Render Table Header
+          pdf.setFillColor('#f1f5f9');
+          pdf.rect(20, y, pageW - 40, rowHeight, 'F');
+          pdf.setDrawColor('#e2e8f0');
+          pdf.setLineWidth(0.5);
+          pdf.line(20, y, pageW - 20, y);
+          pdf.line(20, y + rowHeight, pageW - 20, y + rowHeight);
+
+          pdf.setTextColor('#334155');
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(8);
+
+          tableHeaders.forEach((header, idx) => {
+            pdf.text(header.replace(/\*\*/g, '').trim(), 25 + idx * colWidth, y + 12);
+          });
+
+          y += rowHeight;
+
+          // Render Table Rows
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor('#475569');
+
+          tableRows.forEach((row, rIdx) => {
+            if (rIdx % 2 === 1) {
+              pdf.setFillColor('#f8fafc');
+              pdf.rect(20, y, pageW - 40, rowHeight, 'F');
+            }
+            pdf.setDrawColor('#e2e8f0');
+            pdf.rect(20, y, pageW - 40, rowHeight);
+            
+            row.forEach((cell, idx) => {
+              const cleanCell = cell.replace(/\*\*/g, '').trim();
+              pdf.text(cleanCell, 25 + idx * colWidth, y + 12);
+            });
+            y += rowHeight;
+          });
+
+          y += 10; // margin below table
+        }
+        tableHeaders = [];
+        tableRows = [];
+      }
+      inTable = false;
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      if (line.startsWith('|')) {
+        inTable = true;
+        const cols = line.split('|').map(c => c.trim()).filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+        if (line.includes(':---') || line.includes('---')) {
+          continue;
+        }
+        if (tableHeaders.length === 0) {
+          tableHeaders = cols;
+        } else {
+          tableRows.push(cols);
+        }
+      } else {
+        if (inTable) {
+          flushTable();
+        }
+
+        if (line.startsWith('###')) {
+          const titleText = line.replace(/^###\s+/, '').replace(/\*\*/g, '');
+          checkPageBreak(25);
+          pdf.setTextColor(BRAND_COLOR);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(10.5);
+          pdf.text(titleText, 20, y + 5);
+          y += 20;
+        } else if (line.startsWith('####')) {
+          const subTitleText = line.replace(/^####\s+/, '').replace(/\*\*/g, '');
+          checkPageBreak(20);
+          pdf.setTextColor('#475569');
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(9);
+          pdf.text(subTitleText, 20, y + 3);
+          y += 15;
+        } else if (line.startsWith('-')) {
+          const bulletText = line.replace(/^-\s+/, '').replace(/\*\*/g, '');
+          const wrapped = pdf.splitTextToSize(bulletText, pageW - 60);
+          checkPageBreak(wrapped.length * 11 + 5);
+          pdf.setTextColor('#334155');
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(8.5);
+          wrapped.forEach((wLine: string, idx: number) => {
+            if (idx === 0) {
+              pdf.text('•', 22, y + 2);
+            }
+            pdf.text(wLine, 32, y + 2);
+            y += 10.5;
+          });
+          y += 3;
+        } else if (line !== '') {
+          const cleanLine = line.replace(/\*\*/g, '');
+          const wrapped = pdf.splitTextToSize(cleanLine, pageW - 40);
+          checkPageBreak(wrapped.length * 11 + 5);
+          pdf.setTextColor('#334155');
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(8.5);
+          wrapped.forEach((wLine: string) => {
+            pdf.text(wLine, 20, y + 2);
+            y += 10.5;
+          });
+          y += 4;
+        }
+      }
+    }
+
+    if (inTable) {
+      flushTable();
+    }
+
+    // Embed chart cleanly if present
+    if (messageData.chart) {
+      const chartEl = element.querySelector('.recharts-responsive-container') || element.querySelector('.chart-container');
+      if (chartEl) {
+        const canvas = await html2canvas(chartEl as HTMLElement, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false
+        });
+        const imgData = canvas.toDataURL('image/png');
+        const imgW = pageW - 60;
+        const imgH = (canvas.height / canvas.width) * imgW;
+        
+        checkPageBreak(imgH + 30);
+        pdf.setFillColor('#f8fafc');
+        pdf.rect(20, y, pageW - 40, imgH + 15, 'F');
+        pdf.setDrawColor('#e2e8f0');
+        pdf.rect(20, y, pageW - 40, imgH + 15);
+        pdf.addImage(imgData, 'PNG', 30, y + 7, imgW, imgH);
+        y += imgH + 25;
+      }
+    }
 
     const filename = `${title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
     pdf.save(filename);
   } catch (err) {
-    console.error('exportPDF failed:', err);
+    console.error('Structured PDF export failed:', err);
   }
 }
 
