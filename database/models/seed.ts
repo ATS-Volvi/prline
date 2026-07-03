@@ -5,7 +5,11 @@ import {
   Workstation,
   Shift,
   Associate,
-  AssociateSkill
+  AssociateSkill,
+  ProductionAssumptions,
+  MonthlySeasonality,
+  ManpowerNorm,
+  CoverageBuffers
 } from "./models/models";
 import User from "./models/user";
 import { hashPassword } from "../../backend/utils/hashPwd";
@@ -188,6 +192,53 @@ const associateSkillsData = [
   { associateId: 'EMP132', skillId: 'CHEM_CERT', level: 'Certified', trainingDate: '2025-07-20', certifiedBy: 'Lab Director', expiryDate: '2027-07-20' },
 ];
 
+const defaultAssumptions = {
+  fyLabel: 'FY 2026-27',
+  fyStartDate: '2026-04-01',
+  numLines: 3,
+  ratedCapacityKgHr: 2200,
+  hoursPerShift: 8,
+  shiftsPerDay: 3,
+  workingDaysPerMonth: 26,
+  plannedDowntimePct: 0.08,
+  rejectionPct: 0.015,
+  annualTargetMt: 36000
+};
+
+const defaultSeasonality = [
+  { month: 'Apr', indexValue: 1.0 },
+  { month: 'May', indexValue: 1.05 },
+  { month: 'Jun', indexValue: 0.95 },
+  { month: 'Jul', indexValue: 0.9 },
+  { month: 'Aug', indexValue: 0.85 },
+  { month: 'Sep', indexValue: 1.0 },
+  { month: 'Oct', indexValue: 1.2 },
+  { month: 'Nov', indexValue: 1.15 },
+  { month: 'Dec', indexValue: 1.1 },
+  { month: 'Jan', indexValue: 0.95 },
+  { month: 'Feb', indexValue: 0.9 },
+  { month: 'Mar', indexValue: 0.95 }
+];
+
+const defaultNorms = [
+  { role: 'Line Operator', category: 'Skilled', scope: 'per_line_shift', countPerUnit: 1, notes: 'One per line' },
+  { role: 'Machine Feeder/Helper', category: 'Semi-Skilled', scope: 'per_line_shift', countPerUnit: 2, notes: 'Two helpers per line' },
+  { role: 'Seasoning Operator', category: 'Skilled', scope: 'per_line_shift', countPerUnit: 1, notes: 'Seasoning control' },
+  { role: 'Packing Machine Operator', category: 'Skilled', scope: 'per_line_shift', countPerUnit: 2, notes: 'Two per packaging station' },
+  { role: 'Packing Associate', category: 'Unskilled', scope: 'per_line_shift', countPerUnit: 3, notes: 'Manual sorting and packing' },
+  { role: 'Material Handler', category: 'Semi-Skilled', scope: 'per_line_shift', countPerUnit: 1, notes: 'Forklift / Pallet movement' },
+  { role: 'Shift Supervisor', category: 'Skilled', scope: 'per_shift_shared', countPerUnit: 1, notes: 'Shared shift lead' },
+  { role: 'Line Mechanic', category: 'Skilled', scope: 'per_shift_shared', countPerUnit: 1, notes: 'Shared maintenance' },
+  { role: 'QA Inspector', category: 'Skilled', scope: 'per_shift_shared', countPerUnit: 1, notes: 'Shared QA inspector' },
+  { role: 'Utility/Housekeeping', category: 'Unskilled', scope: 'per_shift_shared', countPerUnit: 1, notes: 'Shared housekeeping utility' }
+];
+
+const defaultBuffers = {
+  workingDaysPerAssociatePerWeek: 6,
+  offFactorAdj: 1.167,
+  absenteeBufferPct: 0.05
+};
+
 export const seedDatabase = async (targetUserId?: string) => {
   try {
     if (targetUserId) {
@@ -210,6 +261,27 @@ export const seedDatabase = async (targetUserId?: string) => {
 
       // Seed AssociateSkills scoped to user
       await AssociateSkill.bulkCreate(associateSkillsData.map(d => ({ ...d, userId: targetUserId })));
+
+      // Seed Production planning tables scoped to user
+      const assumptions = await ProductionAssumptions.create({
+        ...defaultAssumptions,
+        userId: targetUserId
+      });
+      
+      await MonthlySeasonality.bulkCreate(defaultSeasonality.map(s => ({
+        ...s,
+        assumptionsId: assumptions.id
+      })));
+
+      await ManpowerNorm.bulkCreate(defaultNorms.map(n => ({
+        ...n,
+        assumptionsId: assumptions.id
+      })));
+
+      await CoverageBuffers.create({
+        ...defaultBuffers,
+        assumptionsId: assumptions.id
+      });
 
       console.log(`Successfully seeded Kolkata Plant Snack factory for userId: ${targetUserId}.`);
       return;

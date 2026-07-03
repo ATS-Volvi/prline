@@ -18,6 +18,7 @@ import { logAction } from "../../../src/services/auditService";
 import * as allocationController from "../../../src/controllers/allocationController";
 import * as dataController from "../../../src/controllers/dataController";
 import * as reportsController from "../../../src/controllers/reportsController";
+import * as planningController from "../../../src/controllers/planningController";
 
 const router = Router();
 
@@ -602,5 +603,13 @@ router.post("/audit-logs", AuthHandler.authMiddleware, async (req: Request, res:
 // RAG CHAT REPORT ROUTE
 router.post("/reports/rag-chat", AuthHandler.authMiddleware, reportsController.ragChatController);
 router.get("/reports/rag-status", AuthHandler.authMiddleware, reportsController.ragStatusController);
+
+// PRODUCTION & MANPOWER PLANNING ROUTES
+router.get("/planning/assumptions", AuthHandler.authMiddleware, planningController.getAssumptions);
+router.put("/planning/assumptions", AuthHandler.authMiddleware, planningController.updateAssumptions);
+router.get("/planning/plan", AuthHandler.authMiddleware, planningController.getPlan);
+router.get("/planning/manpower", AuthHandler.authMiddleware, planningController.getManpowerPlan);
+router.post("/planning/actuals", AuthHandler.authMiddleware, planningController.logActual);
+router.get("/planning/variance", AuthHandler.authMiddleware, planningController.getVariance);
 
 export default router;

@@ -10,6 +10,7 @@ import { AuditLogs } from './components/AuditLogs';
 import { Login } from './components/Login';
 import { ExecutiveDashboard } from './components/ExecutiveDashboard';
 import { PlantMap } from './components/PlantMap';
+import { ProductionPlanning } from './components/ProductionPlanning';
 
 function MainAppContent() {
   const { token, logout } = useApp();
@@ -79,6 +80,8 @@ function MainAppContent() {
         return <MasterData initialSubTab="shifts" selectedLineId={selectedLineId} setSelectedLineId={setSelectedLineId} setActiveTab={setActiveTab} />;
       case 'analytics':
         return <Analytics />;
+      case 'production_planning':
+        return <ProductionPlanning />;
       case 'ai_reports':
         return <AiReports />;
       case 'audit_logs':

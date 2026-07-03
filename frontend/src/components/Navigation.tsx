@@ -33,6 +33,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
   const topTabs = [
     { id: 'dashboard', name: 'Dashboard', icon: 'dashboard', roles: allRoles },
     { id: 'shift_planner', name: 'Shift Allocation', icon: 'edit_calendar', roles: allRoles },
+    { id: 'production_planning', name: 'Production Planning', icon: 'timeline', roles: allRoles },
     { id: 'analytics', name: 'Reports', icon: 'analytics', roles: allRoles },
     { id: 'ai_reports', name: 'AI Reports', icon: 'smart_toy', roles: allRoles },
     { id: 'audit_logs', name: 'Audit Logs', icon: 'terminal', roles: allRoles },

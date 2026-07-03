@@ -259,3 +259,118 @@ RagChunk.init({
   embedding: { type: 'VECTOR(384)', allowNull: true },
 }, { sequelize, tableName: 'rag_chunks', timestamps: true, updatedAt: 'updated_at', createdAt: false });
 
+// 10. PRODUCTION ASSUMPTIONS MODEL
+export class ProductionAssumptions extends Model {
+  public id!: number;
+  public userId!: string;
+  public fyLabel!: string;
+  public fyStartDate!: string;
+  public numLines!: number;
+  public ratedCapacityKgHr!: number;
+  public hoursPerShift!: number;
+  public shiftsPerDay!: number;
+  public workingDaysPerMonth!: number;
+  public plannedDowntimePct!: number;
+  public rejectionPct!: number;
+  public annualTargetMt!: number;
+}
+ProductionAssumptions.init({
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  userId: { type: DataTypes.STRING, allowNull: false, field: 'user_id' },
+  fyLabel: { type: DataTypes.STRING, allowNull: true, field: 'fy_label' },
+  fyStartDate: { type: DataTypes.DATEONLY, allowNull: true, field: 'fy_start_date' },
+  numLines: { type: DataTypes.INTEGER, allowNull: true, field: 'num_lines' },
+  ratedCapacityKgHr: { type: DataTypes.DECIMAL, allowNull: true, field: 'rated_capacity_kg_hr' },
+  hoursPerShift: { type: DataTypes.DECIMAL, allowNull: true, field: 'hours_per_shift' },
+  shiftsPerDay: { type: DataTypes.INTEGER, allowNull: true, field: 'shifts_per_day' },
+  workingDaysPerMonth: { type: DataTypes.DECIMAL, allowNull: true, field: 'working_days_per_month' },
+  plannedDowntimePct: { type: DataTypes.DECIMAL, allowNull: true, field: 'planned_downtime_pct' },
+  rejectionPct: { type: DataTypes.DECIMAL, allowNull: true, field: 'rejection_pct' },
+  annualTargetMt: { type: DataTypes.DECIMAL, allowNull: true, field: 'annual_target_mt' },
+}, { sequelize, tableName: 'production_assumptions', timestamps: true, createdAt: 'created_at', updatedAt: 'updated_at' });
+
+// 11. MONTHLY SEASONALITY MODEL
+export class MonthlySeasonality extends Model {
+  public id!: number;
+  public assumptionsId!: number;
+  public month!: string;
+  public indexValue!: number;
+  public note!: string;
+}
+MonthlySeasonality.init({
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  assumptionsId: { type: DataTypes.INTEGER, allowNull: false, field: 'assumptions_id' },
+  month: { type: DataTypes.STRING, allowNull: false },
+  indexValue: { type: DataTypes.DECIMAL, allowNull: false, field: 'index_value' },
+  note: { type: DataTypes.STRING, allowNull: true }
+}, { sequelize, tableName: 'monthly_seasonality', timestamps: false });
+
+// 12. MANPOWER NORM MODEL
+export class ManpowerNorm extends Model {
+  public id!: number;
+  public assumptionsId!: number;
+  public role!: string;
+  public category!: 'Skilled' | 'Semi-Skilled' | 'Unskilled';
+  public scope!: 'per_line_shift' | 'per_shift_shared';
+  public countPerUnit!: number;
+  public notes!: string;
+}
+ManpowerNorm.init({
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  assumptionsId: { type: DataTypes.INTEGER, allowNull: false, field: 'assumptions_id' },
+  role: { type: DataTypes.STRING, allowNull: false },
+  category: { type: DataTypes.STRING, allowNull: false },
+  scope: { type: DataTypes.STRING, allowNull: false },
+  countPerUnit: { type: DataTypes.DECIMAL, allowNull: false, field: 'count_per_unit' },
+  notes: { type: DataTypes.STRING, allowNull: true }
+}, { sequelize, tableName: 'manpower_norms', timestamps: false });
+
+// 13. COVERAGE BUFFERS MODEL
+export class CoverageBuffers extends Model {
+  public id!: number;
+  public assumptionsId!: number;
+  public workingDaysPerAssociatePerWeek!: number;
+  public offFactorAdj!: number;
+  public absenteeBufferPct!: number;
+}
+CoverageBuffers.init({
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  assumptionsId: { type: DataTypes.INTEGER, allowNull: false, field: 'assumptions_id' },
+  workingDaysPerAssociatePerWeek: { type: DataTypes.DECIMAL, defaultValue: 6, field: 'working_days_per_associate_per_week' },
+  offFactorAdj: { type: DataTypes.DECIMAL, allowNull: true, field: 'off_factor_adj' },
+  absenteeBufferPct: { type: DataTypes.DECIMAL, allowNull: true, field: 'absentee_buffer_pct' }
+}, { sequelize, tableName: 'coverage_buffers', timestamps: false });
+
+// 14. DAILY PRODUCTION ACTUAL MODEL
+export class DailyProductionActual extends Model {
+  public id!: number;
+  public userId!: string;
+  public productionDate!: string;
+  public lineId!: string | null;
+  public shift!: string | null;
+  public actualOutputMt!: number;
+  public enteredBy!: string;
+  public notes!: string;
+}
+DailyProductionActual.init({
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  userId: { type: DataTypes.STRING, allowNull: false, field: 'user_id' },
+  productionDate: { type: DataTypes.DATEONLY, allowNull: false, field: 'production_date' },
+  lineId: { type: DataTypes.STRING, allowNull: true, field: 'line_id' },
+  shift: { type: DataTypes.STRING, allowNull: true },
+  actualOutputMt: { type: DataTypes.DECIMAL, allowNull: false, field: 'actual_output_mt' },
+  enteredBy: { type: DataTypes.STRING, allowNull: true, field: 'entered_by' },
+  notes: { type: DataTypes.STRING, allowNull: true }
+}, { sequelize, tableName: 'daily_production_actual', timestamps: true, createdAt: 'created_at', updatedAt: false });
+
+// Setup associations
+ProductionAssumptions.hasMany(MonthlySeasonality, { foreignKey: 'assumptions_id', as: 'seasonality', onDelete: 'CASCADE' });
+MonthlySeasonality.belongsTo(ProductionAssumptions, { foreignKey: 'assumptions_id', as: 'assumptions' });
+
+ProductionAssumptions.hasMany(ManpowerNorm, { foreignKey: 'assumptions_id', as: 'norms', onDelete: 'CASCADE' });
+ManpowerNorm.belongsTo(ProductionAssumptions, { foreignKey: 'assumptions_id', as: 'assumptions' });
+
+ProductionAssumptions.hasOne(CoverageBuffers, { foreignKey: 'assumptions_id', as: 'buffers', onDelete: 'CASCADE' });
+CoverageBuffers.belongsTo(ProductionAssumptions, { foreignKey: 'assumptions_id', as: 'assumptions' });
+
+

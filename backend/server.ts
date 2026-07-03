@@ -87,7 +87,7 @@ class Server{
         await this.connectToDb()
 
         try {
-          const { Associate, RagChunk } = await import('../database/models/models/models');
+          const { Associate, RagChunk, ProductionAssumptions, MonthlySeasonality, ManpowerNorm, CoverageBuffers, DailyProductionActual } = await import('../database/models/models/models');
           const { seedDatabase } = await import('../database/models/seed');
           const { sequelize } = await import('./config/dbConn');
           await sequelize.query('CREATE EXTENSION IF NOT EXISTS vector;');
