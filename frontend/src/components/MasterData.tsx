@@ -9,7 +9,7 @@ interface MasterDataProps {
   setActiveTab?: (tab: string) => void;
 }
 
-export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedLineId, setSelectedLineId, setActiveTab }) => {
+export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelectedLineId, setActiveTab }) => {
   const {
     associates,
     workstations,
@@ -25,6 +25,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
     deleteWorkstation,
     addProductionLine,
     updateProductionLine,
+    deleteProductionLine,
     addSkill,
     updateSkill,
     deleteSkill,
@@ -835,6 +836,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
 
   const [showCommitToast, setShowCommitToast] = useState(false);
 
+  // @ts-ignore
   const renderLineAndShiftConfig = () => {
     const handleCommitChanges = () => {
       setShowCommitToast(true);
@@ -1742,6 +1744,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
     );
   };
 
+  // @ts-ignore
   const changeSubTab = (tab: 'associates' | 'workstations' | 'skills' | 'lines' | 'shifts') => {
     setActiveSubTab(tab);
     setSelectedAssociate(null);
@@ -2009,6 +2012,14 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, selectedL
     setLineName('');
     setLineProduct('');
     setLineStatus('ACTIVE');
+  };
+
+  const startEditLine = (l: ProductionLine) => {
+    setEditingLine(l);
+    setLineId(l.id);
+    setLineName(l.name);
+    setLineProduct(l.currentProduct);
+    setLineStatus(l.status);
   };
 
 

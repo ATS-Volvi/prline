@@ -28,7 +28,6 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedShiftId, setSelectedShiftId] = useState('SHIFT-A');
   const [plannerTab, setPlannerTab] = useState<'allocation' | 'availability'>('allocation');
-  const [showFilterPopover, setShowFilterPopover] = useState(false);
   const [showPublishToast, setShowPublishToast] = useState(false);
 
   // Animation & Modal states
@@ -348,20 +347,7 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                 const assoc = assigned ? associates.find(a => a.id === assigned.associateId) : null;
                 const isHalted = currentLine.status === 'HALTED';
                 const isCritical = !isHalted && !assoc;
-
                 // Profile picture matching Unsplash premium style
-                const getAvatarUrl = (name: string) => {
-                  if (name.includes("Marcus")) {
-                    return "https://lh3.googleusercontent.com/aida-public/AB6AXuDfI-JZyjb1pQwgoRAtI8MGXNX2TkA8IMEQGilu9TafNco6H0681KiHavWtbDCOinqxPmMVNW7cH2PGWBix5r5qN2C9dtJepLRZ5jQe-w5EM4EAd4HpvXjXE2ZjUfZ8L0JYCnIpFNelIEATQDAcZpx-hcSk2br-2DUV4G-gnc11DusyAddAz185_iYFO8pJdibyEO4J1XRizRZ5LQl04mYp3jucUv_Ldv1I8ajvM3NZ3OargpKyQvu6reWcSh6mOS_F6lv4y82etqE";
-                  }
-                  if (name.includes("Sarah")) {
-                    return "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80";
-                  }
-                  if (name.includes("David") || name.includes("Chen")) {
-                    return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80";
-                  }
-                  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=091426&color=fff`;
-                };
 
                 return (
                   <div
