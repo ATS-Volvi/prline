@@ -9,10 +9,38 @@ import {
   CartesianGrid,
   Tooltip,
   Line,
-  ComposedChart
+  ComposedChart,
+  Cell,
+  LabelList
 } from 'recharts';
 import { generateRecommendations } from '../utils/recommendations';
 import ExportToolbar from './shared/ExportToolbar';
+
+type CertStatus = 'expired' | 'expiring_soon' | 'valid';
+
+function StatusBadge({ status, label }: { status: CertStatus; label?: string }) {
+  const config = {
+    expired: { bg: '#FEE2E2', text: '#B91C1C', defaultLabel: 'Expired' },
+    expiring_soon: { bg: '#FEF3C7', text: '#B45309', defaultLabel: 'Expires soon' },
+    valid: { bg: '#D1FAE5', text: '#047857', defaultLabel: 'Valid' },
+  }[status];
+  return (
+    <span style={{ 
+      background: config.bg, 
+      color: config.text, 
+      padding: '2px 10px', 
+      borderRadius: 999, 
+      fontSize: '10px', 
+      fontWeight: 600, 
+      border: `1px solid ${config.text}20`,
+      display: 'inline-flex',
+      alignItems: 'center',
+      whiteSpace: 'nowrap'
+    }}>
+      {label || config.defaultLabel}
+    </span>
+  );
+}
 
 // ─── Unified Palette ────────────────────────────────────────────────────────
 const PALETTE = {
@@ -40,6 +68,7 @@ interface ChartSpec {
   lines?: { key: string; color: string }[];
   stacked?: boolean;
   domain?: [number | string, number | string];
+  xAxisTitle?: string;
 }
 
 const CustomChartTooltip = ({ active, payload }: any) => {
@@ -65,35 +94,56 @@ const ChartRenderer: React.FC<{ spec: ChartSpec }> = ({ spec }) => {
   return (
     <div className="border-t border-slate-100 pt-2 flex flex-col gap-1">
       <h4 className="text-[8px] font-bold text-slate-400 uppercase tracking-wider font-mono">{spec.title}</h4>
-      <div className="h-[100px] w-full text-[8px] font-mono">
+      <div className="h-[120px] w-full text-[8px] font-sans">
         <ResponsiveContainer width="100%" height="100%">
           {spec.type === 'barH' ? (
-            <BarChart layout="vertical" data={spec.data} margin={{ top: 2, right: 10, left: -25, bottom: 0 }}>
-              <XAxis type="number" stroke="#94a3b8" tick={{ fontSize: 7 }} />
-              <YAxis type="category" dataKey={spec.xKey} stroke="#94a3b8" tick={{ fontSize: 7 }} width={45} />
+            <BarChart layout="vertical" data={spec.data} margin={{ top: 5, right: 40, left: 15, bottom: 15 }}>
+              <XAxis 
+                type="number" 
+                stroke="#cbd5e1" 
+                tick={{ fontSize: 8, fontFamily: 'sans-serif', fill: '#64748b' }}
+                label={{ value: spec.xAxisTitle || 'Days Overdue', position: 'insideBottom', offset: -4, fontSize: 8, fontFamily: 'sans-serif', fill: '#64748b' }}
+              />
+              <YAxis 
+                type="category" 
+                dataKey={spec.xKey} 
+                stroke="#cbd5e1" 
+                tick={{ fontSize: 7.5, fontFamily: 'sans-serif', fill: '#475569' }} 
+                width={110} 
+              />
               <Tooltip content={<CustomChartTooltip />} />
-              {(spec.bars || []).map((b) => (
-                <Bar key={b.key} dataKey={b.key} fill={mapColor(b.color)} stackId={spec.stacked ? 'a' : undefined} radius={[0, 2, 2, 0]} />
+              {(spec.bars || []).map((b: any) => (
+                <Bar key={b.key} dataKey={b.key} stackId={spec.stacked ? 'a' : undefined} radius={[0, 4, 4, 0]} barSize={10}>
+                  {spec.data.map((entry: any, idx: number) => (
+                    <Cell key={`cell-${idx}`} fill={entry.color || mapColor(b.color)} />
+                  ))}
+                  <LabelList 
+                    dataKey={b.key} 
+                    position="right" 
+                    style={{ fontSize: 8, fill: '#475569', fontFamily: 'sans-serif', fontWeight: 'bold' }} 
+                    formatter={(val: any) => `${val} days`} 
+                  />
+                </Bar>
               ))}
             </BarChart>
           ) : spec.type === 'composed' ? (
             <ComposedChart data={spec.data} margin={{ top: 2, right: 10, left: -25, bottom: 0 }}>
-              <XAxis dataKey={spec.xKey} stroke="#94a3b8" tick={{ fontSize: 7 }} />
-              <YAxis stroke="#94a3b8" tick={{ fontSize: 7 }} />
+              <XAxis dataKey={spec.xKey} stroke="#94a3b8" tick={{ fontSize: 7, fontFamily: 'monospace' }} />
+              <YAxis stroke="#94a3b8" tick={{ fontSize: 7, fontFamily: 'monospace' }} />
               <Tooltip content={<CustomChartTooltip />} />
-              {(spec.bars || []).map((b) => (
+              {(spec.bars || []).map((b: any) => (
                 <Bar key={b.key} dataKey={b.key} fill={mapColor(b.color)} name={b.key} />
               ))}
-              {(spec.lines || []).map((l) => (
+              {(spec.lines || []).map((l: any) => (
                 <Line key={l.key} type="monotone" dataKey={l.key} stroke={mapColor(l.color)} strokeWidth={1} dot={false} name={l.key} />
               ))}
             </ComposedChart>
           ) : (
             <BarChart data={spec.data} margin={{ top: 2, right: 10, left: -25, bottom: 0 }}>
-              <XAxis dataKey={spec.xKey} stroke="#94a3b8" tick={{ fontSize: 7 }} />
-              <YAxis stroke="#94a3b8" tick={{ fontSize: 7 }} domain={spec.domain || [0, 'auto']} />
+              <XAxis dataKey={spec.xKey} stroke="#94a3b8" tick={{ fontSize: 7, fontFamily: 'monospace' }} />
+              <YAxis stroke="#94a3b8" tick={{ fontSize: 7, fontFamily: 'monospace' }} domain={spec.domain || [0, 'auto']} />
               <Tooltip content={<CustomChartTooltip />} />
-              {(spec.bars || []).map((b) => (
+              {(spec.bars || []).map((b: any) => (
                 <Bar key={b.key} dataKey={b.key} fill={mapColor(b.color)} stackId={spec.stacked ? 'a' : undefined} radius={spec.stacked ? undefined : [2, 2, 0, 0]} name={b.key} />
               ))}
             </BarChart>
@@ -212,12 +262,25 @@ export const AiReports: React.FC = () => {
                       let cellContent: React.ReactNode = col;
                       const trimmed = col.trim();
                       
-                      if (trimmed.startsWith('🔴') || trimmed.includes('Expired')) {
-                        cellContent = <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-50 border border-rose-200 text-rose-700 font-bold font-mono text-[9px]">🔴 Expired</span>;
-                      } else if (trimmed.startsWith('🟡') || trimmed.includes('Expiring')) {
-                        cellContent = <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-705 font-bold font-mono text-[9px]">{trimmed}</span>;
-                      } else if (trimmed.startsWith('🟢') || trimmed.includes('Valid')) {
-                        cellContent = <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-teal-50 border border-teal-200 text-teal-700 font-bold font-mono text-[9px]">🟢 Valid</span>;
+                      const lower = trimmed.toLowerCase();
+                      if (lower.includes('expired')) {
+                        const daysMatch = trimmed.match(/\((\d+)d\)/) || trimmed.match(/(\d+)\s*days/);
+                        const days = daysMatch ? parseInt(daysMatch[1]) : undefined;
+                        cellContent = <StatusBadge status="expired" label={days ? `Expired ${days}d ago` : 'Expired'} />;
+                      } else if (lower.includes('expiring') || lower.includes('soon')) {
+                        cellContent = <StatusBadge status="expiring_soon" />;
+                      } else if (lower.includes('valid')) {
+                        cellContent = <StatusBadge status="valid" />;
+                      } else if (trimmed.includes('(ID:')) {
+                        const idMatch = trimmed.match(/\*\*([^*]+)\*\*\s*\(ID:\s*([^)]+)\)/) || trimmed.match(/([^(]+)\s*\(ID:\s*([^)]+)\)/);
+                        if (idMatch) {
+                          cellContent = (
+                            <div className="flex flex-col">
+                              <span className="font-bold text-slate-800 text-[10px] leading-tight">{idMatch[1].trim()}</span>
+                              <span className="text-slate-400 font-mono text-[8px] mt-0.5">ID: {idMatch[2].trim()}</span>
+                            </div>
+                          );
+                        }
                       } else if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
                         cellContent = <strong>{trimmed.replace(/\*\*/g, '')}</strong>;
                       } else {
@@ -228,7 +291,7 @@ export const AiReports: React.FC = () => {
                       }
                       
                       return (
-                        <td key={cIdx} className="px-3 py-2.5 text-slate-800 align-middle">
+                        <td key={cIdx} className="px-3 py-2 text-slate-850 align-middle">
                           {cellContent}
                         </td>
                       );

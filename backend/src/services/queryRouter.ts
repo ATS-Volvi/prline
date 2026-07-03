@@ -83,6 +83,9 @@ async function handleExpiredCertifications(userId: string, referenceDate: string
     return acc;
   }, []);
 
+  // Sort rows by daysOverdue descending (most urgent first)
+  rows.sort((a: any, b: any) => b.daysOverdue - a.daysOverdue);
+
   // Optional: filter by Line ID if allocations are scoped
   if (filters.lineId && filters.lineId !== 'ALL') {
     const allocations = await Allocation.findAll({
@@ -92,32 +95,53 @@ async function handleExpiredCertifications(userId: string, referenceDate: string
     rows = rows.filter((r: any) => allocatedAssocIds.has(r.associateId));
   }
 
-  // Text answer
-  let answer = `### 🔴 Expired Operator Certifications\n\n`;
-  if (rows.length === 0) {
-    answer += `All active operators have valid certifications.\n`;
+  // Generate plain-English summary for layman readers
+  const affectedOperators = new Set(rows.map(r => r.associateName));
+  const operatorCount = affectedOperators.size;
+  const certCount = rows.length;
+  const mostOverdue = rows[0];
+
+  let summarySentence = '';
+  if (certCount > 0 && mostOverdue) {
+    summarySentence = `${certCount} employee certifications across ${operatorCount} operator(s) have already expired and require immediate recertification before their next shift. The most overdue is **${mostOverdue.associateName}** (${mostOverdue.skillName}, expired ${mostOverdue.daysOverdue} days ago).\n\n`;
   } else {
-    answer += `I found **${rows.length}** expired certification(s) requiring immediate recertification:\n\n`;
+    summarySentence = `All operator certifications are valid. No immediate action is required.\n\n`;
+  }
+
+  // Text answer (No emojis to prevent encoding corruptions)
+  let answer = `### Expired Operator Certifications\n\n`;
+  answer += summarySentence;
+  if (rows.length > 0) {
     answer += `| Operator | Certified Skill | Expiry Date | Status |\n`;
     answer += `| :--- | :--- | :--- | :--- |\n`;
     rows.forEach(r => {
-      answer += `| **${r.associateName}** (ID: ${r.associateId}) | ${r.skillName} | ${r.expiryDate} | 🔴 Expired ${r.daysOverdue} days ago |\n`;
+      answer += `| **${r.associateName}** (ID: ${r.associateId}) | ${r.skillName} | ${r.expiryDate} | Expired (${r.daysOverdue}d) |\n`;
     });
   }
 
-  // Chart
-  const skillCounts: Record<string, number> = {};
-  rows.forEach(r => {
-    skillCounts[r.skillName] = (skillCounts[r.skillName] || 0) + 1;
+  // Redesign Chart: One bar per person/skill combination, color-graded by urgency
+  const top10 = rows.slice(0, 10);
+  const chartData = top10.map(r => {
+    let color = '#f59e0b'; // amber (<30 days)
+    if (r.daysOverdue > 90) {
+      color = '#991b1b'; // deep red
+    } else if (r.daysOverdue >= 30) {
+      color = '#dc2626'; // red
+    }
+    return {
+      name: `${r.associateName} - ${r.skillName}`,
+      days: r.daysOverdue,
+      color: color
+    };
   });
-  const chartData = Object.entries(skillCounts).map(([name, count]) => ({ name, Count: count }));
 
   const chart = chartData.length > 0 ? {
-    type: 'bar',
-    title: 'Expirations count by Skill Type',
+    type: 'barH',
+    title: 'Top 10 Most Overdue Certifications',
     data: chartData,
     xKey: 'name',
-    bars: [{ key: 'Count', color: '#f43f5e' }]
+    bars: [{ key: 'days', color: 'color' }],
+    xAxisTitle: 'Days Overdue'
   } : null;
 
   return { answer, rows, chart };

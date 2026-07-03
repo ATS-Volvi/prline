@@ -5,6 +5,7 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
+import autoTable from 'jspdf-autotable';
 
 const BRAND_COLOR = '#182c47';
 const ACCENT_COLOR = '#14b8a6';
@@ -164,49 +165,44 @@ export async function exportPDF(
       if (tableHeaders.length > 0 || tableRows.length > 0) {
         const colCount = Math.max(tableHeaders.length, ...tableRows.map(r => r.length));
         if (colCount > 0) {
-          const colWidth = (pageW - 40) / colCount;
-          const rowHeight = 18;
-          const totalTableHeight = (tableRows.length + 1) * rowHeight + 10;
-          checkPageBreak(totalTableHeight);
+          const cleanHeaders = tableHeaders.map(h => h.replace(/\*\*/g, '').trim());
+          const cleanRows = tableRows.map(row => 
+            row.map(cell => cell.replace(/\*\*/g, '').trim())
+          );
 
-          // Render Table Header
-          pdf.setFillColor('#f1f5f9');
-          pdf.rect(20, y, pageW - 40, rowHeight, 'F');
-          pdf.setDrawColor('#e2e8f0');
-          pdf.setLineWidth(0.5);
-          pdf.line(20, y, pageW - 20, y);
-          pdf.line(20, y + rowHeight, pageW - 20, y + rowHeight);
+          checkPageBreak(30);
 
-          pdf.setTextColor('#334155');
-          pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(8);
-
-          tableHeaders.forEach((header, idx) => {
-            pdf.text(header.replace(/\*\*/g, '').trim(), 25 + idx * colWidth, y + 12);
-          });
-
-          y += rowHeight;
-
-          // Render Table Rows
-          pdf.setFont('helvetica', 'normal');
-          pdf.setTextColor('#475569');
-
-          tableRows.forEach((row, rIdx) => {
-            if (rIdx % 2 === 1) {
-              pdf.setFillColor('#f8fafc');
-              pdf.rect(20, y, pageW - 40, rowHeight, 'F');
+          autoTable(pdf, {
+            startY: y,
+            head: [cleanHeaders],
+            body: cleanRows,
+            theme: 'striped',
+            headStyles: { fillColor: [24, 44, 71] }, // BRAND_COLOR
+            styles: { fontSize: 8.5, cellPadding: 6, font: 'helvetica' },
+            didParseCell: (data) => {
+              if (data.section === 'body') {
+                const cellText = String(data.cell.raw || '');
+                const cellTextLower = cellText.toLowerCase();
+                
+                // Color the Status column matching our StatusBadge colors
+                if (cellTextLower.includes('expired')) {
+                  data.cell.styles.fillColor = '#FEE2E2';
+                  data.cell.styles.textColor = '#B91C1C';
+                  data.cell.styles.fontStyle = 'bold';
+                } else if (cellTextLower.includes('expiring') || cellTextLower.includes('soon')) {
+                  data.cell.styles.fillColor = '#FEF3C7';
+                  data.cell.styles.textColor = '#B45309';
+                  data.cell.styles.fontStyle = 'bold';
+                } else if (cellTextLower.includes('valid')) {
+                  data.cell.styles.fillColor = '#D1FAE5';
+                  data.cell.styles.textColor = '#047857';
+                  data.cell.styles.fontStyle = 'bold';
+                }
+              }
             }
-            pdf.setDrawColor('#e2e8f0');
-            pdf.rect(20, y, pageW - 40, rowHeight);
-            
-            row.forEach((cell, idx) => {
-              const cleanCell = cell.replace(/\*\*/g, '').trim();
-              pdf.text(cleanCell, 25 + idx * colWidth, y + 12);
-            });
-            y += rowHeight;
           });
 
-          y += 10; // margin below table
+          y = (pdf as any).lastAutoTable.finalY + 15;
         }
         tableHeaders = [];
         tableRows = [];
