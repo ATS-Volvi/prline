@@ -13,12 +13,10 @@ export const ragChatController = async (req: Request, res: Response) => {
       return;
     }
 
-    // Proactively refresh embeddings first (so we always run on relatively fresh state)
-    const refreshResult = await ragService.refreshEmbeddings(userId);
-    if (!refreshResult.success) {
-      console.error('RAG refresh failed:', refreshResult.error);
-      // still attempt retrieve() in case older embeddings exist from a prior successful run
-    }
+    // Proactively refresh embeddings in the background (non-blocking for immediate response)
+    ragService.refreshEmbeddings(userId).catch(err => {
+      console.error('Background RAG refresh failed:', err);
+    });
 
     // Filters formulation
     const filters: any = {};

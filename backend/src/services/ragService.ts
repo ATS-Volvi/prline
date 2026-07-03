@@ -328,26 +328,140 @@ Question: ${query}`;
     }
   }
 
-  // Extractive RAG Fallback
+  // Extractive RAG Fallback fallback
   if (chunks.length === 0) return "I don't have data to answer that.";
 
-  // Deterministically summarize top chunks
-  let answer = `Here is what I found in the PlantOps database:\n\n`;
-  const grouped = chunks.reduce((acc, c) => {
+  const q = query.toLowerCase();
+  const isLogQuery = q.includes('log') || q.includes('audit') || q.includes('history') || q.includes('change');
+  const relevantChunks = isLogQuery ? chunks : chunks.filter(c => c.entityType !== 'audit_log');
+
+  if (relevantChunks.length === 0) {
+    return "I couldn't find any relevant active records matching your query in the database.";
+  }
+
+  // 1. Check if the query is certification/skills related
+  if (q.match(/expir|certif|renew|lapse|overdue|skill|qualification/)) {
+    const certChunks = relevantChunks.filter(c => c.entityType === 'certification');
+    if (certChunks.length > 0) {
+      let result = `### 🔴 Expired & Expiring Certifications\n\n`;
+      result += `Here is the current status of operator certifications and skills requiring attention:\n\n`;
+      result += `| Operator Name | Certified Skill | Competency | Expiry Date | Status |\n`;
+      result += `| :--- | :--- | :--- | :--- | :--- |\n`;
+
+      const today = new Date();
+      
+      certChunks.forEach(c => {
+        const nameMatch = c.content.match(/Associate\s+([^(]+)\s+\(ID:\s*([^)]+)\)/);
+        const skillMatch = c.content.match(/certification for skill\s+([^(]+)\s+\(ID:\s*([^)]+)\)/);
+        const levelMatch = c.content.match(/competency level\s+([^.]+)\./);
+        const expiryMatch = c.content.match(/expiring on\s+([^.]+)\./);
+
+        const assocName = nameMatch ? nameMatch[1].trim() : 'Unknown';
+        const assocId = nameMatch ? nameMatch[2].trim() : 'N/A';
+        const skillName = skillMatch ? skillMatch[1].trim() : 'Unknown';
+        const level = levelMatch ? levelMatch[1].trim() : 'Operator';
+        const expiryStr = expiryMatch ? expiryMatch[1].trim() : '';
+
+        let status = '🟢 Valid';
+        if (expiryStr) {
+          const expDate = new Date(expiryStr);
+          if (expDate < today) {
+            status = '🔴 Expired';
+          } else {
+            const diffDays = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+            if (diffDays <= 30) {
+              status = `🟡 Expiring in ${diffDays} days`;
+            }
+          }
+        }
+
+        result += `| **${assocName}** (ID: ${assocId}) | ${skillName} | ${level} | ${expiryStr || 'N/A'} | ${status} |\n`;
+      });
+
+      return result;
+    }
+  }
+
+  // 2. Check if the query is leave/absence related
+  if (q.match(/leave|absent|off|holiday|attendance|away/)) {
+    const leaveChunks = relevantChunks.filter(c => c.entityType === 'leave');
+    if (leaveChunks.length > 0) {
+      let result = `### 📋 Operator Leaves & Absences\n\n`;
+      result += `The following associates are scheduled to be away or on leave:\n\n`;
+      result += `| Associate Name | Date | Reason Code | Status |\n`;
+      result += `| :--- | :--- | :--- | :--- |\n`;
+
+      leaveChunks.forEach(c => {
+        const nameMatch = c.content.match(/Associate\s+([^(]+)\s+\(ID:\s*([^)]+)\)/);
+        const dateMatch = c.content.match(/date\s+([^.]+)\./);
+        const reasonMatch = c.content.match(/Reason code:\s*([^.]+)\./);
+        const statusMatch = c.content.match(/Status:\s*([^.]+)\./);
+
+        const assocName = nameMatch ? nameMatch[1].trim() : 'Unknown';
+        const assocId = nameMatch ? nameMatch[2].trim() : 'N/A';
+        const date = dateMatch ? dateMatch[1].trim() : 'N/A';
+        const reason = reasonMatch ? reasonMatch[1].trim() : 'Not Specified';
+        const status = statusMatch ? statusMatch[1].trim() : 'Approved';
+
+        result += `| **${assocName}** (ID: ${assocId}) | ${date} | ${reason} | ${status} |\n`;
+      });
+
+      return result;
+    }
+  }
+
+  // 3. Check if the query is allocation/staffing related
+  if (q.match(/allocat|staff|assign|workstation|coverage/)) {
+    const allocChunks = relevantChunks.filter(c => c.entityType === 'allocation');
+    if (allocChunks.length > 0) {
+      let result = `### 🛠️ Workstation Allocations\n\n`;
+      result += `Here are the active workstation deployments and staffing roster allocations:\n\n`;
+      result += `| Operator | Workstation | Production Line | Shift | Date |\n`;
+      result += `| :--- | :--- | :--- | :--- | :--- |\n`;
+
+      allocChunks.forEach(c => {
+        const nameMatch = c.content.match(/Associate\s+([^(]+)\s+\(ID:\s*([^)]+)\)/);
+        const wsMatch = c.content.match(/workstation\s+"([^"]+)"/);
+        const lineMatch = c.content.match(/line\s+"([^"]+)"/);
+        const shiftMatch = c.content.match(/shift\s+(\w+)/);
+        const dateMatch = c.content.match(/date\s+([^.]+)\./);
+
+        const assocName = nameMatch ? nameMatch[1].trim() : 'Unknown';
+        const assocId = nameMatch ? nameMatch[2].trim() : 'N/A';
+        const wsName = wsMatch ? wsMatch[1].trim() : 'Unknown';
+        const lineName = lineMatch ? lineMatch[1].trim() : 'Unknown';
+        const shift = shiftMatch ? shiftMatch[1].trim() : 'Day';
+        const date = dateMatch ? dateMatch[1].trim() : 'N/A';
+
+        result += `| **${assocName}** (ID: ${assocId}) | ${wsName} | ${lineName} | ${shift} | ${date} |\n`;
+      });
+
+      return result;
+    }
+  }
+
+  // Fallback beautiful listing grouping by entity type
+  let answer = `### 🔍 Live Database Records Found\n\n`;
+  answer += `I found the following matching records in the PlantOps system:\n\n`;
+
+  const grouped = relevantChunks.reduce((acc, c) => {
     if (!acc[c.entityType]) acc[c.entityType] = [];
-    acc[c.entityType].push(c.content);
+    acc[c.entityType].push(c);
     return acc;
-  }, {} as Record<string, string[]>);
+  }, {} as Record<string, any[]>);
 
   for (const type of Object.keys(grouped)) {
     const items = grouped[type];
     const formattedType = type.replace('_', ' ').toUpperCase();
-    answer += `**${formattedType} RECORDS:**\n`;
-    items.slice(0, 3).forEach((item: string) => {
-      answer += `- ${item}\n`;
+    answer += `#### 📁 ${formattedType} RECORDS:\n`;
+    items.slice(0, 4).forEach((item: any) => {
+      const cleanContent = item.content.replace(/^Leave record \w+:\s*/i, '')
+                                       .replace(/^Allocation record \w+:\s*/i, '')
+                                       .replace(/^Audit log entry \w+:\s*/i, '');
+      answer += `- ${cleanContent}\n`;
     });
-    if (items.length > 3) {
-      answer += `- And ${items.length - 3} other similar record(s).\n`;
+    if (items.length > 4) {
+      answer += `- *And ${items.length - 4} other similar record(s).*\n`;
     }
     answer += `\n`;
   }

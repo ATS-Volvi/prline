@@ -177,6 +177,128 @@ export const AiReports: React.FC = () => {
     }
   };
 
+  const renderFormattedContent = (text: string) => {
+    if (!text) return null;
+
+    const lines = text.split('\n');
+    const elements: React.ReactNode[] = [];
+    
+    let inTable = false;
+    let tableHeaders: string[] = [];
+    let tableRows: string[][] = [];
+
+    const flushTable = (key: number) => {
+      if (tableHeaders.length > 0 || tableRows.length > 0) {
+        elements.push(
+          <div key={`table-${key}`} className="w-full my-3 overflow-x-auto border border-slate-200 rounded-lg shadow-sm">
+            <table className="w-full text-left border-collapse text-[10px] font-sans">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  {tableHeaders.map((h, i) => (
+                    <th key={i} className="px-3 py-2 font-bold text-slate-755 uppercase tracking-wider">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {tableRows.map((row, rIdx) => (
+                  <tr key={rIdx} className="hover:bg-slate-50/50 transition-colors">
+                    {row.map((col, cIdx) => {
+                      let cellContent: React.ReactNode = col;
+                      const trimmed = col.trim();
+                      
+                      if (trimmed.startsWith('🔴') || trimmed.includes('Expired')) {
+                        cellContent = <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-50 border border-rose-200 text-rose-700 font-bold font-mono text-[9px]">🔴 Expired</span>;
+                      } else if (trimmed.startsWith('🟡') || trimmed.includes('Expiring')) {
+                        cellContent = <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-705 font-bold font-mono text-[9px]">{trimmed}</span>;
+                      } else if (trimmed.startsWith('🟢') || trimmed.includes('Valid')) {
+                        cellContent = <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-teal-50 border border-teal-200 text-teal-700 font-bold font-mono text-[9px]">🟢 Valid</span>;
+                      } else if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+                        cellContent = <strong>{trimmed.replace(/\*\*/g, '')}</strong>;
+                      } else {
+                        const boldMatch = col.match(/\*\*([^*]+)\*\*(.*)/);
+                        if (boldMatch) {
+                          cellContent = <span><strong>{boldMatch[1]}</strong>{boldMatch[2]}</span>;
+                        }
+                      }
+                      
+                      return (
+                        <td key={cIdx} className="px-3 py-2.5 text-slate-800 align-middle">
+                          {cellContent}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+        tableHeaders = [];
+        tableRows = [];
+      }
+      inTable = false;
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      if (line.startsWith('|')) {
+        inTable = true;
+        const cols = line.split('|').map(c => c.trim()).filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+        
+        if (line.includes(':---') || line.includes('---')) {
+          continue;
+        }
+        
+        if (tableHeaders.length === 0) {
+          tableHeaders = cols;
+        } else {
+          tableRows.push(cols);
+        }
+      } else {
+        if (inTable) {
+          flushTable(i);
+        }
+
+        if (line.startsWith('###')) {
+          const title = line.replace(/^###\s+/, '');
+          elements.push(
+            <h3 key={i} className="text-xs font-bold text-slate-800 mt-4 mb-2 flex items-center gap-1 border-b border-slate-100 pb-1 uppercase tracking-wide">
+              {title}
+            </h3>
+          );
+        } else if (line.startsWith('####')) {
+          const title = line.replace(/^####\s+/, '');
+          elements.push(
+            <h4 key={i} className="text-[10px] font-bold text-slate-500 mt-3 mb-1 uppercase tracking-wider font-mono">
+              {title}
+            </h4>
+          );
+        } else if (line.startsWith('-')) {
+          const content = line.replace(/^-\s+/, '');
+          elements.push(
+            <div key={i} className="flex gap-2 text-slate-700 text-[11px] leading-relaxed pl-1 py-0.5 font-sans select-text">
+              <span className="text-slate-400 mt-0.5 shrink-0 select-none">•</span>
+              <span>{content}</span>
+            </div>
+          );
+        } else if (line !== '') {
+          elements.push(
+            <p key={i} className="text-slate-700 text-[11px] leading-relaxed my-1.5 font-sans select-text">
+              {line}
+            </p>
+          );
+        }
+      }
+    }
+
+    if (inTable) {
+      flushTable(lines.length);
+    }
+
+    return <div className="flex flex-col gap-1">{elements}</div>;
+  };
+
   // ── Data Fetching ────────────────────────────────────────────────────────
   const fetchReportData = async () => {
     setLoading(true);
@@ -800,8 +922,8 @@ export const AiReports: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="text-slate-700 text-[11px] leading-relaxed whitespace-pre-line font-sans select-text">
-                          {m.text}
+                        <div className="text-slate-700 text-[11px] leading-relaxed font-sans select-text">
+                          {renderFormattedContent(m.text)}
                         </div>
 
                         {m.chart && <ChartRenderer spec={m.chart} />}
@@ -849,7 +971,7 @@ export const AiReports: React.FC = () => {
 
                     {m.text && !m.sources && (
                       <div className="bg-white border border-slate-200 text-slate-700 rounded-lg p-3 text-[11px] max-w-[90%] shadow-sm leading-relaxed">
-                        {m.text}
+                        {renderFormattedContent(m.text)}
                       </div>
                     )}
                   </div>
