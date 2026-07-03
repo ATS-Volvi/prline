@@ -130,6 +130,12 @@ export const AiReports: React.FC = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [ragStatus, setRagStatus] = useState<{
+    chunkCount: number;
+    lastRefreshAt: string | null;
+    lastRefreshError: string | null;
+    embeddingModelLoaded: boolean;
+  } | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -326,9 +332,28 @@ export const AiReports: React.FC = () => {
     }
   };
 
+  const fetchRagStatus = async () => {
+    try {
+      const token = localStorage.getItem('pepsico_token');
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch('/api/v1/reports/rag-status', { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setRagStatus(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch RAG status:', err);
+    }
+  };
+
   useEffect(() => {
     fetchReportData();
-    const interval = setInterval(() => { fetchReportData(); }, 300000);
+    fetchRagStatus();
+    const interval = setInterval(() => { 
+      fetchReportData(); 
+      fetchRagStatus();
+    }, 300000);
     return () => clearInterval(interval);
   }, []);
 
@@ -690,6 +715,9 @@ export const AiReports: React.FC = () => {
         sources: data.sources,
         chart: data.chart
       }]);
+      
+      // Refresh status after message to get new chunk counts if synced
+      fetchRagStatus();
     } catch (err: any) {
       console.error(err);
       setMessages(prev => [...prev, {
@@ -703,6 +731,64 @@ export const AiReports: React.FC = () => {
   };
 
   // ── Chat Interface Renderer ───────────────────────────────────────────────
+  const renderRagStatusCard = () => {
+    if (!ragStatus) return null;
+
+    const isHealthy = ragStatus.embeddingModelLoaded && !ragStatus.lastRefreshError;
+
+    return (
+      <div className="bg-slate-900 text-slate-100 border border-slate-800 rounded-xl p-3 shadow-md flex flex-col gap-2 font-sans select-none shrink-0">
+        <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-teal-400 text-sm animate-pulse-gentle">database</span>
+            <span className="text-[9px] font-bold uppercase tracking-wider">RAG Knowledge Engine</span>
+          </div>
+          <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded ${
+            isHealthy 
+              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+          }`}>
+            {isHealthy ? '● Active' : '● System Error'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 text-[9px]">
+          <div className="bg-slate-800/50 p-2 border border-slate-800 rounded-lg flex flex-col justify-center">
+            <span className="text-slate-400 text-[8px] uppercase tracking-wider font-mono">Knowledge Chunks</span>
+            <span className="text-[11px] font-bold text-slate-200 mt-1 font-mono">{ragStatus.chunkCount} vectors</span>
+          </div>
+          <div className="bg-slate-800/50 p-2 border border-slate-800 rounded-lg flex flex-col justify-center">
+            <span className="text-slate-400 text-[8px] uppercase tracking-wider font-mono">Embedding Model</span>
+            <span className="text-[10px] font-bold text-slate-200 mt-1 flex items-center gap-1">
+              {ragStatus.embeddingModelLoaded ? (
+                <>
+                  <span className="text-emerald-400 text-[10px]">✓</span>
+                  <span className="font-mono text-[8px]">MiniLM-L6 (Local)</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-rose-400 text-[10px]">✗</span>
+                  <span className="font-mono text-[8px]">Offline</span>
+                </>
+              )}
+            </span>
+          </div>
+        </div>
+
+        {ragStatus.lastRefreshAt && (
+          <div className="text-[8px] text-slate-500 font-mono mt-0.5 flex justify-between items-center">
+            <span>Last Synced: {new Date(ragStatus.lastRefreshAt).toLocaleTimeString()}</span>
+            {ragStatus.lastRefreshError && (
+              <span className="text-rose-400 font-bold truncate max-w-[120px]" title={ragStatus.lastRefreshError}>
+                Error: {ragStatus.lastRefreshError}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderChatInterface = () => {
     // True empty state: no messages at all
     const isEmpty = messages.length === 0;
@@ -711,6 +797,7 @@ export const AiReports: React.FC = () => {
       <div className="flex-1 flex flex-col overflow-hidden h-full">
         {/* Message Thread */}
         <div className="flex-grow overflow-y-auto p-3 bg-slate-50 flex flex-col gap-4 custom-scrollbar">
+          {renderRagStatusCard()}
           {isEmpty ? (
             <div className="flex-grow flex flex-col items-center justify-center text-slate-400 py-8 px-4 my-auto">
               <span className="material-symbols-outlined text-3xl mb-2 text-slate-300">chat_bubble</span>
