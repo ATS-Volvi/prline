@@ -282,12 +282,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     try {
-      const res = await fetch("/api/v1/audit-logs", {
+      await fetch("/api/v1/audit-logs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ actionType, details })
       });
-      if (res.ok) fetchState();
+      // NOTE: Do NOT call fetchState() here — audit log writes don't require
+      // a full server refetch, and doing so wipes any optimistic local state
+      // (e.g. auto-allocate local fallback allocations).
     } catch (err) {
       console.error("Failed to post audit log to backend:", err);
     }
@@ -1101,7 +1103,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const autoAllocateLine = async (date: string, shiftId: string, lineId: string): Promise<{ success: boolean; allocatedCount: number }> => {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 200);
+      // 10 seconds — enough time for the backend algorithm to run
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       const res = await fetch("/api/v1/allocation/auto-allocate", {
         method: "POST",
@@ -1114,6 +1117,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (res.ok) {
         const data = await res.json();
+        // Backend persisted the allocations — safe to re-fetch from DB
         fetchState();
         return { success: true, allocatedCount: data.allocatedCount };
       } else {
