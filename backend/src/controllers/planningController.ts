@@ -118,6 +118,7 @@ export const getAssumptions = catchAsync(async (req: Request, res: Response) => 
 });
 
 export const updateAssumptions = catchAsync(async (req: Request, res: Response) => {
+
   const userId = req.authData?.userId || 'EMP102';
   const { assumptions: assumptionsData, seasonality: seasonalityData, norms: normsData, buffers: buffersData } = req.body;
 
@@ -128,7 +129,9 @@ export const updateAssumptions = catchAsync(async (req: Request, res: Response) 
     await assumptions.update(assumptionsData);
   }
 
-  if (seasonalityData && Array.isArray(seasonalityData)) {
+  // Only replace seasonality if caller sent at least one row — an empty array means
+  // "don't touch seasonality", not "delete everything".
+  if (seasonalityData && Array.isArray(seasonalityData) && seasonalityData.length > 0) {
     await MonthlySeasonality.destroy({ where: { assumptionsId: assumptions.id } });
     await MonthlySeasonality.bulkCreate(seasonalityData.map(s => ({
       assumptionsId: assumptions.id,
@@ -138,7 +141,9 @@ export const updateAssumptions = catchAsync(async (req: Request, res: Response) 
     })));
   }
 
-  if (normsData && Array.isArray(normsData)) {
+  // Only replace norms if caller sent at least one row — an empty array means
+  // "don't touch norms", not "delete everything".
+  if (normsData && Array.isArray(normsData) && normsData.length > 0) {
     await ManpowerNorm.destroy({ where: { assumptionsId: assumptions.id } });
     await ManpowerNorm.bulkCreate(normsData.map(n => ({
       assumptionsId: assumptions.id,
@@ -222,7 +227,12 @@ export const getManpowerPlan = catchAsync(async (req: Request, res: Response) =>
   const userId = req.authData?.userId || 'EMP102';
 
   const assumptions: any = await ensureAssumptionsExist(userId);
-  const resourcePlan = buildResourcePlan(assumptions.norms || [], assumptions, assumptions.buffers);
+  // If norms were accidentally wiped, fall back to the built-in defaults so
+  // the manpower plan always renders meaningful data.
+  const normsToUse = (assumptions.norms && assumptions.norms.length > 0)
+    ? assumptions.norms
+    : defaultNorms.map((n, i) => ({ ...n, id: i, assumptionsId: assumptions.id }));
+  const resourcePlan = buildResourcePlan(normsToUse, assumptions, assumptions.buffers);
 
   // Retrieve current active allocations count for comparison
   const todayStr = new Date().toISOString().split('T')[0];

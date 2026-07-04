@@ -64,6 +64,29 @@ export const ProductionPlanning: React.FC = () => {
   const [savingActual, setSavingActual] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  // ─── Live capacity derived from current form inputs ──────────────────────
+  const liveCapacity = (() => {
+    const oee = (1 - Number(assumptions.plannedDowntimePct)) * (1 - Number(assumptions.rejectionPct));
+    const theoretical =
+      (Number(assumptions.numLines) *
+        Number(assumptions.ratedCapacityKgHr) *
+        Number(assumptions.hoursPerShift) *
+        Number(assumptions.shiftsPerDay) *
+        Number(assumptions.workingDaysPerMonth) *
+        12 *
+        oee) /
+      1000;
+    const target = Number(assumptions.annualTargetMt);
+    const utilization = theoretical > 0 ? target / theoretical : 0;
+    const optimal80 = Math.round(theoretical * 0.8);
+    return { theoretical: Math.round(theoretical), utilization, optimal80, target };
+  })();
+  const capacityStatus =
+    liveCapacity.utilization <= 0.8 ? 'safe'
+    : liveCapacity.utilization <= 1.0 ? 'caution'
+    : 'over';
+
+
   // Helper fetch wrapper
   const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     const headers = {
@@ -116,6 +139,14 @@ export const ProductionPlanning: React.FC = () => {
 
   // Save assumptions
   const handleSaveAssumptions = async () => {
+    if (capacityStatus !== 'safe') {
+      const confirmAnyway = window.confirm(
+        capacityStatus === 'over'
+          ? `⚠️ Annual target (${liveCapacity.target.toLocaleString()} MT) exceeds 100% of theoretical capacity (${liveCapacity.theoretical.toLocaleString()} MT). This is physically impossible. Please reduce the target or add more lines/shifts before saving.\n\nPress Cancel to go back and fix it.`
+          : `⚠️ Annual target (${liveCapacity.target.toLocaleString()} MT) exceeds the recommended 80% utilization ceiling (${liveCapacity.optimal80.toLocaleString()} MT optimal). High utilization risks unplanned downtime.\n\nPress OK to save anyway, or Cancel to revise.`
+      );
+      if (!confirmAnyway) return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -356,14 +387,116 @@ export const ProductionPlanning: React.FC = () => {
                         className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary font-medium"
                       />
                     </div>
-                    <div>
+                    <div className="md:col-span-2">
                       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Annual Volume Target (MT)</label>
                       <input
                         type="number"
                         value={assumptions.annualTargetMt}
                         onChange={e => setAssumptions({ ...assumptions, annualTargetMt: Number(e.target.value) })}
-                        className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary font-medium"
+                        className={`w-full text-xs p-2.5 border rounded-lg focus:outline-none font-medium transition-colors ${
+                          capacityStatus === 'safe' ? 'border-slate-200 focus:border-primary'
+                          : capacityStatus === 'caution' ? 'border-amber-400 focus:border-amber-500 bg-amber-50/40'
+                          : 'border-rose-400 focus:border-rose-500 bg-rose-50/40'
+                        }`}
                       />
+
+                      {/* Capacity gauge bar */}
+                      <div className="mt-3">
+                        <div className="flex justify-between text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                          <span>0%</span>
+                          <span className="text-emerald-600">80% Optimal</span>
+                          <span className="text-rose-500">100% Max</span>
+                        </div>
+                        <div className="relative h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                          {/* Colour zones */}
+                          <div className="absolute inset-y-0 left-0 w-[80%] bg-emerald-100 rounded-l-full" />
+                          <div className="absolute inset-y-0 left-[80%] w-[20%] bg-amber-100 rounded-r-full" />
+                          {/* Filled bar */}
+                          <div
+                            className={`absolute inset-y-0 left-0 rounded-full transition-all duration-300 ${
+                              capacityStatus === 'safe' ? 'bg-emerald-500'
+                              : capacityStatus === 'caution' ? 'bg-amber-500'
+                              : 'bg-rose-500'
+                            }`}
+                            style={{ width: `${Math.min(liveCapacity.utilization * 100, 100)}%` }}
+                          />
+                          {/* 80% tick */}
+                          <div className="absolute inset-y-0 left-[80%] w-px bg-emerald-600" />
+                        </div>
+                        <p className={`text-[10px] font-bold mt-1 ${
+                          capacityStatus === 'safe' ? 'text-emerald-600'
+                          : capacityStatus === 'caution' ? 'text-amber-600'
+                          : 'text-rose-600'
+                        }`}>
+                          {(liveCapacity.utilization * 100).toFixed(1)}% utilization
+                          {capacityStatus === 'safe' && ' — within optimal range ✓'}
+                          {capacityStatus === 'caution' && ' — above recommended 80% ceiling ⚠'}
+                          {capacityStatus === 'over' && ' — exceeds physical capacity ✗'}
+                        </p>
+                      </div>
+
+                      {/* Reference cards */}
+                      <div className="grid grid-cols-3 gap-2 mt-3">
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2.5 text-center">
+                          <p className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider">Optimal Target</p>
+                          <p className="text-sm font-bold text-emerald-800 mt-0.5">{liveCapacity.optimal80.toLocaleString()} MT</p>
+                          <p className="text-[8px] text-emerald-600 font-medium">80% of capacity</p>
+                        </div>
+                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-center">
+                          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Max Theoretical</p>
+                          <p className="text-sm font-bold text-slate-700 mt-0.5">{liveCapacity.theoretical.toLocaleString()} MT</p>
+                          <p className="text-[8px] text-slate-400 font-medium">100% OEE capacity</p>
+                        </div>
+                        <div className={`rounded-lg p-2.5 text-center border ${
+                          capacityStatus === 'safe' ? 'bg-emerald-50 border-emerald-200'
+                          : capacityStatus === 'caution' ? 'bg-amber-50 border-amber-300'
+                          : 'bg-rose-50 border-rose-300'
+                        }`}>
+                          <p className={`text-[9px] font-bold uppercase tracking-wider ${
+                            capacityStatus === 'safe' ? 'text-emerald-700'
+                            : capacityStatus === 'caution' ? 'text-amber-700'
+                            : 'text-rose-700'
+                          }`}>Current Target</p>
+                          <p className={`text-sm font-bold mt-0.5 ${
+                            capacityStatus === 'safe' ? 'text-emerald-800'
+                            : capacityStatus === 'caution' ? 'text-amber-800'
+                            : 'text-rose-800'
+                          }`}>{liveCapacity.target.toLocaleString()} MT</p>
+                          <p className={`text-[8px] font-medium ${
+                            capacityStatus === 'safe' ? 'text-emerald-600'
+                            : capacityStatus === 'caution' ? 'text-amber-600'
+                            : 'text-rose-600'
+                          }`}>{(liveCapacity.utilization * 100).toFixed(1)}% utilization</p>
+                        </div>
+                      </div>
+
+                      {/* Warning banner */}
+                      {capacityStatus !== 'safe' && (
+                        <div className={`mt-3 flex items-start gap-2.5 rounded-lg px-3 py-2.5 border text-xs font-semibold ${
+                          capacityStatus === 'caution'
+                            ? 'bg-amber-50 border-amber-300 text-amber-800'
+                            : 'bg-rose-50 border-rose-300 text-rose-800'
+                        }`}>
+                          <span className="material-symbols-outlined text-sm shrink-0 mt-px">
+                            {capacityStatus === 'caution' ? 'warning' : 'error'}
+                          </span>
+                          <div>
+                            {capacityStatus === 'caution' ? (
+                              <>
+                                <span className="font-bold">Above recommended ceiling.</span> Your target ({liveCapacity.target.toLocaleString()} MT) exceeds 80% of theoretical capacity.
+                                The optimal sustainable target for this configuration is <span className="font-bold">{liveCapacity.optimal80.toLocaleString()} MT</span>.
+                                Operating above 80% increases unplanned downtime risk.
+                              </>
+                            ) : (
+                              <>
+                                <span className="font-bold">Impossible target.</span> Your target ({liveCapacity.target.toLocaleString()} MT) exceeds the physical maximum capacity
+                                of <span className="font-bold">{liveCapacity.theoretical.toLocaleString()} MT</span> ({(liveCapacity.utilization * 100).toFixed(1)}% utilization).
+                                Add more lines or shifts, or reduce the target to ≤{liveCapacity.optimal80.toLocaleString()} MT.
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Planned Downtime %</label>
