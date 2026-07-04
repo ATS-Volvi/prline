@@ -152,8 +152,9 @@ export const updateAssumptions = catchAsync(async (req: Request, res: Response) 
 
   if (buffersData) {
     await CoverageBuffers.destroy({ where: { assumptionsId: assumptions.id } });
+    const { id: _, assumptionsId: __, ...cleanBuffers } = buffersData;
     await CoverageBuffers.create({
-      ...buffersData,
+      ...cleanBuffers,
       assumptionsId: assumptions.id
     });
   }

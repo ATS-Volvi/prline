@@ -88,7 +88,7 @@ export const ProductionPlanning: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetchWithAuth('/api/v1/planning/assumptions');
+      const res = await fetchWithAuth(`/api/v1/planning/assumptions?t=${Date.now()}`);
       if (res.data) {
         setAssumptions({
           fyLabel: res.data.fyLabel || 'FY 2026-27',
@@ -141,7 +141,7 @@ export const ProductionPlanning: React.FC = () => {
   const loadPlan = async () => {
     try {
       setError(null);
-      const res = await fetchWithAuth(`/api/v1/planning/plan?granularity=${planGranularity}`);
+      const res = await fetchWithAuth(`/api/v1/planning/plan?granularity=${planGranularity}&t=${Date.now()}`);
       setPlanData(res.data);
     } catch (err: any) {
       console.error(err);
@@ -153,7 +153,7 @@ export const ProductionPlanning: React.FC = () => {
   const loadManpower = async () => {
     try {
       setError(null);
-      const res = await fetchWithAuth('/api/v1/planning/manpower');
+      const res = await fetchWithAuth(`/api/v1/planning/manpower?t=${Date.now()}`);
       setManpowerPlanData(res.data || []);
       setCurrentAllocCount(res.currentAllocationsCount || 0);
     } catch (err: any) {
@@ -166,7 +166,7 @@ export const ProductionPlanning: React.FC = () => {
   const loadVariance = async () => {
     try {
       setError(null);
-      const res = await fetchWithAuth(`/api/v1/planning/variance?asOf=${varianceAsOfDate}`);
+      const res = await fetchWithAuth(`/api/v1/planning/variance?asOf=${varianceAsOfDate}&t=${Date.now()}`);
       setVarianceReport(res.data);
     } catch (err: any) {
       console.error(err);
