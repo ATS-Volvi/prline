@@ -1759,6 +1759,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
   const [assocCategory, setAssocCategory] = useState<AssociateCategory>('Contract');
   const [assocStatus, setAssocStatus] = useState<'Active' | 'Inactive'>('Active');
   const [assocPlantIdRef, setAssocPlantIdRef] = useState('');
+  const [assocPhoneNumber, setAssocPhoneNumber] = useState('');
   const [assocSkills, setAssocSkills] = useState<{ skillId: string; level: SkillLevel; expiryDate: string }[]>([]);
 
   // Workstation forms
@@ -1895,7 +1896,8 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
       category: assocCategory,
       joiningDate: editingAssoc ? editingAssoc.joiningDate : new Date().toISOString().split('T')[0],
       status: assocStatus,
-      plantIdRef: assocPlantIdRef || undefined
+      plantIdRef: assocPlantIdRef || undefined,
+      phoneNumber: assocPhoneNumber || undefined
     };
 
     if (editingAssoc) {
@@ -1921,6 +1923,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
     setAssocCategory(a.category);
     setAssocStatus(a.status);
     setAssocPlantIdRef(a.plantIdRef || '');
+    setAssocPhoneNumber(a.phoneNumber || '');
     
     // Load skills
     const existingSkills = associateSkills
@@ -1935,6 +1938,7 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
     setAssocCategory('Contract');
     setAssocStatus('Active');
     setAssocPlantIdRef('');
+    setAssocPhoneNumber('');
     setAssocSkills([]);
   };
 
@@ -3065,6 +3069,17 @@ export const MasterData: React.FC<MasterDataProps> = ({ initialSubTab, setSelect
                     onChange={(e) => setAssocPlantIdRef(e.target.value)}
                     className="py-2 px-3 border border-outline-variant rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-surface-container-low shadow-premium-sm text-xs"
                     placeholder="e.g. PID-12345"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-bold text-on-surface-variant/80 font-mono text-[9px] tracking-wider">WHATSAPP PHONE NUMBER</label>
+                  <input
+                    type="tel"
+                    value={assocPhoneNumber}
+                    onChange={(e) => setAssocPhoneNumber(e.target.value)}
+                    className="py-2 px-3 border border-outline-variant rounded-lg focus:outline-none focus:ring-1 focus:ring-primary bg-surface-container-low shadow-premium-sm text-xs"
+                    placeholder="e.g. +919876543201"
                   />
                 </div>
 

@@ -1,5 +1,6 @@
 import { Associate, AssociateSkill, LeaveRecord, Allocation, Workstation } from "../../../database/models/models/models";
 import { logAction } from "./auditService";
+import { sendWhatsAppNotification } from "./whatsappService";
 
 const SKILL_LEVEL_VALUE: Record<string, number> = {
   'Trainee': 1,
@@ -92,6 +93,9 @@ export const autoAllocate = async (date: string, shiftId: string, lineId: string
           timestamp: new Date().toISOString()
         };
         await Allocation.create(newAlloc);
+        // Trigger async WhatsApp message
+        sendWhatsAppNotification(userId || 'SYSTEM', best.id, date, shiftId, ws.id, lineId);
+        
         currentSolveAllocations.push(newAlloc);
         count++;
       } else {

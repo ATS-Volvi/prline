@@ -76,6 +76,7 @@ export class Associate extends Model {
   public joiningDate!: string;
   public status!: 'Active' | 'Inactive';
   public plantIdRef!: string;
+  public phoneNumber!: string;
 }
 Associate.init({
   id: { type: DataTypes.STRING, primaryKey: true },
@@ -84,7 +85,8 @@ Associate.init({
   category: { type: DataTypes.STRING, allowNull: false },
   joiningDate: { type: DataTypes.STRING, allowNull: false },
   status: { type: DataTypes.STRING, allowNull: false },
-  plantIdRef: { type: DataTypes.STRING, allowNull: true }
+  plantIdRef: { type: DataTypes.STRING, allowNull: true },
+  phoneNumber: { type: DataTypes.STRING, allowNull: true }
 }, { sequelize, tableName: 'associates', timestamps: false });
 
 // 6. ASSOCIATE SKILL MODEL (Junction Table)

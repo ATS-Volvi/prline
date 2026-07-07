@@ -3,6 +3,7 @@ import { Workstation, Allocation, Associate } from '../../../database/models/mod
 import { logAction } from '../services/auditService';
 import { autoAllocate } from '../services/allocationService';
 import { catchAsync } from '../middleware/errorHandler';
+import { sendWhatsAppNotification } from '../services/whatsappService';
 
 export const allocate = catchAsync(async (req: Request, res: Response) => {
   const { date, shiftId, lineId, workstationId, associateId, overrideReason } = req.body;
@@ -40,6 +41,10 @@ export const allocate = catchAsync(async (req: Request, res: Response) => {
     : `Staffed workstation ${ws?.get('name')} with ${assoc?.get('name')}.`;
 
   await logAction(action, details, userId, req.authData?.userType || "reviewer");
+  
+  // Trigger async WhatsApp message
+  sendWhatsAppNotification(userId || 'SYSTEM', associateId, date, shiftId, workstationId, lineId);
+
   res.json({ success: true, allocation: newAlloc });
 });
 

@@ -10,6 +10,7 @@ export interface Associate {
   joiningDate: string;
   status: 'Active' | 'Inactive';
   plantIdRef?: string;
+  phoneNumber?: string;
 }
 
 export interface Skill {
