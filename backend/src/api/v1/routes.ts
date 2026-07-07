@@ -10,7 +10,9 @@ import {
   Allocation,
   AuditLog,
   LeaveRecord as LeaveRecordType, // avoid clash if any
-  AttendanceRecord
+  AttendanceRecord,
+  Product,
+  ProductionSchedule
 } from "../../../../database/models/models/models";
 import AuthHandler from "../../../middleware/authHandler";
 import UserTypeHandler from "../../../middleware/getUserType";
@@ -353,6 +355,98 @@ router.post("/allocation/clear", AuthHandler.authMiddleware, UserTypeHandler.che
 
 // 7. OPTIMIZED AUTO-ALLOCATION ALGORITHM
 router.post("/allocation/auto-allocate", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, allocationController.autoAllocateController);
+
+// 7.5. PRODUCTS AND PRODUCTION BATCH SCHEDULER
+router.get("/products", AuthHandler.authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = req.authData?.userId;
+    const products = await Product.findAll({ where: { userId } });
+    res.json({ success: true, data: products });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.post("/products", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, async (req: Request, res: Response) => {
+  try {
+    const userId = req.authData?.userId;
+    const { id, name, category, skuCode, hourlyThroughputKgHr, workstationOverrides } = req.body;
+    const prod = await Product.upsert({
+      id: id || `PROD-${Date.now()}`,
+      userId,
+      name,
+      category,
+      skuCode,
+      hourlyThroughputKgHr: Number(hourlyThroughputKgHr),
+      workstationOverrides: typeof workstationOverrides === 'string' ? workstationOverrides : JSON.stringify(workstationOverrides)
+    });
+    res.json({ success: true, data: prod });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.get("/production-schedules", AuthHandler.authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = req.authData?.userId;
+    const schedules = await ProductionSchedule.findAll({
+      where: { userId },
+      include: [{ model: Product, as: 'product' }]
+    });
+    res.json({ success: true, data: schedules });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.post("/production-schedules", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, async (req: Request, res: Response) => {
+  try {
+    const userId = req.authData?.userId;
+    const { id, date, shiftId, lineId, productId, targetVolumeMt, notes } = req.body;
+    const schedId = id || `SCH-${Date.now()}`;
+    const sched = await ProductionSchedule.upsert({
+      id: schedId,
+      userId,
+      date,
+      shiftId,
+      lineId,
+      productId,
+      targetVolumeMt: Number(targetVolumeMt),
+      notes
+    });
+    
+    // Also update the line's currentProduct to show the product name
+    const product = await Product.findOne({ where: { id: productId, userId } });
+    if (product) {
+      await ProductionLine.update(
+        { currentProduct: product.name },
+        { where: { id: lineId, userId } }
+      );
+    }
+
+    // Return the created schedule with product included
+    const result = await ProductionSchedule.findOne({
+      where: { id: schedId, userId },
+      include: [{ model: Product, as: 'product' }]
+    });
+
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.delete("/production-schedules/:id", AuthHandler.authMiddleware, UserTypeHandler.checkReviewer, async (req: Request, res: Response) => {
+  try {
+    const userId = req.authData?.userId;
+    const { id } = req.params;
+    await ProductionSchedule.destroy({ where: { id, userId } });
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 
 
 // 8. BULK IMPORT CSV

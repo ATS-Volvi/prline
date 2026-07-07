@@ -9,10 +9,29 @@ import {
   ProductionAssumptions,
   MonthlySeasonality,
   ManpowerNorm,
-  CoverageBuffers
+  CoverageBuffers,
+  Product,
+  ProductionSchedule
 } from "./models/models";
 import User from "./models/user";
 import { hashPassword } from "../../backend/utils/hashPwd";
+
+const productsData = [
+  { id: 'PROD-01', name: 'Kurkure Masala Munch', category: 'Kurkure', skuCode: 'KK-MM-150', hourlyThroughputKgHr: 2200, workstationOverrides: JSON.stringify({
+    'WS-103': { requiredSkillId: 'SPICE_MIX', minSkillLevel: 'Certified' }
+  })},
+  { id: 'PROD-02', name: 'Kurkure Green Chutney', category: 'Kurkure', skuCode: 'KK-GC-150', hourlyThroughputKgHr: 2000, workstationOverrides: JSON.stringify({
+    'WS-103': { requiredSkillId: 'SPICE_MIX', minSkillLevel: 'Operator' }
+  })},
+  { id: 'PROD-03', name: 'Lays Classic Salted', category: 'Chips', skuCode: 'LY-CS-50', hourlyThroughputKgHr: 2500, workstationOverrides: JSON.stringify({
+    'WS-101': { requiredSkillId: 'BLADE_OPT', minSkillLevel: 'Certified' },
+    'WS-102': { requiredSkillId: 'HEAT_SAFETY', minSkillLevel: 'Operator' }
+  })},
+  { id: 'PROD-04', name: 'Lays Magic Masala', category: 'Chips', skuCode: 'LY-MM-50', hourlyThroughputKgHr: 2400, workstationOverrides: JSON.stringify({
+    'WS-101': { requiredSkillId: 'BLADE_OPT', minSkillLevel: 'Operator' },
+    'WS-103': { requiredSkillId: 'SPICE_MIX', minSkillLevel: 'Certified' }
+  })},
+];
 
 const skillsData = [
   { id: 'BLADE_OPT', name: 'Blade Operation', description: 'Slicing blade calibration and replacement' },
@@ -246,6 +265,9 @@ export const seedDatabase = async (targetUserId?: string) => {
 
       // Seed Skills scoped to user
       await Skill.bulkCreate(skillsData.map(d => ({ ...d, userId: targetUserId })));
+
+      // Seed Products scoped to user
+      await Product.bulkCreate(productsData.map(d => ({ ...d, userId: targetUserId })));
 
       // Seed Lines scoped to user
       await ProductionLine.bulkCreate(linesData.map(d => ({ ...d, userId: targetUserId })));

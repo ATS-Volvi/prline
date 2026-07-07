@@ -88,3 +88,24 @@ export interface AttendanceRecord {
   markedBy: string;
   timestamp: string;
 }
+
+export interface Product {
+  id: string;
+  name: string;
+  category: string;
+  skuCode: string;
+  hourlyThroughputKgHr: number;
+  workstationOverrides: string; // JSON string of recipe overrides
+}
+
+export interface ProductionSchedule {
+  id: string;
+  date: string;
+  shiftId: string;
+  lineId: string;
+  productId: string;
+  targetVolumeMt: number;
+  notes?: string;
+  product?: Product;
+}
+

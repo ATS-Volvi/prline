@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { AvailabilityTab } from './AvailabilityTab';
 
@@ -20,7 +20,11 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
     allocateAssociate,
     deallocateWorkstation,
     getConsecutiveWorkDays,
-    role
+    role,
+    products,
+    productionSchedules,
+    addProductionSchedule,
+    deleteProductionSchedule
   } = useApp();
 
   // Active filters state
@@ -41,6 +45,38 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
   const [overrideAssocId, setOverrideAssocId] = useState<string | null>(null);
   const [overrideReason, setOverrideReason] = useState('EMERGENCY_COVER');
   const [customReasonText, setCustomReasonText] = useState('');
+
+  // Batch Scheduler Modal states
+  const [showBatchModal, setShowBatchModal] = useState(false);
+  const [targetProductId, setTargetProductId] = useState('');
+  const [targetVolumeMt, setTargetVolumeMt] = useState<number | ''>('');
+  const [batchNotes, setBatchNotes] = useState('');
+  const [savingBatch, setSavingBatch] = useState(false);
+
+  // Active production schedule for current filters
+  const activeSchedule = (productionSchedules || []).find(
+    s => s.date === selectedDate && s.shiftId === selectedShiftId && s.lineId === selectedLineId
+  );
+
+  // Check if active schedule has any overrides
+  const activeOverrides = activeSchedule?.product?.workstationOverrides
+    ? JSON.parse(activeSchedule.product.workstationOverrides)
+    : null;
+  const hasOverrides = activeOverrides && Object.keys(activeOverrides).length > 0;
+
+
+  // Sync batch modal form state
+  useEffect(() => {
+    if (activeSchedule) {
+      setTargetProductId(activeSchedule.productId);
+      setTargetVolumeMt(activeSchedule.targetVolumeMt);
+      setBatchNotes(activeSchedule.notes || '');
+    } else {
+      setTargetProductId('');
+      setTargetVolumeMt('');
+      setBatchNotes('');
+    }
+  }, [activeSchedule, showBatchModal]);
 
   const currentLine = productionLines.find(l => l.id === selectedLineId) || productionLines[0];
 
@@ -71,6 +107,43 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
         }
       });
     }, 1200);
+  };
+
+  // Batch save and delete handlers
+  const handleSaveBatch = async () => {
+    if (!targetProductId || !targetVolumeMt) {
+      alert("Please select a product and enter target volume.");
+      return;
+    }
+    setSavingBatch(true);
+    const res = await addProductionSchedule({
+      id: activeSchedule?.id,
+      date: selectedDate,
+      shiftId: selectedShiftId,
+      lineId: selectedLineId,
+      productId: targetProductId,
+      targetVolumeMt: Number(targetVolumeMt),
+      notes: batchNotes
+    });
+    setSavingBatch(false);
+    if (res.success) {
+      setShowBatchModal(false);
+    } else {
+      alert(res.message || "Failed to save schedule batch.");
+    }
+  };
+
+  const handleDeleteBatch = async () => {
+    if (!activeSchedule) return;
+    if (!window.confirm("Are you sure you want to remove the scheduled batch for this shift?")) return;
+    setSavingBatch(true);
+    const res = await deleteProductionSchedule(activeSchedule.id);
+    setSavingBatch(false);
+    if (res.success) {
+      setShowBatchModal(false);
+    } else {
+      alert(res.message || "Failed to delete schedule batch.");
+    }
   };
 
   // Open manual assign modal
@@ -232,6 +305,49 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                 <span className="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none">calendar_today</span>
               </div>
             </div>
+
+            {/* ACTIVE PRODUCTION BATCH / RECIPE */}
+            <div className="md:col-span-3 border-t border-[var(--po-surface-border)] pt-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[var(--po-line-teal-soft)] text-[var(--po-line-teal)] flex items-center justify-center">
+                  <span className="material-symbols-outlined text-lg">local_pizza</span>
+                </div>
+                <div>
+                  <h5 className="text-[10px] font-extrabold text-[var(--po-ink-muted)] uppercase tracking-widest font-mono">Active Production Batch</h5>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {activeSchedule ? (
+                      <>
+                        <span className="text-xs font-black text-[var(--po-ink)]">{activeSchedule.product?.name || 'Unknown Product'}</span>
+                        <span className="bg-slate-100 text-slate-700 text-[9px] font-bold px-2 py-0.5 rounded font-mono border border-slate-200">
+                          SKU: {activeSchedule.product?.skuCode}
+                        </span>
+                        <span className="bg-[var(--po-line-teal-soft)] text-[var(--po-line-teal)] text-[9px] font-extrabold px-2 py-0.5 rounded font-mono border border-[var(--po-line-teal-soft)]">
+                          Target: {activeSchedule.targetVolumeMt} MT
+                        </span>
+                        {hasOverrides && (
+                          <span className="bg-amber-50 text-amber-700 text-[9px] font-extrabold px-2 py-0.5 rounded font-mono border border-amber-200 flex items-center gap-0.5" title="Recipe overrides active skills on workstations">
+                            <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: "'FILL' 1" }}>rule</span> Recipe Skill Overrides
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-xs italic text-[var(--po-ink-muted)] font-medium">No production batch scheduled for this shift. Default line settings apply.</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowBatchModal(true)}
+                  className="py-1.5 px-4 bg-white border-2 border-[var(--po-line-teal)] text-[var(--po-line-teal)] hover:bg-[var(--po-line-teal)] hover:text-white font-extrabold rounded-full text-[9px] uppercase tracking-wider transition-all duration-200 cursor-pointer font-mono hover:scale-[1.02] shadow-sm flex items-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-xs">edit_calendar</span>
+                  {activeSchedule ? 'Change Scheduled Batch' : 'Schedule Production Batch'}
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* ACTION BUTTONS */}
@@ -288,6 +404,18 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                 const isFull = wsAllocations.length >= capacity;
                 const hasSome = wsAllocations.length > 0;
 
+                // Check for recipe overrides
+                let displaySkill = ws.requiredSkillId;
+                let displayLevel = ws.minSkillLevel;
+                let isOverridden = false;
+                
+                if (activeOverrides && activeOverrides[ws.id]) {
+                  const override = activeOverrides[ws.id];
+                  if (override.requiredSkillId) displaySkill = override.requiredSkillId;
+                  if (override.minSkillLevel) displayLevel = override.minSkillLevel;
+                  isOverridden = true;
+                }
+
                 return (
                   <div
                     key={ws.id}
@@ -312,9 +440,20 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                     </div>
                     
                     <div className="flex flex-col gap-1.5 select-none">
-                      <span className="text-[9px] font-extrabold text-[var(--po-ink-muted)] uppercase tracking-widest font-mono mb-1">REQUIRED SKILLS</span>
-                      <div className="inline-block border border-[var(--po-surface-border)] rounded-xl px-3.5 py-2 text-[10px] text-[var(--po-line-teal)] bg-[var(--po-line-teal-soft)] font-mono font-bold tracking-tight shadow-premium-sm truncate max-w-full">
-                        {ws.requiredSkillId} (Level &gt;= {ws.minSkillLevel})
+                      <span className="text-[9px] font-extrabold text-[var(--po-ink-muted)] uppercase tracking-widest font-mono mb-1 flex items-center gap-1.5">
+                        REQUIRED SKILLS
+                        {isOverridden && (
+                          <span className="bg-amber-100 text-amber-800 text-[8px] font-extrabold px-2 py-0.5 rounded border border-amber-200 flex items-center gap-0.5" title="Overridden by active product recipe">
+                            <span className="material-symbols-outlined text-[8px] font-extrabold">bolt</span> Recipe
+                          </span>
+                        )}
+                      </span>
+                      <div className={`inline-block border rounded-xl px-3.5 py-2 text-[10px] font-mono font-bold tracking-tight shadow-premium-sm truncate max-w-full ${
+                        isOverridden 
+                          ? 'border-amber-300 text-amber-800 bg-amber-50' 
+                          : 'border-[var(--po-surface-border)] text-[var(--po-line-teal)] bg-[var(--po-line-teal-soft)]'
+                      }`}>
+                        {displaySkill} (Level &gt;= {displayLevel})
                       </div>
                     </div>
 
@@ -557,6 +696,130 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {/* Batch Scheduling Modal */}
+      {showBatchModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 select-text">
+          <div className="bg-surface-container-lowest w-[450px] max-w-full rounded-xl shadow-2xl flex flex-col overflow-hidden border border-outline-variant animate-slide-up">
+            {/* Modal Header */}
+            <div className="p-4 bg-surface-container-low border-b border-outline-variant flex justify-between items-center">
+              <div>
+                <h3 className="font-bold text-xs text-primary uppercase tracking-wider font-label-caps">Schedule Production Batch</h3>
+                <p className="text-[9px] text-secondary mt-1 font-mono uppercase leading-tight">
+                  Line: {currentLine.name} <br/>
+                  Date: {selectedDate} • Shift: {shifts.find(s => s.id === selectedShiftId)?.name || selectedShiftId}
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowBatchModal(false)}
+                className="p-1 hover:bg-surface-container-high rounded text-secondary transition-colors cursor-pointer flex items-center justify-center"
+              >
+                <span className="material-symbols-outlined text-sm">close</span>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4 flex flex-col gap-4 text-left">
+              <div>
+                <label className="text-[8.5px] font-bold text-primary block mb-1 font-label-caps uppercase tracking-wider">Select Product Recipe</label>
+                <select
+                  value={targetProductId}
+                  onChange={(e) => setTargetProductId(e.target.value)}
+                  className="w-full p-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs focus:ring-2 focus:ring-primary text-on-surface"
+                >
+                  <option value="">-- Select Product --</option>
+                  {(products || []).map(p => (
+                    <option key={p.id} value={p.id}>{p.name} ({p.skuCode})</option>
+                  ))}
+                </select>
+              </div>
+
+              {targetProductId && (() => {
+                const prod = products.find(p => p.id === targetProductId);
+                if (!prod) return null;
+                const overrides = prod.workstationOverrides ? JSON.parse(prod.workstationOverrides) : null;
+                const overrideKeys = overrides ? Object.keys(overrides) : [];
+                return (
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs flex flex-col gap-2">
+                    <div className="flex justify-between font-bold text-slate-700">
+                      <span>Category: {prod.category}</span>
+                      <span>Throughput: {prod.hourlyThroughputKgHr} kg/hr</span>
+                    </div>
+                    {overrideKeys.length > 0 ? (
+                      <div className="mt-1">
+                        <span className="text-[9px] font-extrabold text-amber-800 uppercase font-mono tracking-wider block mb-1">Recipe Workstation Skill Overrides:</span>
+                        <div className="flex flex-col gap-1">
+                          {overrideKeys.map(wsId => {
+                            const wsName = workstations.find(w => w.id === wsId)?.name || wsId;
+                            const override = overrides[wsId];
+                            return (
+                              <div key={wsId} className="flex justify-between text-[10px] bg-amber-50 border border-amber-200 px-2 py-1 rounded text-amber-900 font-mono">
+                                <span>{wsName}</span>
+                                <span>{override.requiredSkillId} (&gt;={override.minSkillLevel})</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-[10px] text-slate-400 italic">No recipe overrides. Default workstation skills will be required.</p>
+                    )}
+                  </div>
+                );
+              })()}
+
+              <div>
+                <label className="text-[8.5px] font-bold text-primary block mb-1 font-label-caps uppercase tracking-wider">Target Production Volume (MT)</label>
+                <input
+                  type="number"
+                  placeholder="e.g. 2.5"
+                  value={targetVolumeMt}
+                  onChange={(e) => setTargetVolumeMt(e.target.value === '' ? '' : Number(e.target.value))}
+                  className="w-full p-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs focus:ring-2 focus:ring-primary text-on-surface"
+                />
+              </div>
+
+              <div>
+                <label className="text-[8.5px] font-bold text-primary block mb-1 font-label-caps uppercase tracking-wider">Production Notes</label>
+                <textarea
+                  placeholder="Additional batch notes (batch number, raw materials etc.)"
+                  value={batchNotes}
+                  onChange={(e) => setBatchNotes(e.target.value)}
+                  className="w-full p-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs focus:ring-2 focus:ring-primary text-on-surface min-h-[60px]"
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-surface-container-low border-t border-outline-variant flex justify-between gap-3">
+              {activeSchedule ? (
+                <button
+                  onClick={handleDeleteBatch}
+                  disabled={savingBatch}
+                  className="px-4 py-2 border-2 border-rose-500 text-rose-500 hover:bg-rose-500 hover:text-white rounded-lg font-bold text-[9px] font-label-caps tracking-wider transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  REMOVE BATCH
+                </button>
+              ) : <div />}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowBatchModal(false)}
+                  className="px-4 py-2 text-xs font-bold text-secondary hover:text-primary hover:underline cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveBatch}
+                  disabled={savingBatch || !targetProductId || !targetVolumeMt}
+                  className="px-4 py-2 bg-[var(--po-line-teal)] hover:bg-[#0d635c] text-white rounded-lg font-bold text-[9px] font-label-caps tracking-wider disabled:opacity-50 cursor-pointer transition-all active:scale-[0.98]"
+                >
+                  {savingBatch ? 'SAVING...' : 'SCHEDULE BATCH'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

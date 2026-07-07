@@ -373,4 +373,52 @@ ManpowerNorm.belongsTo(ProductionAssumptions, { foreignKey: 'assumptions_id', as
 ProductionAssumptions.hasOne(CoverageBuffers, { foreignKey: 'assumptions_id', as: 'buffers', onDelete: 'CASCADE' });
 CoverageBuffers.belongsTo(ProductionAssumptions, { foreignKey: 'assumptions_id', as: 'assumptions' });
 
+// 15. PRODUCT MODEL
+export class Product extends Model {
+  public id!: string;
+  public userId!: string;
+  public name!: string;
+  public category!: string;
+  public skuCode!: string;
+  public hourlyThroughputKgHr!: number;
+  public workstationOverrides!: string; // JSON string of recipe overrides
+}
+Product.init({
+  id: { type: DataTypes.STRING, primaryKey: true },
+  userId: { type: DataTypes.STRING, primaryKey: true, field: 'user_id' },
+  name: { type: DataTypes.STRING, allowNull: false },
+  category: { type: DataTypes.STRING, allowNull: false },
+  skuCode: { type: DataTypes.STRING, allowNull: false, field: 'sku_code' },
+  hourlyThroughputKgHr: { type: DataTypes.DECIMAL, allowNull: false, field: 'hourly_throughput_kg_hr' },
+  workstationOverrides: { type: DataTypes.TEXT, allowNull: true, field: 'workstation_overrides' }
+}, { sequelize, tableName: 'products', timestamps: false });
+
+// 16. PRODUCTION SCHEDULE MODEL
+export class ProductionSchedule extends Model {
+  public id!: string;
+  public userId!: string;
+  public date!: string;
+  public shiftId!: string;
+  public lineId!: string;
+  public productId!: string;
+  public targetVolumeMt!: number;
+  public notes!: string;
+  public product?: Product;
+}
+ProductionSchedule.init({
+  id: { type: DataTypes.STRING, primaryKey: true },
+  userId: { type: DataTypes.STRING, allowNull: false, field: 'user_id' },
+  date: { type: DataTypes.DATEONLY, allowNull: false },
+  shiftId: { type: DataTypes.STRING, allowNull: false, field: 'shift_id' },
+  lineId: { type: DataTypes.STRING, allowNull: false, field: 'line_id' },
+  productId: { type: DataTypes.STRING, allowNull: false, field: 'product_id' },
+  targetVolumeMt: { type: DataTypes.DECIMAL, allowNull: false, field: 'target_volume_mt' },
+  notes: { type: DataTypes.STRING, allowNull: true }
+}, { sequelize, tableName: 'production_schedules', timestamps: true, createdAt: 'created_at', updatedAt: 'updated_at' });
+
+// Setup associations for products and schedules
+ProductionSchedule.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
+Product.hasMany(ProductionSchedule, { foreignKey: 'product_id', as: 'schedules' });
+
+
 
