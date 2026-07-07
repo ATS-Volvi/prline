@@ -283,9 +283,10 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {activeWS.map((ws, index) => {
-                const assigned = lineAllocations.find(a => a.workstationId === ws.id);
-                const assoc = assigned ? associates.find(a => a.id === assigned.associateId) : null;
-                // assigned associate lookup
+                const wsAllocations = lineAllocations.filter(a => a.workstationId === ws.id);
+                const capacity = ws.maxStaffCount || 1;
+                const isFull = wsAllocations.length >= capacity;
+                const hasSome = wsAllocations.length > 0;
 
                 return (
                   <div
@@ -301,10 +302,13 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                     
                     <div className="flex justify-between items-center text-xs mt-1.5 mb-2">
                       <span className="text-[var(--po-ink-muted)] font-extrabold font-mono text-[9px] uppercase tracking-widest">Staffing:</span>
-                      <span className={`font-extrabold text-sm ${assoc ? 'text-[var(--po-line-teal)]' : 'text-[var(--po-amber)]'}`}>{assoc ? '1' : '0'}/1</span>
+                      <span className={`font-extrabold text-sm ${isFull ? 'text-[var(--po-line-teal)]' : 'text-[var(--po-amber)]'}`}>{wsAllocations.length}/{capacity}</span>
                     </div>
                     <div className="w-full bg-[var(--po-canvas)] h-2.5 rounded-full mb-5 overflow-hidden border border-[var(--po-surface-border)]">
-                      <div className={`h-full ${assoc ? 'bg-[var(--po-line-teal)] w-full shadow-[0_0_8px_rgba(15,118,110,0.3)]' : 'bg-[var(--po-amber)] w-0'}`}></div>
+                      <div 
+                        className={`h-full ${hasSome ? 'bg-[var(--po-line-teal)] shadow-[0_0_8px_rgba(15,118,110,0.3)]' : 'bg-[var(--po-amber)]'}`}
+                        style={{ width: `${Math.min(100, (wsAllocations.length / capacity) * 100)}%` }}
+                      ></div>
                     </div>
                     
                     <div className="flex flex-col gap-1.5 select-none">
@@ -315,26 +319,32 @@ export const ShiftPlanner: React.FC<ShiftPlannerProps> = ({ selectedLineId, setS
                     </div>
 
                     {/* ASSIGNED OPERATOR ROW */}
-                    <div className="mt-5 min-h-[44px] flex items-center justify-center">
-                      {assoc ? (
-                        <div className="w-full bg-[var(--po-surface)] text-[var(--po-ink)] rounded-xl py-2.5 px-3 flex items-center justify-between text-xs font-bold font-mono border-2 border-[var(--po-surface-border)] shadow-sm">
-                          <span className="truncate max-w-[150px]">{assoc.name}</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (assigned && (role === 'Production Supervisor' || role === 'Plant Admin')) {
-                                if (window.confirm(`Deallocate ${assoc?.name} from ${ws.name}?`)) {
-                                  handleDeallocate(ws.id, assoc?.id);
-                                }
-                              }
-                            }}
-                            className="text-rose-500 hover:text-rose-700 cursor-pointer font-bold text-sm w-5 h-5 rounded-full hover:bg-rose-50 flex items-center justify-center transition-all"
-                          >
-                            ×
-                          </button>
-                        </div>
+                    <div className="mt-5 min-h-[44px] flex flex-col gap-2 justify-center">
+                      {hasSome ? (
+                        wsAllocations.map(assigned => {
+                          const assoc = associates.find(a => a.id === assigned.associateId);
+                          if (!assoc) return null;
+                          return (
+                            <div key={assigned.id} className="w-full bg-[var(--po-surface)] text-[var(--po-ink)] rounded-xl py-2.5 px-3 flex items-center justify-between text-xs font-bold font-mono border-2 border-[var(--po-surface-border)] shadow-sm">
+                              <span className="truncate max-w-[150px]">{assoc.name}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (role === 'Production Supervisor' || role === 'Plant Admin') {
+                                    if (window.confirm(`Deallocate ${assoc.name} from ${ws.name}?`)) {
+                                      handleDeallocate(ws.id, assoc.id);
+                                    }
+                                  }
+                                }}
+                                className="text-rose-500 hover:text-rose-700 cursor-pointer font-bold text-sm w-5 h-5 rounded-full hover:bg-rose-50 flex items-center justify-center transition-all"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          );
+                        })
                       ) : (
-                        <div className="text-[10px] text-[var(--po-ink-muted)] italic select-none">Unallocated</div>
+                        <div className="text-[10px] text-[var(--po-ink-muted)] italic select-none text-center">Unallocated</div>
                       )}
                     </div>
 
