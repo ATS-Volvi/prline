@@ -14,8 +14,6 @@ import {
   type UserRole,
   type SkillLevel,
   type AssociateCategory,
-  type Product,
-  type ProductionSchedule
 } from '../types';
 
 interface AppContextType {
@@ -35,8 +33,6 @@ interface AppContextType {
   auditLogs: AuditLog[];
   leaveRecords: LeaveRecord[];
   attendanceRecords: AttendanceRecord[];
-  products: Product[];
-  productionSchedules: ProductionSchedule[];
   
   // Actions
   addAssociate: (associate: Associate, skills: { skillId: string; level: SkillLevel; expiryDate: string }[]) => void;
@@ -82,10 +78,6 @@ interface AppContextType {
 
   autoAllocateLine: (date: string, shiftId: string, lineId: string) => Promise<{ success: boolean; allocatedCount: number }>;
   clearLineAllocations: (date: string, shiftId: string, lineId: string) => void;
-
-  addProductionSchedule: (schedule: Omit<ProductionSchedule, 'id'> & { id?: string }) => Promise<{ success: boolean; data?: ProductionSchedule; message?: string }>;
-  deleteProductionSchedule: (id: string) => Promise<{ success: boolean; message?: string }>;
-
 
   // Validation & Queries
   getEligibilityList: (
@@ -209,8 +201,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const leaveRecordsQuery = createQuery('leaveRecords', '/api/v1/leave', initialLeaveRecords);
   const auditLogsQuery = createQuery('auditLogs', '/api/v1/audit-logs', initialAuditLogs);
   const attendanceRecordsQuery = createQuery('attendanceRecords', '/api/v1/attendance', []);
-  const productsQuery = createQuery('products', '/api/v1/products', []);
-  const productionSchedulesQuery = createQuery('productionSchedules', '/api/v1/production-schedules', []);
 
   // Map to local variables for context
   const associates = associatesQuery.data as Associate[];
@@ -223,8 +213,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const leaveRecords = leaveRecordsQuery.data as LeaveRecord[];
   const auditLogs = auditLogsQuery.data as AuditLog[];
   const attendanceRecords = attendanceRecordsQuery.data as AttendanceRecord[];
-  const products = productsQuery.data as Product[];
-  const productionSchedules = productionSchedulesQuery.data as ProductionSchedule[];
 
   // Save to LocalStorage helper
   const saveData = <T,>(key: string, data: T) => {
@@ -862,23 +850,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const ws = workstations.find(w => w.id === workstationId);
     if (!ws) return { eligible: [], ineligible: [] };
 
-    // Find if there is a scheduled product with workstation overrides for this line, date, shift
-    const sched = productionSchedules.find(s => s.date === date && s.shiftId === shiftId && s.lineId === ws.lineId);
-    const overrides = sched?.product?.workstationOverrides
-      ? JSON.parse(sched.product.workstationOverrides)
-      : null;
-
-    let skillIdsStr = ws.requiredSkillId;
-    let minLvlName: SkillLevel = ws.minSkillLevel;
-
-    if (overrides && overrides[workstationId]) {
-      const override = overrides[workstationId];
-      if (override.requiredSkillId) skillIdsStr = override.requiredSkillId;
-      if (override.minSkillLevel) minLvlName = override.minSkillLevel;
-    }
-
-    const reqSkills = skillIdsStr.split(';');
-    const reqMinLevelValue = SKILL_LEVEL_VALUE[minLvlName];
+    const reqSkills = ws.requiredSkillId.split(';');
+    const reqMinLevelValue = SKILL_LEVEL_VALUE[ws.minSkillLevel];
 
     const eligibleList: { associate: Associate; skillLevel: SkillLevel; score: number }[] = [];
     const ineligibleList: { associate: Associate; reason: string }[] = [];
@@ -1126,49 +1099,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const addProductionSchedule = async (schedule: Omit<ProductionSchedule, 'id'> & { id?: string }) => {
-    try {
-      const res = await fetch("/api/v1/production-schedules", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(schedule)
-      });
-      if (res.ok) {
-        const json = await res.json();
-        fetchState();
-        return { success: true, data: json.data };
-      } else {
-        const err = await res.json();
-        return { success: false, message: err.message || "Failed to save schedule" };
-      }
-    } catch (err: any) {
-      console.error(err);
-      return { success: false, message: err.message || "Network error while saving schedule" };
-    }
-  };
-
-  const deleteProductionSchedule = async (id: string) => {
-    try {
-      const res = await fetch(`/api/v1/production-schedules/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      if (res.ok) {
-        fetchState();
-        return { success: true };
-      } else {
-        const err = await res.json();
-        return { success: false, message: err.message || "Failed to delete schedule" };
-      }
-    } catch (err: any) {
-      console.error(err);
-      return { success: false, message: err.message || "Network error while deleting schedule" };
-    }
-  };
-
   // Auto Allocation Algorithm
   const autoAllocateLine = async (date: string, shiftId: string, lineId: string): Promise<{ success: boolean; allocatedCount: number }> => {
     try {
@@ -1199,12 +1129,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const lineWS = workstations.filter(w => w.lineId === lineId);
       if (lineWS.length === 0) return { success: false, allocatedCount: 0 };
 
-      // Find if there is a scheduled product with workstation overrides for this line, date, shift
-      const sched = productionSchedules.find(s => s.date === date && s.shiftId === shiftId && s.lineId === lineId);
-      const productOverrides = sched?.product?.workstationOverrides
-        ? JSON.parse(sched.product.workstationOverrides)
-        : null;
-
       const filteredAllocations = allocations.filter(a => !(a.date === date && a.shiftId === shiftId && a.lineId === lineId));
       const currentSolveAllocations = [...filteredAllocations];
       let count = 0;
@@ -1224,15 +1148,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
 
       sortedWS.forEach(ws => {
-        let reqSkill = ws.requiredSkillId;
-        let minLvlValue = SKILL_LEVEL_VALUE[ws.minSkillLevel];
-
-        if (productOverrides && productOverrides[ws.id]) {
-          const override = productOverrides[ws.id];
-          if (override.requiredSkillId) reqSkill = override.requiredSkillId;
-          if (override.minSkillLevel) minLvlValue = SKILL_LEVEL_VALUE[override.minSkillLevel];
-        }
-
+        const reqSkill = ws.requiredSkillId;
+        const minLvlValue = SKILL_LEVEL_VALUE[ws.minSkillLevel];
         const capacity = ws.maxStaffCount || 1;
 
         for (let slot = 0; slot < capacity; slot++) {
@@ -1361,8 +1278,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         auditLogs,
         leaveRecords,
         attendanceRecords,
-        products,
-        productionSchedules,
         
         addAssociate,
         updateAssociate,
@@ -1390,8 +1305,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         clearLineAllocations,
         getEligibilityList,
         getConsecutiveWorkDays,
-        addProductionSchedule,
-        deleteProductionSchedule,
       }}
     >
       {children}

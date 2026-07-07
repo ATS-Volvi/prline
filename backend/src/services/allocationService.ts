@@ -1,4 +1,4 @@
-import { Associate, AssociateSkill, LeaveRecord, Allocation, Workstation, Product, ProductionSchedule } from "../../../database/models/models/models";
+import { Associate, AssociateSkill, LeaveRecord, Allocation, Workstation } from "../../../database/models/models/models";
 import { logAction } from "./auditService";
 
 const SKILL_LEVEL_VALUE: Record<string, number> = {
@@ -13,16 +13,6 @@ export const autoAllocate = async (date: string, shiftId: string, lineId: string
   if (lineWS.length === 0) {
     return 0;
   }
-
-  // Retrieve scheduled product for this date, shift, and line
-  const schedule = await ProductionSchedule.findOne({
-    where: { date, shiftId, lineId, userId },
-    include: [{ model: Product, as: 'product' }]
-  });
-
-  const productOverrides = schedule?.product?.workstationOverrides
-    ? JSON.parse(schedule.product.workstationOverrides)
-    : null;
 
   await Allocation.destroy({ where: { date, shiftId, lineId, userId } });
 
@@ -53,20 +43,8 @@ export const autoAllocate = async (date: string, shiftId: string, lineId: string
   };
 
   for (const ws of sortedWS) {
-    let reqSkill = ws.requiredSkillId;
-    let minLvlValue = SKILL_LEVEL_VALUE[ws.minSkillLevel] || 1;
-    
-    // Check for recipe-based overrides
-    if (productOverrides && productOverrides[ws.id]) {
-      const override = productOverrides[ws.id];
-      if (override.requiredSkillId) {
-        reqSkill = override.requiredSkillId;
-      }
-      if (override.minSkillLevel) {
-        minLvlValue = SKILL_LEVEL_VALUE[override.minSkillLevel] || 1;
-      }
-    }
-    
+    const reqSkill = ws.requiredSkillId;
+    const minLvlValue = SKILL_LEVEL_VALUE[ws.minSkillLevel] || 1;
     const capacity = ws.maxStaffCount || 1;
 
     for (let slot = 0; slot < capacity; slot++) {
