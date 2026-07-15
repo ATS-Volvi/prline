@@ -9,7 +9,11 @@ import {
   ProductionAssumptions,
   MonthlySeasonality,
   ManpowerNorm,
-  CoverageBuffers
+  CoverageBuffers,
+  Allocation,
+  AuditLog,
+  RagChunk,
+  DailyProductionActual
 } from "./models/models";
 import User from "./models/user";
 import { hashPassword } from "../../backend/utils/hashPwd";
@@ -263,10 +267,11 @@ export const seedDatabase = async (targetUserId?: string) => {
       await AssociateSkill.bulkCreate(associateSkillsData.map(d => ({ ...d, userId: targetUserId })));
 
       // Seed Production planning tables scoped to user
-      const assumptions = await ProductionAssumptions.create({
+      const assumptionsInstance = await ProductionAssumptions.create({
         ...defaultAssumptions,
         userId: targetUserId
       });
+      const assumptions = assumptionsInstance.get({ plain: true });
       
       await MonthlySeasonality.bulkCreate(defaultSeasonality.map(s => ({
         ...s,
@@ -289,8 +294,27 @@ export const seedDatabase = async (targetUserId?: string) => {
 
     console.log("Starting Global Database Sync and Seeding...");
     
-    // Sync tables with force: true to wipe existing and seed cleanly
-    await sequelize.sync({ force: true });
+    // Sync tables sequentially with force: true to safely drop and recreate them in FK dependency order
+    const models = [
+      User,
+      Skill,
+      ProductionLine,
+      Workstation,
+      Shift,
+      Associate,
+      AssociateSkill,
+      ProductionAssumptions,
+      MonthlySeasonality,
+      ManpowerNorm,
+      CoverageBuffers,
+      Allocation,
+      AuditLog,
+      RagChunk,
+      DailyProductionActual
+    ];
+    for (const model of models) {
+      await model.sync({ force: true, logging: console.log });
+    }
     console.log("Database models synced successfully.");
 
     // Seed Default Testing Users
@@ -333,7 +357,8 @@ export const seedDatabase = async (targetUserId?: string) => {
 
     // Seed data for each default user created
     for (const u of users) {
-      await seedDatabase(u.userId);
+      const rawUser = u.get({ plain: true });
+      await seedDatabase(rawUser.userId);
     }
 
     console.log("Database Seeding Completed Successfully.");

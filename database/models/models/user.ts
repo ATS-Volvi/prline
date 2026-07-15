@@ -10,14 +10,14 @@ interface UserAttributes extends IUser{
 interface UserCreationAttributes  extends Optional<UserAttributes, "userId">{}
 
 class User extends Model<UserAttributes,UserCreationAttributes> implements UserAttributes{
-    public name!:string;
-    public userId!: string;
-    public email!: string;
-    public password! : string
-    public readonly createdAt!: Date;
-    public readonly updatedAt!: Date;
-    public isVerified!: boolean;
-    public userType!: string;
+    declare name: string;
+    declare userId: string;
+    declare email: string;
+    declare password: string;
+    declare readonly createdAt: Date;
+    declare readonly updatedAt: Date;
+    declare isVerified: boolean;
+    declare userType: string;
 }
 
 User.init({

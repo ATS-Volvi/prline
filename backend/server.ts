@@ -11,6 +11,7 @@ import { createError } from './utils/errors/createError'
 class Server{
     public app=express()
     public port?:Number
+    public httpServer?: import('http').Server
 
     constructor() {
         this.config()
@@ -87,26 +88,14 @@ class Server{
         await this.connectToDb()
 
         try {
-          const { Associate, RagChunk, ProductionAssumptions, MonthlySeasonality, ManpowerNorm, CoverageBuffers, DailyProductionActual } = await import('../database/models/models/models');
-          const { seedDatabase } = await import('../database/models/seed');
+          const { Associate } = await import('../database/models/models/models');
           const { sequelize } = await import('../database/config/dbConn');
           await sequelize.query('CREATE EXTENSION IF NOT EXISTS vector;');
-          await sequelize.sync({ alter: true });
+          // Disable sync and auto-seed to prevent DDL catalog corruption on Neon
           const count = await (Associate as any).count();
-          if (count === 0) {
-            console.log("No associates found. Seeding database...");
-            await seedDatabase();
-          } else {
-            console.log(`Database already initialized with ${count} associates.`);
-          }
+          console.log(`Database verified. Found ${count} associates.`);
         } catch (err) {
-          console.log("Database tables not found or uninitialized. Seeding...");
-          try {
-            const { seedDatabase } = await import('../database/models/seed');
-            await seedDatabase();
-          } catch (seedErr) {
-            console.error("Failed to seed database on startup:", seedErr);
-          }
+          console.log("Database connection active, but tables might not be fully seeded yet.");
         }
 
         // Initialize RAG embedding model pre-flight
@@ -118,9 +107,29 @@ class Server{
         }
 
         this.port = port
-        this.app.listen(this.port, () => {
+        this.httpServer = this.app.listen(this.port, () => {
           console.log(`Listening on ${this.port}`)
         })
+
+        this.httpServer.on('error', (err: any) => {
+          if (err.code === 'EADDRINUSE') {
+            console.error(`Port ${this.port} is already in use. Please free the port (e.g. by running 'npx kill-port ${this.port}').`);
+            process.exit(1);
+          } else {
+            console.error(`HTTP Server encountered an error:`, err);
+            process.exit(1);
+          }
+        })
+      }
+
+      public async shutdown(): Promise<void> {
+        if (!this.httpServer) return;
+        return new Promise<void>((resolve) => {
+          this.httpServer!.close(() => {
+            console.log("HTTP server closed successfully.");
+            resolve();
+          });
+        });
       }
 }
 

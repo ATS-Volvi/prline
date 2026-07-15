@@ -4,8 +4,8 @@ import { useApp } from '../context/AppContext';
 export const Analytics: React.FC = () => {
   const { associates, allocations, workstations, productionLines, shifts, skills, associateSkills } = useApp();
 
-  // Reference Date for Report Analysis
-  const reportDateStr = '2026-06-25';
+  // Filter Date for Report Analysis
+  const [reportDate, setReportDate] = useState('2026-06-25');
 
   // Tab State
   const [activeReportTab, setActiveReportTab] = useState<'associates' | 'stations' | 'lines'>('associates');
@@ -19,6 +19,18 @@ export const Analytics: React.FC = () => {
   const [selectedLine, setSelectedLine] = useState('All');
   const [selectedStage, setSelectedStage] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Stations tab – line filter
+  const [selectedStationLine, setSelectedStationLine] = useState('All Lines');
+
+  // Line detail view – independent filters
+  const [lineDetailDate, setLineDetailDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [lineDetailShift, setLineDetailShift] = useState('');
+  const [lineDetailStatus, setLineDetailStatus] = useState('All');
+
+  // Station detail view – independent filters
+  const [stationDetailDate, setStationDetailDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [stationDetailShift, setStationDetailShift] = useState('');
 
   // Hardcoded mockup data to ensure page matches screenshot out-of-the-box
   const mockupOperators = useMemo(() => [
@@ -135,6 +147,14 @@ export const Analytics: React.FC = () => {
     return ['All Stages', ...Array.from(set)];
   }, [dynamicOperators]);
 
+  // Line options for the Stations tab filter
+  const stationLineOptions = useMemo(() => {
+    if (productionLines && productionLines.length > 0) {
+      return ['All Lines', ...productionLines.map(l => l.name)];
+    }
+    return ['All Lines', 'Kurkure', "Lay's", 'Potato Chips'];
+  }, [productionLines]);
+
   // Filtered List for Associates
   const filteredOperators = useMemo(() => {
     return dynamicOperators.filter(op => {
@@ -164,37 +184,50 @@ export const Analytics: React.FC = () => {
 
   // 1. Stations Report Data with Fallback
   const stationReportData = useMemo(() => {
+    let rows;
     if (!workstations || workstations.length === 0) {
-      return [
+      rows = [
         { id: 'WS-A101', name: 'Slicing Unit 02', line: 'Kurkure', requiredSkill: 'Slicing Operation', minLevel: 'Certified', staffed: '1 / 1', status: 'Fully Staffed' },
         { id: 'WS-A102', name: 'Packaging L4', line: "Lay's", requiredSkill: 'Bag Packing', minLevel: 'Operator', staffed: '1 / 1', status: 'Fully Staffed' },
         { id: 'WS-A103', name: 'Frying Master', line: 'Potato Chips', requiredSkill: 'Frying', minLevel: 'Expert', staffed: '1 / 1', status: 'Fully Staffed' },
         { id: 'WS-A104', name: 'Quality Control', line: 'Kurkure', requiredSkill: 'Inspection', minLevel: 'Operator', staffed: '1 / 1', status: 'Fully Staffed' }
       ];
-    }
-    return workstations.map(ws => {
-      const line = productionLines.find(l => l.id === ws.lineId);
-      const reqSkill = skills.find(sk => sk.id === ws.requiredSkillId);
-      const staffedCount = allocations.filter(a => a.workstationId === ws.id).length;
-      
-      let status = 'Understaffed';
-      if (staffedCount >= ws.maxStaffCount) {
-        status = 'Fully Staffed';
-      } else if (staffedCount > 0) {
-        status = 'Partially Staffed';
-      }
+    } else {
+      rows = workstations.map(ws => {
+        const line = productionLines.find(l => l.id === ws.lineId);
+        const reqSkill = skills.find(sk => sk.id === ws.requiredSkillId);
+        const staffedCount = allocations.filter(a => {
+          const matchesDate = a.date === reportDate;
+          const shiftInstance = shifts.find(s => s.id === a.shiftId);
+          const shiftName = shiftInstance ? shiftInstance.name : 'Unknown Shift';
+          const matchesShift = selectedShift === 'All' || selectedShift === 'All Shifts' || shiftName === selectedShift;
+          return a.workstationId === ws.id && matchesDate && matchesShift;
+        }).length;
 
-      return {
-        id: ws.id,
-        name: ws.name,
-        line: line ? line.name : 'Unknown Line',
-        requiredSkill: reqSkill ? reqSkill.name : ws.requiredSkillId,
-        minLevel: ws.minSkillLevel,
-        staffed: `${staffedCount} / ${ws.maxStaffCount}`,
-        status
-      };
-    });
-  }, [workstations, productionLines, skills, allocations]);
+        let status = 'Understaffed';
+        if (staffedCount >= ws.maxStaffCount) {
+          status = 'Fully Staffed';
+        } else if (staffedCount > 0) {
+          status = 'Partially Staffed';
+        }
+
+        return {
+          id: ws.id,
+          name: ws.name,
+          line: line ? line.name : 'Unknown Line',
+          requiredSkill: reqSkill ? reqSkill.name : ws.requiredSkillId,
+          minLevel: ws.minSkillLevel,
+          staffed: `${staffedCount} / ${ws.maxStaffCount}`,
+          status
+        };
+      });
+    }
+    // Apply production-line filter
+    if (selectedStationLine && selectedStationLine !== 'All Lines') {
+      rows = rows.filter(r => r.line === selectedStationLine);
+    }
+    return rows;
+  }, [workstations, productionLines, skills, allocations, reportDate, selectedShift, shifts, selectedStationLine]);
 
   // 2. Lines Report Data with Fallback
   const lineReportData = useMemo(() => {
@@ -207,7 +240,13 @@ export const Analytics: React.FC = () => {
     }
     return productionLines.map(line => {
       const lineStations = workstations.filter(w => w.lineId === line.id);
-      const lineAllocations = allocations.filter(a => a.lineId === line.id);
+      const lineAllocations = allocations.filter(a => {
+        const matchesDate = a.date === reportDate;
+        const shiftInstance = shifts.find(s => s.id === a.shiftId);
+        const shiftName = shiftInstance ? shiftInstance.name : 'Unknown Shift';
+        const matchesShift = selectedShift === 'All' || selectedShift === 'All Shifts' || shiftName === selectedShift;
+        return a.lineId === line.id && matchesDate && matchesShift;
+      });
 
       return {
         id: line.id,
@@ -218,7 +257,7 @@ export const Analytics: React.FC = () => {
         status: line.status
       };
     });
-  }, [productionLines, workstations, allocations]);
+  }, [productionLines, workstations, allocations, reportDate, selectedShift, shifts]);
 
   // 3. Selection detail data helpers
   const selectedAssociate = useMemo(() => {
@@ -246,7 +285,7 @@ export const Analytics: React.FC = () => {
     
     // Past Records
     const pastRecords = databaseAllocations
-      .filter(a => a.date < reportDateStr)
+      .filter(a => a.date < reportDate)
       .map(a => {
         const line = productionLines.find(l => l.id === a.lineId);
         const ws = workstations.find(w => w.id === a.workstationId);
@@ -262,7 +301,7 @@ export const Analytics: React.FC = () => {
 
     // Future Schedule
     const futureSchedule = databaseAllocations
-      .filter(a => a.date > reportDateStr)
+      .filter(a => a.date > reportDate)
       .map(a => {
         const line = productionLines.find(l => l.id === a.lineId);
         const ws = workstations.find(w => w.id === a.workstationId);
@@ -296,40 +335,133 @@ export const Analytics: React.FC = () => {
       pastRecords: fallbackPastRecords,
       futureSchedule: fallbackFutureSchedule
     };
-  }, [selectedItemId, activeReportTab, dynamicOperators, associateSkills, skills, allocations, productionLines, workstations, shifts]);
+  }, [selectedItemId, activeReportTab, dynamicOperators, associateSkills, skills, allocations, productionLines, workstations, shifts, reportDate]);
 
   const selectedStation = useMemo(() => {
     if (!selectedItemId || activeReportTab !== 'stations') return null;
     const found = stationReportData.find(s => s.id === selectedItemId);
     if (!found) return null;
 
-    // Find allocated staff
-    const assignedStaff = dynamicOperators.filter(
-      op => op.workstation === found.name && op.line === found.line
-    );
+    // Workstation from DB
+    const ws = workstations.find(w => w.id === found.id);
+    const requiredCount = ws ? ws.maxStaffCount : 1;
+
+    // Allocations filtered by date + shift
+    const filteredAllocs = allocations.filter(a => {
+      if (a.workstationId !== found.id) return false;
+      if (a.date !== stationDetailDate) return false;
+      if (stationDetailShift) {
+        const shiftInst = shifts.find(s => s.id === a.shiftId);
+        if (!shiftInst || shiftInst.name !== stationDetailShift) return false;
+      }
+      return true;
+    });
+
+    const assignedStaff = filteredAllocs.map(a => {
+      const assoc = associates.find(as => as.id === a.associateId);
+      const shiftInst = shifts.find(s => s.id === a.shiftId);
+      return {
+        name: assoc ? `${assoc.firstName} ${assoc.lastName}` : a.associateId,
+        id: assoc ? assoc.id : a.associateId,
+        avatar: assoc?.avatar || `https://ui-avatars.com/api/?name=${assoc?.firstName || 'O'}&background=E5E7EB&color=374151&size=40`,
+        shift: shiftInst ? shiftInst.name : 'Unknown',
+        status: assoc?.status || 'Active'
+      };
+    });
+
+    const staffedCount = assignedStaff.length;
+    const complete = staffedCount >= requiredCount;
 
     return {
       ...found,
+      staffed: `${staffedCount} / ${requiredCount}`,
+      complete,
+      staffedCount,
+      requiredCount,
       assignedStaff
     };
-  }, [selectedItemId, activeReportTab, stationReportData, dynamicOperators]);
+  }, [selectedItemId, activeReportTab, stationReportData, workstations, associates, allocations, shifts, stationDetailDate, stationDetailShift]);
 
   const selectedLineReport = useMemo(() => {
     if (!selectedItemId || activeReportTab !== 'lines') return null;
     const found = lineReportData.find(l => l.id === selectedItemId);
     if (!found) return null;
 
-    // Line stations
-    const lineStations = stationReportData.filter(s => s.line === found.name);
-    // Line staff
-    const lineStaff = dynamicOperators.filter(op => op.line === found.name);
+    // All workstations belonging to this line
+    const lineWsList = workstations.filter(ws => ws.lineId === found.id);
+
+    // Build per-station rows with staffed/required for the detail filters
+    const stationsList = lineWsList.map(ws => {
+      const reqSkill = skills.find(sk => sk.id === ws.requiredSkillId);
+      const staffedAllocs = allocations.filter(a => {
+        if (a.workstationId !== ws.id) return false;
+        if (a.date !== lineDetailDate) return false;
+        if (lineDetailShift) {
+          const shiftInst = shifts.find(s => s.id === a.shiftId);
+          if (!shiftInst || shiftInst.name !== lineDetailShift) return false;
+        }
+        return true;
+      });
+      const staffedCount = staffedAllocs.length;
+      const requiredCount = ws.maxStaffCount;
+      const complete = staffedCount >= requiredCount;
+      return {
+        id: ws.id,
+        name: ws.name,
+        requiredSkill: reqSkill ? reqSkill.name : ws.requiredSkillId,
+        minLevel: ws.minSkillLevel,
+        staffed: staffedCount,
+        required: requiredCount,
+        complete
+      };
+    });
+
+    // Build staff roster for this line
+    const allLineAllocs = allocations.filter(a => {
+      const ws = workstations.find(w => w.id === a.workstationId);
+      if (!ws || ws.lineId !== found.id) return false;
+      if (a.date !== lineDetailDate) return false;
+      if (lineDetailShift) {
+        const shiftInst = shifts.find(s => s.id === a.shiftId);
+        if (!shiftInst || shiftInst.name !== lineDetailShift) return false;
+      }
+      return true;
+    });
+
+    const staffList = allLineAllocs.map(a => {
+      const assoc = associates.find(as => as.id === a.associateId);
+      const ws = workstations.find(w => w.id === a.workstationId);
+      const shiftInst = shifts.find(s => s.id === a.shiftId);
+      const wsForLine = stationsList.find(s => s.id === a.workstationId);
+      return {
+        name: assoc ? `${assoc.firstName} ${assoc.lastName}` : a.associateId,
+        avatar: assoc?.avatar || `https://ui-avatars.com/api/?name=${assoc?.firstName || 'O'}&background=E5E7EB&color=374151&size=40`,
+        workstation: ws ? ws.name : 'Unknown',
+        shift: shiftInst ? shiftInst.name : 'Unknown',
+        complete: wsForLine ? wsForLine.complete : false
+      };
+    });
+
+    // Apply status filter to staffList
+    const filteredStaff = lineDetailStatus === 'All'
+      ? staffList
+      : lineDetailStatus === 'Complete'
+        ? staffList.filter(s => s.complete)
+        : staffList.filter(s => !s.complete);
+
+    const totalRequired = stationsList.reduce((sum, s) => sum + s.required, 0);
+    const totalStaffed = stationsList.reduce((sum, s) => sum + s.staffed, 0);
+    const lineComplete = totalStaffed >= totalRequired;
 
     return {
       ...found,
-      stationsList: lineStations,
-      staffList: lineStaff
+      stationsList,
+      staffList: filteredStaff,
+      totalRequired,
+      totalStaffed,
+      lineComplete
     };
-  }, [selectedItemId, activeReportTab, lineReportData, stationReportData, dynamicOperators]);
+  }, [selectedItemId, activeReportTab, lineReportData, workstations, allocations, associates, skills, shifts, lineDetailDate, lineDetailShift, lineDetailStatus]);
 
   return (
     <div className="flex-1 w-full bg-[#F3F4F6] p-6 overflow-y-auto select-none font-sans min-h-screen">
@@ -729,7 +861,43 @@ export const Analytics: React.FC = () => {
         {activeReportTab === 'stations' && (
           <>
             {!selectedItemId ? (
-              <div className="bg-white rounded-2xl shadow-sm border border-[#E5E7EB] overflow-hidden flex flex-col">
+              <>
+                {/* Filters */}
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#E5E7EB] flex flex-col md:flex-row items-center gap-4 mb-4">
+                  <div className="flex flex-col gap-1.5 w-full md:w-44 shrink-0">
+                    <span className="text-[11px] font-bold text-gray-500 tracking-wide uppercase px-0.5 whitespace-nowrap">Date</span>
+                    <input
+                      type="date"
+                      value={reportDate}
+                      onChange={(e) => {
+                        setReportDate(e.target.value);
+                      }}
+                      className="w-full px-3 py-2 border border-[#E5E7EB] rounded-xl text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0B57D0]"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 w-full md:w-44 shrink-0">
+                    <span className="text-[11px] font-bold text-gray-500 tracking-wide uppercase px-0.5 whitespace-nowrap">Production Line</span>
+                    <select
+                      value={selectedStationLine}
+                      onChange={(e) => setSelectedStationLine(e.target.value)}
+                      className="w-full px-3 py-2 border border-[#E5E7EB] rounded-xl text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0B57D0] appearance-none cursor-pointer"
+                      style={{
+                        backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`,
+                        backgroundPosition: 'right 0.5rem center',
+                        backgroundSize: '1.25rem',
+                        backgroundRepeat: 'no-repeat',
+                        paddingRight: '2rem'
+                      }}
+                    >
+                      {stationLineOptions.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-sm border border-[#E5E7EB] overflow-hidden flex flex-col">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse min-w-[900px]">
                     <thead>
@@ -739,7 +907,6 @@ export const Analytics: React.FC = () => {
                         <th className="px-6 py-4.5 text-[11px] font-extrabold text-[#718096] tracking-wider uppercase whitespace-nowrap">Production Line</th>
                         <th className="px-6 py-4.5 text-[11px] font-extrabold text-[#718096] tracking-wider uppercase whitespace-nowrap">Required Skill</th>
                         <th className="px-6 py-4.5 text-[11px] font-extrabold text-[#718096] tracking-wider uppercase whitespace-nowrap">Min Level</th>
-                        <th className="px-6 py-4.5 text-[11px] font-extrabold text-[#718096] tracking-wider uppercase whitespace-nowrap font-mono">Staffed Count</th>
                         <th className="px-6 py-4.5 text-[11px] font-extrabold text-[#718096] tracking-wider uppercase whitespace-nowrap">Status</th>
                       </tr>
                     </thead>
@@ -759,7 +926,6 @@ export const Analytics: React.FC = () => {
                           </td>
                           <td className="px-6 py-4.5 text-gray-700 text-[13px] whitespace-nowrap">{st.requiredSkill}</td>
                           <td className="px-6 py-4.5 text-gray-500 text-[13px] whitespace-nowrap">{st.minLevel}</td>
-                          <td className="px-6 py-4.5 text-gray-900 font-mono font-bold text-[13px] whitespace-nowrap">{st.staffed}</td>
                           <td className="px-6 py-4.5 whitespace-nowrap">
                             <div className="flex items-center gap-1.5 whitespace-nowrap">
                               <span className={`w-2 h-2 rounded-full shrink-0 ${st.status === 'Fully Staffed' ? 'bg-[#00A86B]' : st.status === 'Partially Staffed' ? 'bg-[#EF8E17]' : 'bg-red-500'}`}></span>
@@ -772,11 +938,14 @@ export const Analytics: React.FC = () => {
                   </table>
                 </div>
               </div>
+              </>
             ) : (
               /* STATION DETAIL REPORT */
               selectedStation && (
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm flex flex-col gap-6">
-                  <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                <div className="flex flex-col gap-5">
+
+                  {/* Header */}
+                  <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <button
                         onClick={() => setSelectedItemId(null)}
@@ -786,17 +955,60 @@ export const Analytics: React.FC = () => {
                       </button>
                       <div>
                         <h2 className="font-extrabold text-gray-900 text-lg">Workstation Deployment Analysis</h2>
-                        <p className="text-xs text-gray-500">Allocation and compliance overview for {selectedStation.name}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {selectedStation.name} &nbsp;·&nbsp; {selectedStation.line}
+                        </p>
                       </div>
                     </div>
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">
-                      {selectedStation.status}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        selectedStation.complete ? 'bg-green-100 text-green-700' : selectedStation.staffedCount > 0 ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-600'
+                      }`}>
+                        {selectedStation.complete ? 'FULLY STAFFED' : selectedStation.staffedCount > 0 ? 'PARTIALLY STAFFED' : 'UNDERSTAFFED'}
+                      </span>
+                      <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">
+                        {selectedStation.status}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Station Metrics */}
-                    <div className="bg-[#F8FAFC] border border-gray-100 rounded-xl p-5">
+                  {/* Filter Bar */}
+                  <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#E5E7EB] flex flex-col md:flex-row items-end gap-4">
+                    <div className="flex flex-col gap-1.5 w-full md:w-48 shrink-0">
+                      <span className="text-[11px] font-bold text-gray-500 tracking-wide uppercase px-0.5">Date</span>
+                      <input
+                        type="date"
+                        value={stationDetailDate}
+                        onChange={e => setStationDetailDate(e.target.value)}
+                        className="w-full px-3 py-2 border border-[#E5E7EB] rounded-xl text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0B57D0]"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5 w-full md:w-48 shrink-0">
+                      <span className="text-[11px] font-bold text-gray-500 tracking-wide uppercase px-0.5">Shift</span>
+                      <select
+                        value={stationDetailShift}
+                        onChange={e => setStationDetailShift(e.target.value)}
+                        className="w-full px-3 py-2 border border-[#E5E7EB] rounded-xl text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0B57D0] appearance-none cursor-pointer"
+                        style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 0.5rem center', backgroundSize: '1.25rem', backgroundRepeat: 'no-repeat', paddingRight: '2rem' }}
+                      >
+                        <option value="">— Select Shift —</option>
+                        {Array.from(new Set(shifts.map(s => s.name))).map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {/* Summary pills */}
+                    <div className="flex gap-2 flex-wrap pb-0.5">
+                      <span className="px-3 py-2 bg-[#F8FAFC] border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 whitespace-nowrap">
+                        <span className="font-bold text-gray-900">{selectedStation.staffedCount}</span> / {selectedStation.requiredCount} Staffed
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Specs + Staff */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    {/* Specs Card */}
+                    <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-sm">
                       <h3 className="font-bold text-gray-900 text-sm mb-4">Workstation Specs</h3>
                       <div className="space-y-3.5 text-xs">
                         <div className="flex justify-between">
@@ -808,51 +1020,60 @@ export const Analytics: React.FC = () => {
                           <span className="font-bold text-gray-900">{selectedStation.line}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-500">Required Skill Cert</span>
+                          <span className="text-gray-500">Required Skill</span>
                           <span className="font-bold text-gray-900">{selectedStation.requiredSkill}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-500">Min Skill Level Required</span>
+                          <span className="text-gray-500">Min Skill Level</span>
                           <span className="font-bold text-gray-900">{selectedStation.minLevel}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-500">Staff Allocation Ratio</span>
+                          <span className="text-gray-500">Staff Allocation</span>
                           <span className="font-bold text-gray-900">{selectedStation.staffed}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Allocated Staff Table */}
-                    <div className="md:col-span-2 flex flex-col gap-4">
-                      <h4 className="font-bold text-gray-900 text-sm">Allocated Operators</h4>
-                      <div className="border border-gray-200/80 rounded-xl overflow-hidden">
-                        <table className="w-full text-left border-collapse text-xs">
+                    <div className="md:col-span-2 bg-white border border-[#E5E7EB] rounded-2xl shadow-sm overflow-hidden">
+                      <div className="px-5 py-4 border-b border-gray-100">
+                        <h4 className="font-bold text-gray-900 text-sm">Allocated Associates</h4>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-[13px]">
                           <thead>
-                            <tr className="bg-gray-50 border-b border-gray-200">
-                              <th className="p-3.5 font-bold text-gray-600 uppercase">Operator Name</th>
-                              <th className="p-3.5 font-bold text-gray-600 uppercase">ID</th>
-                              <th className="p-3.5 font-bold text-gray-600 uppercase">Shift</th>
-                              <th className="p-3.5 font-bold text-gray-600 uppercase">Status</th>
+                            <tr className="bg-gray-50 border-b border-gray-100">
+                              <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Associate</th>
+                              <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">ID</th>
+                              <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Shift</th>
+                              <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-100">
+                          <tbody className="divide-y divide-gray-50">
                             {selectedStation.assignedStaff.length === 0 ? (
                               <tr>
-                                <td colSpan={4} className="p-4 text-center text-gray-400 italic">No operators currently allocated to this station.</td>
+                                <td colSpan={4} className="px-5 py-8 text-center text-gray-400 italic text-sm">
+                                  No associates allocated for the selected filters.
+                                </td>
                               </tr>
                             ) : (
                               selectedStation.assignedStaff.map((op, i) => (
-                                <tr key={i} className="hover:bg-gray-50/50">
-                                  <td className="p-3.5 font-semibold text-gray-900 flex items-center gap-2">
-                                    <img src={op.avatar} alt={op.name} className="w-6 h-6 rounded-full object-cover" />
-                                    {op.name}
+                                <tr key={i} className="hover:bg-gray-50/60 transition-colors">
+                                  <td className="px-5 py-3.5">
+                                    <div className="flex items-center gap-3">
+                                      <img src={op.avatar} alt={op.name} className="w-7 h-7 rounded-full object-cover shrink-0 border border-gray-200" />
+                                      <span className="font-semibold text-gray-900">{op.name}</span>
+                                    </div>
                                   </td>
-                                  <td className="p-3.5 font-mono text-gray-500">{op.id}</td>
-                                  <td className="p-3.5 text-gray-900">{op.shift}</td>
-                                  <td className="p-3.5">
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                  <td className="px-5 py-3.5 font-mono text-gray-500 text-[12px]">{op.id}</td>
+                                  <td className="px-5 py-3.5">
+                                    <span className="px-2.5 py-1 bg-[#EEF2FF] text-[#4F46E5] rounded-full text-[11px] font-bold">{op.shift}</span>
+                                  </td>
+                                  <td className="px-5 py-3.5">
+                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${
                                       op.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
                                     }`}>
+                                      <span className={`w-1.5 h-1.5 rounded-full ${ op.status === 'Active' ? 'bg-green-500' : 'bg-orange-500' }`} />
                                       {op.status}
                                     </span>
                                   </td>
@@ -864,6 +1085,7 @@ export const Analytics: React.FC = () => {
                       </div>
                     </div>
                   </div>
+
                 </div>
               )
             )}
@@ -874,7 +1096,24 @@ export const Analytics: React.FC = () => {
         {activeReportTab === 'lines' && (
           <>
             {!selectedItemId ? (
-              <div className="bg-white rounded-2xl shadow-sm border border-[#E5E7EB] overflow-hidden flex flex-col">
+              <>
+                {/* Filters */}
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#E5E7EB] flex flex-col md:flex-row items-center gap-4 mb-4">
+                  <div className="flex flex-col gap-1.5 w-full md:w-44 shrink-0">
+                    <span className="text-[11px] font-bold text-gray-500 tracking-wide uppercase px-0.5 whitespace-nowrap">Date</span>
+                    <input
+                      type="date"
+                      value={reportDate}
+                      onChange={(e) => {
+                        setReportDate(e.target.value);
+                      }}
+                      className="w-full px-3 py-2 border border-[#E5E7EB] rounded-xl text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0B57D0]"
+                    />
+                  </div>
+
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-sm border border-[#E5E7EB] overflow-hidden flex flex-col">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse min-w-[900px]">
                     <thead>
@@ -912,11 +1151,14 @@ export const Analytics: React.FC = () => {
                   </table>
                 </div>
               </div>
+              </>
             ) : (
               /* LINE DETAIL REPORT */
               selectedLineReport && (
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm flex flex-col gap-6">
-                  <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                <div className="flex flex-col gap-5">
+
+                  {/* Header */}
+                  <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <button
                         onClick={() => setSelectedItemId(null)}
@@ -926,93 +1168,165 @@ export const Analytics: React.FC = () => {
                       </button>
                       <div>
                         <h2 className="font-extrabold text-gray-900 text-lg">Production Line Operations Report</h2>
-                        <p className="text-xs text-gray-500">Live configuration and operator list for Line {selectedLineReport.name}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {selectedLineReport.name} &nbsp;·&nbsp; {selectedLineReport.product}
+                        </p>
                       </div>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      selectedLineReport.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                    }`}>
-                      {selectedLineReport.status}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Specs Card */}
-                    <div className="bg-[#F8FAFC] border border-gray-100 rounded-xl p-5 text-xs flex flex-col gap-3">
-                      <h3 className="font-bold text-gray-900 text-sm">Line Details</h3>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Line Code</span>
-                        <span className="font-mono font-bold text-gray-900">{selectedLineReport.id}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Active Run Product</span>
-                        <span className="font-bold text-[#0B57D0]">{selectedLineReport.product}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Active Stations Count</span>
-                        <span className="font-bold text-gray-900">{selectedLineReport.stations}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Total Staff Allocated</span>
-                        <span className="font-bold text-gray-900">{selectedLineReport.staffed} Operators</span>
-                      </div>
-                    </div>
-
-                    {/* Stations on Line */}
-                    <div className="flex flex-col gap-3">
-                      <h4 className="font-bold text-gray-900 text-sm">Active Stations</h4>
-                      <div className="border border-gray-200 rounded-xl overflow-hidden">
-                        <table className="w-full text-left text-xs">
-                          <thead>
-                            <tr className="bg-gray-50 border-b border-gray-200">
-                              <th className="p-3 font-bold text-gray-600">Station</th>
-                              <th className="p-3 font-bold text-gray-600">Staffing</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100">
-                            {selectedLineReport.stationsList.map((st, i) => (
-                              <tr key={i} className="hover:bg-gray-50/50">
-                                <td className="p-3 font-semibold text-gray-900">{st.name}</td>
-                                <td className="p-3 font-mono text-gray-500">{st.staffed}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-
-                    {/* Allocated Staff list */}
-                    <div className="flex flex-col gap-3">
-                      <h4 className="font-bold text-gray-900 text-sm">Allocated Staff</h4>
-                      <div className="border border-gray-200 rounded-xl overflow-hidden">
-                        <table className="w-full text-left text-xs">
-                          <thead>
-                            <tr className="bg-gray-50 border-b border-gray-200">
-                              <th className="p-3 font-bold text-gray-600">Operator</th>
-                              <th className="p-3 font-bold text-gray-600 font-mono">Shift</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100">
-                            {selectedLineReport.staffList.length === 0 ? (
-                              <tr>
-                                <td colSpan={2} className="p-3 text-center text-gray-400 italic">No operators.</td>
-                              </tr>
-                            ) : (
-                              selectedLineReport.staffList.map((op, i) => (
-                                <tr key={i} className="hover:bg-gray-50/50">
-                                  <td className="p-3 font-semibold text-gray-900 flex items-center gap-2">
-                                    <img src={op.avatar} alt={op.name} className="w-5 h-5 rounded-full object-cover shrink-0" />
-                                    {op.name}
-                                  </td>
-                                  <td className="p-3 font-mono text-gray-500">{op.shift}</td>
-                                </tr>
-                              ))
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        selectedLineReport.lineComplete ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                      }`}>
+                        {selectedLineReport.lineComplete ? 'FULLY STAFFED' : 'UNDERSTAFFED'}
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        selectedLineReport.status === 'ACTIVE' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {selectedLineReport.status}
+                      </span>
                     </div>
                   </div>
+
+                  {/* Filter Bar */}
+                  <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#E5E7EB] flex flex-col md:flex-row items-end gap-4">
+                    <div className="flex flex-col gap-1.5 w-full md:w-48 shrink-0">
+                      <span className="text-[11px] font-bold text-gray-500 tracking-wide uppercase px-0.5">Date</span>
+                      <input
+                        type="date"
+                        value={lineDetailDate}
+                        onChange={e => setLineDetailDate(e.target.value)}
+                        className="w-full px-3 py-2 border border-[#E5E7EB] rounded-xl text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0B57D0]"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5 w-full md:w-48 shrink-0">
+                      <span className="text-[11px] font-bold text-gray-500 tracking-wide uppercase px-0.5">Shift</span>
+                      <select
+                        value={lineDetailShift}
+                        onChange={e => setLineDetailShift(e.target.value)}
+                        className="w-full px-3 py-2 border border-[#E5E7EB] rounded-xl text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0B57D0] appearance-none cursor-pointer"
+                        style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 0.5rem center', backgroundSize: '1.25rem', backgroundRepeat: 'no-repeat', paddingRight: '2rem' }}
+                      >
+                        <option value="">— Select Shift —</option>
+                        {Array.from(new Set(shifts.map(s => s.name))).map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-1.5 w-full md:w-48 shrink-0">
+                      <span className="text-[11px] font-bold text-gray-500 tracking-wide uppercase px-0.5">Staffing Status</span>
+                      <select
+                        value={lineDetailStatus}
+                        onChange={e => setLineDetailStatus(e.target.value)}
+                        className="w-full px-3 py-2 border border-[#E5E7EB] rounded-xl text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0B57D0] appearance-none cursor-pointer"
+                        style={{ backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E")`, backgroundPosition: 'right 0.5rem center', backgroundSize: '1.25rem', backgroundRepeat: 'no-repeat', paddingRight: '2rem' }}
+                      >
+                        {['All', 'Complete', 'Incomplete'].map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {/* Summary pills */}
+                    <div className="flex gap-2 flex-wrap pb-0.5">
+                      <span className="px-3 py-2 bg-[#F8FAFC] border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 whitespace-nowrap">
+                        <span className="font-bold text-gray-900">{selectedLineReport.totalStaffed}</span> / {selectedLineReport.totalRequired} Staffed
+                      </span>
+                      <span className="px-3 py-2 bg-[#F8FAFC] border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 whitespace-nowrap">
+                        <span className="font-bold text-gray-900">{selectedLineReport.stationsList.length}</span> Stations
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Stations Breakdown */}
+                  <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-100">
+                      <h3 className="font-bold text-gray-900 text-sm">Stations Breakdown</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-[13px]">
+                        <thead>
+                          <tr className="bg-gray-50 border-b border-gray-100">
+                            <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Station</th>
+                            <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Required Skill</th>
+                            <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Min Level</th>
+                            <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider font-mono">Staffed / Needed</th>
+                            <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {selectedLineReport.stationsList.map((st, i) => (
+                            <tr key={i} className="hover:bg-gray-50/60 transition-colors">
+                              <td className="px-5 py-3.5 font-semibold text-gray-900">{st.name}</td>
+                              <td className="px-5 py-3.5 text-gray-600">{st.requiredSkill}</td>
+                              <td className="px-5 py-3.5 text-gray-500">{st.minLevel}</td>
+                              <td className="px-5 py-3.5 font-mono font-bold text-gray-800">{st.staffed} / {st.required}</td>
+                              <td className="px-5 py-3.5">
+                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                                  st.complete ? 'bg-green-100 text-green-700' : st.staffed > 0 ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-600'
+                                }`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${
+                                    st.complete ? 'bg-green-500' : st.staffed > 0 ? 'bg-orange-500' : 'bg-red-500'
+                                  }`} />
+                                  {st.complete ? 'Complete' : st.staffed > 0 ? 'Partial' : 'Unstaffed'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Allocated Staff */}
+                  <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-100">
+                      <h3 className="font-bold text-gray-900 text-sm">Allocated Associates</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-[13px]">
+                        <thead>
+                          <tr className="bg-gray-50 border-b border-gray-100">
+                            <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Associate</th>
+                            <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Workstation</th>
+                            <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Shift</th>
+                            <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Station Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {selectedLineReport.staffList.length === 0 ? (
+                            <tr>
+                              <td colSpan={4} className="px-5 py-8 text-center text-gray-400 italic text-sm">
+                                No associates allocated for the selected filters.
+                              </td>
+                            </tr>
+                          ) : (
+                            selectedLineReport.staffList.map((op, i) => (
+                              <tr key={i} className="hover:bg-gray-50/60 transition-colors">
+                                <td className="px-5 py-3.5">
+                                  <div className="flex items-center gap-3">
+                                    <img src={op.avatar} alt={op.name} className="w-7 h-7 rounded-full object-cover shrink-0 border border-gray-200" />
+                                    <span className="font-semibold text-gray-900">{op.name}</span>
+                                  </div>
+                                </td>
+                                <td className="px-5 py-3.5 text-gray-600">{op.workstation}</td>
+                                <td className="px-5 py-3.5">
+                                  <span className="px-2.5 py-1 bg-[#EEF2FF] text-[#4F46E5] rounded-full text-[11px] font-bold">{op.shift}</span>
+                                </td>
+                                <td className="px-5 py-3.5">
+                                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                                    op.complete ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                                  }`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${ op.complete ? 'bg-green-500' : 'bg-orange-500' }`} />
+                                    {op.complete ? 'Complete' : 'Incomplete'}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
                 </div>
               )
             )}

@@ -6,11 +6,13 @@ if (!(buffer as any).SlowBuffer) {
 import { variables } from "./config/envLoader";
 import Server from "./server";
 
+let server: Server | null = null;
+
 const start=async ()=>{
     try {
         const { PORT } = variables;
-        const app = new Server();
-        app.start(Number(PORT));
+        server = new Server();
+        await server.start(Number(PORT));
       } catch (error) {
         console.error(error);
         process.exit(1);
@@ -18,17 +20,20 @@ const start=async ()=>{
 }
 start();
 
-process.on("SIGTERM", (signal) => {
-    console.debug(signal);
-    console.debug(`Process ${process.pid} received a SIGTERM signal`);
+const gracefulShutdown = async (signal: string) => {
+    console.log(`Received ${signal}. Shutting down gracefully...`);
+    if (server) {
+        try {
+            await server.shutdown();
+        } catch (e) {
+            console.error("Error closing server during shutdown:", e);
+        }
+    }
     process.exit(0);
-  });
-  
-  process.on("SIGINT", (signal) => {
-    console.debug(signal);
-    console.debug(`Process ${process.pid} has been interrupted`);
-    process.exit(0);
-  });
+};
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
   
   process.on("uncaughtException", (err) => {
     console.error(err);

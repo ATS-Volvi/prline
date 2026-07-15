@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev index.ts",
+    "dev:clean": "npx kill-port 5505 && ts-node-dev index.ts",
     "build": "tsc",
     "start": "node build/backend/index.js",
     "migrate": "npx sequelize-cli db:migrate",
