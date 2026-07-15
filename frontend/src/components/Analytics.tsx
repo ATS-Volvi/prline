@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 
 export const Analytics: React.FC = () => {
@@ -8,7 +8,7 @@ export const Analytics: React.FC = () => {
   const [reportDate, setReportDate] = useState('2026-06-25');
 
   // Tab State
-  const [activeReportTab, setActiveReportTab] = useState<'associates' | 'stations' | 'lines'>('associates');
+  const [activeReportTab, setActiveReportTab] = useState<'associates' | 'stations' | 'lines' | 'coverage' | 'skillgap'>('associates');
 
   // Selected Item for Detail Report View
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
@@ -31,6 +31,13 @@ export const Analytics: React.FC = () => {
   // Station detail view – independent filters
   const [stationDetailDate, setStationDetailDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [stationDetailShift, setStationDetailShift] = useState('');
+
+  // Coverage heatmap start date
+  const [coverageStartDate, setCoverageStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 6);
+    return d.toISOString().slice(0, 10);
+  });
 
   // Hardcoded mockup data to ensure page matches screenshot out-of-the-box
   const mockupOperators = useMemo(() => [
@@ -463,6 +470,111 @@ export const Analytics: React.FC = () => {
     };
   }, [selectedItemId, activeReportTab, lineReportData, workstations, allocations, associates, skills, shifts, lineDetailDate, lineDetailShift, lineDetailStatus]);
 
+  // ── CSV EXPORT HELPERS ────────────────────────────────────────────────────
+  const exportCSV = useCallback((filename: string, headers: string[], rows: (string | number)[][][]) => {
+    const escape = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
+    const csv = [headers.map(escape).join(','), ...rows.map(r => r.map(c => escape(c[0])).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }, []);
+
+  const exportAssociatesCSV = useCallback(() => {
+    exportCSV(
+      `associates-report-${new Date().toISOString().slice(0,10)}.csv`,
+      ['Name', 'ID', 'Line', 'Workstation', 'Shift', 'Skill Level', 'Status'],
+      filteredOperators.map(op => [[op.name],[op.id],[op.line],[op.workstation],[op.shift],[op.skillLevel],[op.status]])
+    );
+  }, [exportCSV, filteredOperators]);
+
+  const exportStationsCSV = useCallback(() => {
+    exportCSV(
+      `workstations-report-${reportDate}.csv`,
+      ['Station ID', 'Station Name', 'Production Line', 'Required Skill', 'Min Level', 'Status'],
+      stationReportData.map(st => [[st.id],[st.name],[st.line],[st.requiredSkill],[st.minLevel],[st.status]])
+    );
+  }, [exportCSV, stationReportData, reportDate]);
+
+  const exportLinesCSV = useCallback(() => {
+    exportCSV(
+      `lines-report-${reportDate}.csv`,
+      ['Line ID', 'Line Name', 'Product', 'Stations', 'Allocated Staff', 'Status'],
+      lineReportData.map(l => [[l.id],[l.name],[l.product],[l.stations],[l.staffed],[l.status]])
+    );
+  }, [exportCSV, lineReportData, reportDate]);
+
+  // ── SKILL GAP DATA ────────────────────────────────────────────────────────
+  const skillGapData = useMemo(() => {
+    if (!workstations || workstations.length === 0) {
+      return [
+        { id: 'WS-A101', name: 'Slicing Unit 02', line: 'Kurkure', requiredSkill: 'Slicing Operation', minLevel: 'Certified', qualifiedCount: 0, totalAssociates: 4, gapSeverity: 'Critical' },
+        { id: 'WS-A102', name: 'Frying Master', line: 'Potato Chips', requiredSkill: 'Frying', minLevel: 'Expert', qualifiedCount: 1, totalAssociates: 4, gapSeverity: 'High' },
+      ];
+    }
+    return workstations.map(ws => {
+      const line = productionLines.find(l => l.id === ws.lineId);
+      const reqSkill = skills.find(sk => sk.id === ws.requiredSkillId);
+      // Count associates who have the required skill at or above min level
+      const levelOrder = ['Beginner', 'Operator', 'Certified', 'Expert', 'Senior'];
+      const minIdx = levelOrder.indexOf(ws.minSkillLevel);
+      const qualifiedCount = associates.filter(assoc => {
+        return associateSkills.some(as => {
+          if (as.associateId !== assoc.id || as.skillId !== ws.requiredSkillId) return false;
+          const assocLevelIdx = levelOrder.indexOf(as.level);
+          return assocLevelIdx >= minIdx;
+        });
+      }).length;
+      const total = associates.length;
+      const pct = total > 0 ? (qualifiedCount / total) * 100 : 0;
+      const gapSeverity = qualifiedCount === 0 ? 'Critical' : pct < 10 ? 'High' : pct < 25 ? 'Medium' : 'Low';
+      return {
+        id: ws.id,
+        name: ws.name,
+        line: line ? line.name : 'Unknown',
+        requiredSkill: reqSkill ? reqSkill.name : ws.requiredSkillId,
+        minLevel: ws.minSkillLevel,
+        qualifiedCount,
+        totalAssociates: total,
+        gapSeverity
+      };
+    }).sort((a, b) => {
+      const order = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+      return (order[a.gapSeverity as keyof typeof order] ?? 4) - (order[b.gapSeverity as keyof typeof order] ?? 4);
+    });
+  }, [workstations, productionLines, skills, associates, associateSkills]);
+
+  // ── COVERAGE HEATMAP DATA ─────────────────────────────────────────────────
+  const coverageHeatmapData = useMemo(() => {
+    // Build 7 dates from coverageStartDate
+    const dates: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(coverageStartDate);
+      d.setDate(d.getDate() + i);
+      dates.push(d.toISOString().slice(0, 10));
+    }
+    const lines = productionLines && productionLines.length > 0
+      ? productionLines
+      : [{ id: 'LINE-01', name: 'Kurkure' }, { id: 'LINE-02', name: "Lay's" }, { id: 'LINE-03', name: 'Potato Chips' }];
+    return {
+      dates,
+      rows: lines.map(line => ({
+        lineName: line.name,
+        cells: dates.map(date => {
+          const lineWs = workstations.filter(w => w.lineId === line.id);
+          const totalRequired = lineWs.reduce((s, w) => s + w.maxStaffCount, 0);
+          const totalStaffed = allocations.filter(a => {
+            const ws = workstations.find(w => w.id === a.workstationId);
+            return ws && ws.lineId === line.id && a.date === date;
+          }).length;
+          const pct = totalRequired > 0 ? Math.round((totalStaffed / totalRequired) * 100) : 0;
+          return { date, pct, staffed: totalStaffed, required: totalRequired };
+        })
+      }))
+    };
+  }, [productionLines, workstations, allocations, coverageStartDate]);
+
   return (
     <div className="flex-1 w-full bg-[#F3F4F6] p-6 overflow-y-auto select-none font-sans min-h-screen">
       <div className="max-w-7xl mx-auto flex flex-col gap-6">
@@ -473,7 +585,9 @@ export const Analytics: React.FC = () => {
             {[
               { id: 'associates', label: 'Associates', icon: 'groups' },
               { id: 'stations', label: 'Stations', icon: 'dns' },
-              { id: 'lines', label: 'Lines', icon: 'precision_manufacturing' }
+              { id: 'lines', label: 'Lines', icon: 'precision_manufacturing' },
+              { id: 'coverage', label: 'Coverage', icon: 'calendar_month' },
+              { id: 'skillgap', label: 'Skill Gaps', icon: 'warning' }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -583,6 +697,14 @@ export const Analytics: React.FC = () => {
                       ))}
                     </select>
                   </div>
+                  {/* Export */}
+                  <button
+                    onClick={exportAssociatesCSV}
+                    className="ml-auto flex items-center gap-2 px-4 py-2 bg-[#0B57D0] text-white text-xs font-bold rounded-xl hover:bg-[#0842a0] transition-colors shrink-0 whitespace-nowrap"
+                  >
+                    <span className="material-symbols-outlined text-sm">download</span>
+                    Export CSV
+                  </button>
                 </div>
 
                 {/* Table */}
@@ -895,6 +1017,14 @@ export const Analytics: React.FC = () => {
                       ))}
                     </select>
                   </div>
+                  {/* Export */}
+                  <button
+                    onClick={exportStationsCSV}
+                    className="ml-auto flex items-center gap-2 px-4 py-2 bg-[#0B57D0] text-white text-xs font-bold rounded-xl hover:bg-[#0842a0] transition-colors shrink-0 whitespace-nowrap"
+                  >
+                    <span className="material-symbols-outlined text-sm">download</span>
+                    Export CSV
+                  </button>
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-sm border border-[#E5E7EB] overflow-hidden flex flex-col">
@@ -1110,7 +1240,14 @@ export const Analytics: React.FC = () => {
                       className="w-full px-3 py-2 border border-[#E5E7EB] rounded-xl text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0B57D0]"
                     />
                   </div>
-
+                  {/* Export */}
+                  <button
+                    onClick={exportLinesCSV}
+                    className="ml-auto flex items-center gap-2 px-4 py-2 bg-[#0B57D0] text-white text-xs font-bold rounded-xl hover:bg-[#0842a0] transition-colors shrink-0 whitespace-nowrap"
+                  >
+                    <span className="material-symbols-outlined text-sm">download</span>
+                    Export CSV
+                  </button>
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-sm border border-[#E5E7EB] overflow-hidden flex flex-col">
@@ -1331,6 +1468,164 @@ export const Analytics: React.FC = () => {
               )
             )}
           </>
+        )}
+
+        {/* ── COVERAGE HEATMAP ────────────────────────────────────────────────── */}
+        {activeReportTab === 'coverage' && (
+          <div className="flex flex-col gap-5">
+            {/* Filter bar */}
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#E5E7EB] flex flex-col md:flex-row items-end gap-4">
+              <div className="flex flex-col gap-1.5 shrink-0">
+                <span className="text-[11px] font-bold text-gray-500 tracking-wide uppercase px-0.5">Week Starting</span>
+                <input
+                  type="date"
+                  value={coverageStartDate}
+                  onChange={e => setCoverageStartDate(e.target.value)}
+                  className="px-3 py-2 border border-[#E5E7EB] rounded-xl text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0B57D0]"
+                />
+              </div>
+              <div className="flex gap-3 items-center pb-0.5 ml-auto flex-wrap">
+                {[{ color: 'bg-green-500', label: '≥ 80% Staffed' }, { color: 'bg-yellow-400', label: '50–79%' }, { color: 'bg-orange-400', label: '20–49%' }, { color: 'bg-red-500', label: '< 20% / Unstaffed' }].map(l => (
+                  <div key={l.label} className="flex items-center gap-1.5">
+                    <span className={`w-3 h-3 rounded-sm ${l.color}`} />
+                    <span className="text-[11px] text-gray-500 font-medium">{l.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Heatmap table */}
+            <div className="bg-white rounded-2xl shadow-sm border border-[#E5E7EB] overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h3 className="font-bold text-gray-900 text-sm">Staffing Coverage — 7 Day View</h3>
+                <p className="text-xs text-gray-400 mt-0.5">% of required staff allocated per production line per day</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[13px]">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-100">
+                      <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider whitespace-nowrap">Production Line</th>
+                      {coverageHeatmapData.dates.map(d => (
+                        <th key={d} className="px-3 py-3.5 text-center text-[11px] font-extrabold text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                          {new Date(d + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' })}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {coverageHeatmapData.rows.map((row, ri) => (
+                      <tr key={ri} className="hover:bg-gray-50/40 transition-colors">
+                        <td className="px-5 py-3.5 font-semibold text-gray-900 whitespace-nowrap">{row.lineName}</td>
+                        {row.cells.map((cell, ci) => {
+                          const bg = cell.pct >= 80 ? 'bg-green-500' : cell.pct >= 50 ? 'bg-yellow-400' : cell.pct >= 20 ? 'bg-orange-400' : 'bg-red-500';
+                          const text = cell.pct >= 50 ? 'text-white' : 'text-white';
+                          return (
+                            <td key={ci} className="px-2 py-3">
+                              <div className={`${bg} ${text} rounded-lg px-2 py-2 text-center min-w-[64px]`} title={`${cell.staffed}/${cell.required} staff`}>
+                                <div className="text-sm font-extrabold">{cell.pct}%</div>
+                                <div className="text-[10px] opacity-80 font-medium">{cell.staffed}/{cell.required}</div>
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── SKILL GAP ANALYSIS ──────────────────────────────────────────────── */}
+        {activeReportTab === 'skillgap' && (
+          <div className="flex flex-col gap-5">
+            {/* Summary cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {(['Critical', 'High', 'Medium', 'Low'] as const).map(sev => {
+                const count = skillGapData.filter(r => r.gapSeverity === sev).length;
+                const styles: Record<string, { bg: string; border: string; dot: string; text: string }> = {
+                  Critical: { bg: 'bg-red-50', border: 'border-red-200', dot: 'bg-red-500', text: 'text-red-700' },
+                  High:     { bg: 'bg-orange-50', border: 'border-orange-200', dot: 'bg-orange-500', text: 'text-orange-700' },
+                  Medium:   { bg: 'bg-yellow-50', border: 'border-yellow-200', dot: 'bg-yellow-500', text: 'text-yellow-700' },
+                  Low:      { bg: 'bg-green-50', border: 'border-green-200', dot: 'bg-green-500', text: 'text-green-700' },
+                };
+                const s = styles[sev];
+                return (
+                  <div key={sev} className={`${s.bg} border ${s.border} rounded-2xl p-5 flex flex-col gap-2`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2.5 h-2.5 rounded-full ${s.dot}`} />
+                      <span className={`text-xs font-bold uppercase tracking-wide ${s.text}`}>{sev}</span>
+                    </div>
+                    <span className={`text-3xl font-extrabold ${s.text}`}>{count}</span>
+                    <span className="text-xs text-gray-500">station{count !== 1 ? 's' : ''}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Skill gap table */}
+            <div className="bg-white rounded-2xl shadow-sm border border-[#E5E7EB] overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm">Workstation Skill Gap Analysis</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">Stations sorted by severity — number of associates qualified for each role</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[13px]">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-100">
+                      <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Workstation</th>
+                      <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Line</th>
+                      <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Required Skill</th>
+                      <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Min Level</th>
+                      <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider font-mono">Qualified</th>
+                      <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Coverage Bar</th>
+                      <th className="px-5 py-3.5 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">Severity</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {skillGapData.map((row, i) => {
+                      const pct = row.totalAssociates > 0 ? Math.round((row.qualifiedCount / row.totalAssociates) * 100) : 0;
+                      const sevStyles: Record<string, string> = {
+                        Critical: 'bg-red-100 text-red-700',
+                        High:     'bg-orange-100 text-orange-700',
+                        Medium:   'bg-yellow-100 text-yellow-700',
+                        Low:      'bg-green-100 text-green-700',
+                      };
+                      const barColor = row.gapSeverity === 'Critical' ? 'bg-red-500' : row.gapSeverity === 'High' ? 'bg-orange-500' : row.gapSeverity === 'Medium' ? 'bg-yellow-400' : 'bg-green-500';
+                      return (
+                        <tr key={i} className="hover:bg-gray-50/60 transition-colors">
+                          <td className="px-5 py-3.5 font-semibold text-gray-900">{row.name}</td>
+                          <td className="px-5 py-3.5 text-gray-600">
+                            <span className="px-2.5 py-1 bg-[#E5E7EB] text-gray-700 rounded-full text-[11px] font-medium">{row.line}</span>
+                          </td>
+                          <td className="px-5 py-3.5 text-gray-600">{row.requiredSkill}</td>
+                          <td className="px-5 py-3.5 text-gray-500">{row.minLevel}</td>
+                          <td className="px-5 py-3.5 font-mono font-bold text-gray-900">{row.qualifiedCount} / {row.totalAssociates}</td>
+                          <td className="px-5 py-3.5 w-36">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                                <div className={`h-2 rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
+                              </div>
+                              <span className="text-[11px] text-gray-500 font-mono w-8 text-right">{pct}%</span>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${sevStyles[row.gapSeverity]}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${row.gapSeverity === 'Critical' ? 'bg-red-500' : row.gapSeverity === 'High' ? 'bg-orange-500' : row.gapSeverity === 'Medium' ? 'bg-yellow-500' : 'bg-green-500'}`} />
+                              {row.gapSeverity}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         )}
 
       </div>
