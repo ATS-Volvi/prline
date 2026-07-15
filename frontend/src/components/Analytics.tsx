@@ -368,9 +368,9 @@ export const Analytics: React.FC = () => {
       const assoc = associates.find(as => as.id === a.associateId);
       const shiftInst = shifts.find(s => s.id === a.shiftId);
       return {
-        name: assoc ? `${assoc.firstName} ${assoc.lastName}` : a.associateId,
+        name: assoc ? assoc.name : a.associateId,
         id: assoc ? assoc.id : a.associateId,
-        avatar: assoc?.avatar || `https://ui-avatars.com/api/?name=${assoc?.firstName || 'O'}&background=E5E7EB&color=374151&size=40`,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(assoc?.name || 'Op')}&background=E5E7EB&color=374151&size=40`,
         shift: shiftInst ? shiftInst.name : 'Unknown',
         status: assoc?.status || 'Active'
       };
@@ -441,8 +441,8 @@ export const Analytics: React.FC = () => {
       const shiftInst = shifts.find(s => s.id === a.shiftId);
       const wsForLine = stationsList.find(s => s.id === a.workstationId);
       return {
-        name: assoc ? `${assoc.firstName} ${assoc.lastName}` : a.associateId,
-        avatar: assoc?.avatar || `https://ui-avatars.com/api/?name=${assoc?.firstName || 'O'}&background=E5E7EB&color=374151&size=40`,
+        name: assoc ? assoc.name : a.associateId,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(assoc?.name || 'Op')}&background=E5E7EB&color=374151&size=40`,
         workstation: ws ? ws.name : 'Unknown',
         shift: shiftInst ? shiftInst.name : 'Unknown',
         complete: wsForLine ? wsForLine.complete : false
