@@ -12,7 +12,7 @@ import { createError } from './utils/errors/createError'
 
 class Server {
     public app = express()
-    public port?: Number
+    public port: number = 5505
     public httpServer?: import('http').Server
 
     constructor() {
@@ -109,42 +109,43 @@ class Server {
         this.app.use(errorMiddleware)
       }
 
-      public async start(port:number){
-        await this.connectToDb()
-
-        try {
-          const { Associate } = await import('../database/models/models/models');
-          const { sequelize } = await import('../database/config/dbConn');
-          await sequelize.query('CREATE EXTENSION IF NOT EXISTS vector;');
-          // Disable sync and auto-seed to prevent DDL catalog corruption on Neon
-          const count = await (Associate as any).count();
-          console.log(`Database verified. Found ${count} associates.`);
-        } catch (err) {
-          console.log("Database connection active, but tables might not be fully seeded yet.");
-        }
-
-        // Initialize RAG embedding model pre-flight
-        try {
-          const { initializeModel } = await import('./src/services/ragService');
-          await initializeModel();
-        } catch (ragErr) {
-          console.error("Failed to initialize RAG model on startup:", ragErr);
-        }
-
-        this.port = port
-        this.httpServer = this.app.listen(this.port, () => {
-          console.log(`Listening on ${this.port}`)
-        })
+      public async start(port: number) {
+        this.port = port;
+        this.httpServer = this.app.listen(this.port, '0.0.0.0', () => {
+          console.log(`Server successfully listening on 0.0.0.0:${this.port}`);
+        });
 
         this.httpServer.on('error', (err: any) => {
           if (err.code === 'EADDRINUSE') {
-            console.error(`Port ${this.port} is already in use. Please free the port (e.g. by running 'npx kill-port ${this.port}').`);
+            console.error(`Port ${this.port} is already in use.`);
             process.exit(1);
           } else {
             console.error(`HTTP Server encountered an error:`, err);
             process.exit(1);
           }
-        })
+        });
+
+        // Initialize Database and background services asynchronously
+        (async () => {
+          try {
+            await this.connectToDb();
+            const { Associate } = await import('../database/models/models/models');
+            const { sequelize } = await import('../database/config/dbConn');
+            await sequelize.query('CREATE EXTENSION IF NOT EXISTS vector;').catch(() => {});
+            const count = await (Associate as any).count().catch(() => 0);
+            console.log(`Database verified. Found ${count} associates.`);
+          } catch (err: any) {
+            console.warn("Database initialization warning (non-fatal):", err?.message || err);
+          }
+
+          // Initialize RAG embedding model asynchronously in background
+          try {
+            const { initializeModel } = await import('./src/services/ragService');
+            await initializeModel();
+          } catch (ragErr: any) {
+            console.warn("RAG model initialization warning (non-fatal):", ragErr?.message || ragErr);
+          }
+        })();
       }
 
       public async shutdown(): Promise<void> {
