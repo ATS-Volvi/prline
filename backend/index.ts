@@ -10,9 +10,9 @@ let server: Server | null = null;
 
 const start=async ()=>{
     try {
-        const { PORT } = variables;
+        const port = Number(process.env.PORT || variables.PORT || 5505);
         server = new Server();
-        await server.start(Number(PORT));
+        await server.start(port);
       } catch (error) {
         console.error(error);
         process.exit(1);

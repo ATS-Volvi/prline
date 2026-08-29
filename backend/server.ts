@@ -2,67 +2,92 @@ import express, { ErrorRequestHandler } from 'express'
 import Database from './config/dbConn'
 import cors from 'cors'
 import logger from './utils/logger'
-
+import path from 'path'
+import fs from 'fs'
 
 import NotFoundError from './utils/errors/404notFound'
 import AuthRouter from './src/api/v1/auth/routes'
 import v1Router from './src/api/v1/routes'
 import { createError } from './utils/errors/createError'
-class Server{
-    public app=express()
-    public port?:Number
+
+class Server {
+    public app = express()
+    public port?: Number
     public httpServer?: import('http').Server
 
     constructor() {
         this.config()
         this.router()
-      }
+    }
 
-      private async connectToDb() {
+    private async connectToDb() {
         return await Database.createConnection()
-      }
+    }
 
-      public async config(){
+    public async config() {
         this.app.set('trust proxy', true)
         this.app.set('case sensitive routing', true)
         const corsOptions = {
-          origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-            const allowed = [
-              process.env.FRONTEND_URL,
-              'http://localhost:5173',
-              'http://localhost:5174',
-              'http://localhost:5175',
-              'http://localhost:3000',
-            ].filter(Boolean) as string[];
+            origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+                const allowed = [
+                    process.env.FRONTEND_URL,
+                    'http://localhost:5173',
+                    'http://localhost:5174',
+                    'http://localhost:5175',
+                    'http://localhost:3000',
+                ].filter(Boolean) as string[];
 
-            // Allow Vercel preview deployments (*.vercel.app)
-            if (!origin || allowed.includes(origin) || origin.endsWith('.vercel.app')) {
-              callback(null, true);
-            } else {
-              callback(new Error(`CORS blocked: ${origin}`));
-            }
-          },
-          credentials: true,
-          methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS', 'PATCH'],
-          allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-Client-Type']
+                // Allow Render (*.onrender.com) and Vercel (*.vercel.app) deployments
+                if (!origin || allowed.includes(origin) || origin.endsWith('.onrender.com') || origin.endsWith('.vercel.app')) {
+                    callback(null, true);
+                } else {
+                    callback(new Error(`CORS blocked: ${origin}`));
+                }
+            },
+            credentials: true,
+            methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS', 'PATCH'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-Client-Type']
         };
 
         this.app.use(cors(corsOptions));
-          this.app.use(express.json({ limit: '50mb' }))
-          this.app.use(express.urlencoded({ limit: '50mb' }))
-      
-          
-          
-      }
+        this.app.use(express.json({ limit: '50mb' }))
+        this.app.use(express.urlencoded({ limit: '50mb', extended: true }))
+    }
 
-      public async router(){
-        
-        this.app.use("/api/v1/auth",AuthRouter)
+    public async router() {
+        // Health check routes for deployment monitoring (Render, AWS, etc.)
+        this.app.get('/health', (_req, res) => {
+            res.json({ status: 'ok', timestamp: new Date().toISOString() });
+        });
+        this.app.get('/api/health', (_req, res) => {
+            res.json({ status: 'ok', timestamp: new Date().toISOString() });
+        });
+
+        this.app.use("/api/v1/auth", AuthRouter)
         this.app.use("/api/v1", v1Router)
-        this.app.all('*', async (request, response, next) => {
-          logger?.info(request.url)
-          return next(createError({status:404,message:"Not Found!"}))
-        })
+
+        // Serve Frontend Static Build if available (for unified Fullstack deployment on Render)
+        const frontendDistCandidates = [
+            path.resolve(process.cwd(), 'frontend/dist'),
+            path.resolve(__dirname, '../../frontend/dist'),
+            path.resolve(__dirname, '../frontend/dist'),
+        ];
+        const frontendDist = frontendDistCandidates.find(dir => fs.existsSync(dir));
+
+        if (frontendDist) {
+            this.app.use(express.static(frontendDist));
+            this.app.get('*', (request, response, next) => {
+                if (request.path.startsWith('/api')) {
+                    return next(createError({ status: 404, message: "API Endpoint Not Found!" }));
+                }
+                response.sendFile(path.join(frontendDist, 'index.html'));
+            });
+        } else {
+            this.app.all('*', async (request, response, next) => {
+                logger?.info(request.url)
+                return next(createError({ status: 404, message: "Not Found!" }))
+            })
+        }
 
         const errorMiddleware:ErrorRequestHandler=(
           err:any,

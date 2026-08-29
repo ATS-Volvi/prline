@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: prline-app
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build:all
+    startCommand: npm run start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: DATABASE_URL
+        fromDatabase:
+          name: prline-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: BASE_URL
+        sync: false
+      - key: WORKSPACE_EMAIL
+        sync: false
+      - key: WORKSPACE_PASSWORD
+        sync: false
+
+databases:
+  - name: prline-db
+    plan: free
+    databaseName: prline
+    user: prline_user
