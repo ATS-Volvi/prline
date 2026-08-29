@@ -35,9 +35,12 @@ const gracefulShutdown = async (signal: string) => {
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
   
-  process.on("uncaughtException", (err) => {
-    console.error(err);
-    console.error(`Uncaught Exception: ${err.message}`);
+process.on("uncaughtException", (err) => {
+    console.error("Fatal Uncaught Exception:", err);
     process.exit(1);
-  });
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+    console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
   

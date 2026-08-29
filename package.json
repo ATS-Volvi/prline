@@ -19,5 +19,8 @@
   "supportedArchitectures": {
     "os": ["current", "linux"],
     "cpu": ["current", "x64"]
+  },
+  "engines": {
+    "node": ">=20.0.0 <23.0.0"
   }
 }
