@@ -68,13 +68,17 @@ class Server {
 
         // Serve Frontend Static Build if available (for unified Fullstack deployment on Render)
         const frontendDistCandidates = [
-            path.resolve(process.cwd(), 'frontend/dist'),
+            path.resolve(process.cwd(), '../frontend/dist'),
+            path.resolve(__dirname, '../../../frontend/dist'),
             path.resolve(__dirname, '../../frontend/dist'),
             path.resolve(__dirname, '../frontend/dist'),
+            path.resolve(process.cwd(), 'frontend/dist'),
+            path.resolve(process.cwd(), 'dist'),
         ];
         const frontendDist = frontendDistCandidates.find(dir => fs.existsSync(dir));
 
         if (frontendDist) {
+            console.log(`[Static Files] Serving frontend from: ${frontendDist}`);
             this.app.use(express.static(frontendDist));
             this.app.get('*', (request, response, next) => {
                 if (request.path.startsWith('/api')) {
@@ -83,6 +87,7 @@ class Server {
                 response.sendFile(path.join(frontendDist, 'index.html'));
             });
         } else {
+            console.warn('[Static Files] No frontend dist directory found in candidates:', frontendDistCandidates);
             this.app.all('*', async (request, response, next) => {
                 logger?.info(request.url)
                 return next(createError({ status: 404, message: "Not Found!" }))
