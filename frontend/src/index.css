@@ -368,3 +368,515 @@ body {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+@keyframes beltMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 24px 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-56px) scale(0.92);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(4px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Continuous Conveyor Belt Surface Motion */
+@keyframes conveyorBeltMotion {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 28px 0;
+  }
+}
+
+.conveyor-belt-surface {
+  background-color: #cbd5e1;
+  background-image: 
+    linear-gradient(90deg, rgba(71, 85, 105, 0.28) 1.5px, transparent 1.5px),
+    linear-gradient(180deg, #94a3b8 0%, #cbd5e1 12%, #e2e8f0 50%, #cbd5e1 88%, #94a3b8 100%);
+  background-size: 28px 100%, 100% 100%;
+  animation: conveyorBeltMotion 1.2s linear infinite;
+  box-shadow: inset 0 3px 6px rgba(15, 23, 42, 0.2), inset 0 -3px 6px rgba(15, 23, 42, 0.2);
+}
+
+.conveyor-belt-surface.paused {
+  animation-play-state: paused;
+}
+
+/* Realistic 3D Packaging Carton Style */
+.carton-box {
+  position: relative;
+  border-radius: 6px;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.16),
+    0 2px 4px -2px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.22);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.carton-box::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.22);
+  pointer-events: none;
+}
+
+.carton-box:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.2),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  z-index: 10;
+}
+
+/* Optical QC Scanner Laser Pulse */
+@keyframes laserScanPulse {
+  0% {
+    opacity: 0.2;
+    transform: scaleY(0.9);
+    filter: drop-shadow(0 0 2px #06b6d4);
+  }
+  30% {
+    opacity: 1;
+    transform: scaleY(1.02);
+    filter: drop-shadow(0 0 12px #22d3ee) drop-shadow(0 0 6px #06b6d4);
+  }
+  70% {
+    opacity: 0.9;
+    transform: scaleY(1.01);
+    filter: drop-shadow(0 0 8px #22d3ee);
+  }
+  100% {
+    opacity: 0.2;
+    transform: scaleY(0.9);
+    filter: drop-shadow(0 0 2px #06b6d4);
+  }
+}
+
+.animate-laser-pulse {
+  animation: laserScanPulse 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Palletizer Outfeed Chevron Wave */
+@keyframes outfeedChevrons {
+  0% {
+    opacity: 0.3;
+    transform: translateX(-4px);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateX(0px);
+  }
+  100% {
+    opacity: 0.3;
+    transform: translateX(4px);
+  }
+}
+
+.animate-chevrons {
+  animation: outfeedChevrons 1.5s ease-in-out infinite;
+}
+
+/* Glassmorphic card styling */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+}
+
+.glass-panel:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+}
+
+/* ─── Multi-Station Line Process Flow Product Items ───────────────────────── */
+
+/* Raw potato slice / masa cut */
+.item-raw-slice {
+  width: 22px;
+  height: 22px;
+  border-radius: 46% 54% 50% 50% / 52% 48% 52% 48%;
+  background: linear-gradient(135deg, #fef08a 0%, #fef9c3 60%, #eab308 100%);
+  border: 1px solid rgba(202, 138, 4, 0.35);
+  box-shadow: 0 2px 3px rgba(0,0,0,0.12), inset 0 1px 1px rgba(255,255,255,0.7);
+}
+
+/* Cooked golden fried / toasted chip */
+.item-cooked-chip {
+  width: 24px;
+  height: 22px;
+  border-radius: 48% 52% 56% 44% / 46% 58% 42% 54%;
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #d97706 100%);
+  border: 1px solid rgba(180, 83, 9, 0.45);
+  box-shadow: 0 2px 4px rgba(180, 83, 9, 0.25), inset 0 1px 1px rgba(255,255,255,0.6);
+  transform: rotate(-4deg);
+}
+
+/* Seasoned chip with spice dusting */
+.item-seasoned-chip {
+  width: 24px;
+  height: 22px;
+  border-radius: 52% 48% 44% 56% / 54% 46% 54% 46%;
+  background: radial-gradient(circle at 40% 40%, #ea580c 0%, #d97706 60%, #b45309 100%);
+  border: 1px solid rgba(154, 52, 18, 0.5);
+  box-shadow: 0 2px 5px rgba(234, 88, 12, 0.3), inset 0 1px 1px rgba(255,255,255,0.5);
+  transform: rotate(6deg);
+}
+
+/* Mini Snack Pouch Pillow Pack */
+.item-snack-pouch {
+  width: 28px;
+  height: 34px;
+  border-radius: 4px;
+  position: relative;
+  box-shadow: 
+    0 3px 5px rgba(0,0,0,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.5),
+    inset 0 -1px 0 rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 8px;
+  letter-spacing: -0.02em;
+}
+
+.item-snack-pouch::before,
+.item-snack-pouch::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+}
+.item-snack-pouch::before { top: 0; }
+.item-snack-pouch::after { bottom: 0; }
+
+/* Continuous conveyor item flow animation */
+@keyframes flowAlongBelt {
+  0% {
+    transform: translateX(-24px);
+    opacity: 0.6;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(44px);
+    opacity: 0.6;
+  }
+}
+
+.animate-belt-flow {
+  animation: flowAlongBelt 2.2s linear infinite;
+}
+
+.animate-belt-flow-delayed {
+  animation: flowAlongBelt 2.2s linear infinite;
+  animation-delay: -1.1s;
+}
+
+/* Vertical down conveyor flow */
+@keyframes flowAlongBeltDown {
+  0% { transform: translateY(-24px); opacity: 0.6; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateY(44px); opacity: 0.6; }
+}
+
+/* Horizontal left (reverse) conveyor flow */
+@keyframes flowAlongBeltLeft {
+  0% { transform: translateX(44px); opacity: 0.6; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateX(-24px); opacity: 0.6; }
+}
+
+/* Vertical up conveyor flow */
+@keyframes flowAlongBeltUp {
+  0% { transform: translateY(44px); opacity: 0.6; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateY(-24px); opacity: 0.6; }
+}
+
+.animate-belt-flow-down {
+  animation: flowAlongBeltDown 2.2s linear infinite;
+}
+.animate-belt-flow-left {
+  animation: flowAlongBeltLeft 2.2s linear infinite;
+}
+.animate-belt-flow-up {
+  animation: flowAlongBeltUp 2.2s linear infinite;
+}
+
+/* Tortilla triangle chip */
+.item-tortilla-chip {
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 22px solid #f59e0b;
+  position: relative;
+  filter: drop-shadow(0 2px 3px rgba(180, 83, 9, 0.35));
+}
+
+/* Pretzel twisted knot */
+.item-pretzel-knot {
+  width: 22px;
+  height: 18px;
+  background: radial-gradient(circle at 40% 40%, #b45309 0%, #78350f 100%);
+  border-radius: 6px;
+  border: 1.5px solid #451a03;
+  box-shadow: 0 2px 4px rgba(69, 26, 3, 0.4);
+}
+
+/* Extruded curly collet */
+.item-collet-puff {
+  width: 22px;
+  height: 11px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 60%, #c2410c 100%);
+  box-shadow: 0 2px 4px rgba(194, 65, 12, 0.35);
+  transform: rotate(-15deg);
+}
+
+/* Industrial Conveyor Track Rails */
+.conveyor-track-rail-h {
+  background: repeating-linear-gradient(90deg, #1e293b 0px, #1e293b 8px, #0f172a 8px, #0f172a 16px);
+}
+.conveyor-track-rail-v {
+  background: repeating-linear-gradient(180deg, #1e293b 0px, #1e293b 8px, #0f172a 8px, #0f172a 16px);
+}
+
+/* Reverse Horizontal Conveyor Roller Surface (Right to Left) */
+@keyframes beltMoveLeft {
+  0% {
+    background-position: 20px 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+.conveyor-belt-surface-left {
+  background: linear-gradient(180deg, #334155 0%, #1e293b 50%, #0f172a 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+.conveyor-belt-surface-left::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 16px,
+    rgba(255, 255, 255, 0.04) 16px,
+    rgba(255, 255, 255, 0.04) 18px,
+    rgba(0, 0, 0, 0.25) 18px,
+    rgba(0, 0, 0, 0.25) 20px
+  );
+  animation: beltMoveLeft 1.2s linear infinite;
+}
+
+/* Vertical Conveyor Roller Surface (Top to Bottom) */
+@keyframes beltMoveVDown {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 20px;
+  }
+}
+
+.conveyor-belt-surface-v {
+  background: linear-gradient(90deg, #334155 0%, #1e293b 50%, #0f172a 100%);
+  box-shadow: inset 2px 0 4px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+.conveyor-belt-surface-v::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    180deg,
+    transparent,
+    transparent 16px,
+    rgba(255, 255, 255, 0.04) 16px,
+    rgba(255, 255, 255, 0.04) 18px,
+    rgba(0, 0, 0, 0.25) 18px,
+    rgba(0, 0, 0, 0.25) 20px
+  );
+  animation: beltMoveVDown 1.2s linear infinite;
+}
+
+/* Vertical Conveyor Roller Surface (Bottom to Top) */
+@keyframes beltMoveVUp {
+  0% {
+    background-position: 0 20px;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+.conveyor-belt-surface-v-up {
+  background: linear-gradient(90deg, #334155 0%, #1e293b 50%, #0f172a 100%);
+  box-shadow: inset -2px 0 4px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+.conveyor-belt-surface-v-up::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    180deg,
+    transparent,
+    transparent 16px,
+    rgba(255, 255, 255, 0.04) 16px,
+    rgba(255, 255, 255, 0.04) 18px,
+    rgba(0, 0, 0, 0.25) 18px,
+    rgba(0, 0, 0, 0.25) 20px
+  );
+  animation: beltMoveVUp 1.2s linear infinite;
+}
+
+.conveyor-belt-surface.paused::before,
+.conveyor-belt-surface-left.paused::before,
+.conveyor-belt-surface-v.paused::before,
+.conveyor-belt-surface-v-up.paused::before {
+  animation-play-state: paused;
+}
+
+/* VFD Conveyor Speed Variants */
+.conveyor-speed-eco,
+.conveyor-speed-eco::before {
+  animation-duration: 2.2s !important;
+}
+.conveyor-speed-nominal,
+.conveyor-speed-nominal::before {
+  animation-duration: 1.2s !important;
+}
+.conveyor-speed-turbo,
+.conveyor-speed-turbo::before {
+  animation-duration: 0.6s !important;
+}
+
+/* Product Flow Speed Variants */
+.flow-speed-eco {
+  animation-duration: 3.8s !important;
+}
+.flow-speed-nominal {
+  animation-duration: 2.2s !important;
+}
+.flow-speed-turbo {
+  animation-duration: 1.1s !important;
+}
+
+/* Emergency Stop (E-STOP) Flashing Rail State */
+.conveyor-estop {
+  background: repeating-linear-gradient(
+    45deg,
+    #b91c1c 0px,
+    #b91c1c 10px,
+    #450a0a 10px,
+    #450a0a 20px
+  ) !important;
+  box-shadow: inset 0 0 16px rgba(239, 68, 68, 0.8), 0 0 20px rgba(239, 68, 68, 0.4) !important;
+  animation: estopStrobe 0.75s ease-in-out infinite alternate !important;
+}
+
+@keyframes estopStrobe {
+  from {
+    filter: brightness(0.9);
+  }
+  to {
+    filter: brightness(1.3) drop-shadow(0 0 10px rgba(239, 68, 68, 0.8));
+  }
+}
+
+/* Pneumatic Diverter Gate Actuation */
+.diverter-actuated {
+  transform-origin: top left;
+  animation: diverterSwing 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes diverterSwing {
+  0% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(45deg);
+  }
+  70% {
+    transform: rotate(45deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* Defective In-Transit Item Style */
+.item-defective {
+  outline: 2px solid #ef4444 !important;
+  filter: drop-shadow(0 0 8px #ef4444) !important;
+  animation: defectPulse 0.6s ease-in-out infinite alternate !important;
+}
+
+@keyframes defectPulse {
+  from {
+    transform: scale(0.95);
+  }
+  to {
+    transform: scale(1.15);
+  }
+}
+
+
+
+

@@ -11,6 +11,8 @@ import { Login } from './components/Login';
 import { ExecutiveDashboard } from './components/ExecutiveDashboard';
 import { PlantMap } from './components/PlantMap';
 import { ProductionPlanning } from './components/ProductionPlanning';
+import { LiveConveyor } from './components/LiveConveyor';
+import { LineProcessLoop } from './components/LineProcessLoop';
 
 function MainAppContent() {
   const { token, logout } = useApp();
@@ -56,6 +58,22 @@ function MainAppContent() {
             setSelectedLineId={setSelectedLineId} 
           />
         );
+      case 'live_conveyor':
+        return (
+          <LiveConveyor 
+            selectedLineId={selectedLineId} 
+            setSelectedLineId={setSelectedLineId} 
+            setActiveTab={setActiveTab}
+          />
+        );
+      case 'line_loop':
+        return (
+          <LineProcessLoop 
+            selectedLineId={selectedLineId} 
+            setSelectedLineId={setSelectedLineId} 
+            setActiveTab={setActiveTab}
+          />
+        );
       case 'executive':
         return <ExecutiveDashboard setActiveTab={setActiveTab} />;
       case 'plant_map':
@@ -92,7 +110,7 @@ function MainAppContent() {
   };
 
   return (
-    <div className="app-root flex w-screen overflow-hidden bg-background">
+    <div className="app-root flex h-screen w-screen overflow-hidden bg-background">
       {/* Sidebar Navigation */}
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
       

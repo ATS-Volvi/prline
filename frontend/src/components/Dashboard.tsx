@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { LiveConveyor } from './LiveConveyor';
 
 interface DashboardProps {
   setActiveTab: (tab: string) => void;
@@ -15,7 +16,7 @@ const AVATAR_MAP: Record<string, string> = {
 export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedLineId }) => {
   const { productionLines, workstations, allocations, associates, associateSkills, leaveRecords, role, user } = useApp();
 
-  const [dashboardSubTab, setDashboardSubTab] = useState<'overview' | 'assets'>('overview');
+  const [dashboardSubTab, setDashboardSubTab] = useState<'overview' | 'assets' | 'conveyor'>('overview');
   const [assetsFilterTab, setAssetsFilterTab] = useState<'ALL' | 'ATTENTION'>('ALL');
   
 
@@ -341,6 +342,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
             >
               Overview
               {dashboardSubTab === 'overview' && (
+                <div className="absolute bottom-[-18px] left-0 right-0 h-[2px] bg-primary rounded-full" />
+              )}
+            </button>
+            <button
+              onClick={() => setDashboardSubTab('conveyor')}
+              className={`pb-1 text-xs font-bold transition-all cursor-pointer relative flex items-center gap-1.5 ${
+                dashboardSubTab === 'conveyor' ? 'text-primary' : 'text-secondary hover:text-primary'
+              }`}
+            >
+              <span>Live Conveyor</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+              {dashboardSubTab === 'conveyor' && (
                 <div className="absolute bottom-[-18px] left-0 right-0 h-[2px] bg-primary rounded-full" />
               )}
             </button>
@@ -700,6 +713,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveTab, setSelectedL
         </section>
 
       </div>
+      ) : dashboardSubTab === 'conveyor' ? (
+        <LiveConveyor selectedLineId="LINE-01" setSelectedLineId={setSelectedLineId} />
       ) : (
         renderAssetsSubTab()
       )}

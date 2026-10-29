@@ -32,6 +32,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
   // Top-level tabs (excluding the master data ones which are grouped)
   const topTabs = [
     { id: 'dashboard', name: 'Dashboard', icon: 'dashboard', roles: allRoles },
+    { id: 'live_conveyor', name: 'Live Conveyor', icon: 'conveyor_belt', roles: allRoles },
+    { id: 'line_loop', name: 'Line Process Loop', icon: 'schema', roles: allRoles },
     { id: 'shift_planner', name: 'Shift Allocation', icon: 'edit_calendar', roles: allRoles },
     { id: 'production_planning', name: 'Production Planning', icon: 'timeline', roles: allRoles },
     { id: 'analytics', name: 'Reports', icon: 'analytics', roles: allRoles },
@@ -106,7 +108,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
       {/* Navigation Links */}
       <nav className="flex-1 py-4 px-3 overflow-y-auto custom-scrollbar flex flex-col gap-1 bg-primary">
         {/* Top-level tabs before master group */}
-        {visibleTopTabs.slice(0, 2).map(tab => {
+        {visibleTopTabs.slice(0, 3).map(tab => {
           const isActive = activeTab === tab.id;
           return (
             <button
@@ -186,7 +188,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
         )}
 
         {/* Remaining top-level tabs after master group */}
-        {visibleTopTabs.slice(2).map(tab => {
+        {visibleTopTabs.slice(3).map(tab => {
           const isActive = activeTab === tab.id;
           return (
             <button

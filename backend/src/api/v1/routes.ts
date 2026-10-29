@@ -19,6 +19,7 @@ import * as allocationController from "../../../src/controllers/allocationContro
 import * as dataController from "../../../src/controllers/dataController";
 import * as reportsController from "../../../src/controllers/reportsController";
 import * as planningController from "../../../src/controllers/planningController";
+import * as conveyorController from "../../../src/controllers/conveyorController";
 
 const router = Router();
 
@@ -611,5 +612,14 @@ router.get("/planning/plan", AuthHandler.authMiddleware, planningController.getP
 router.get("/planning/manpower", AuthHandler.authMiddleware, planningController.getManpowerPlan);
 router.post("/planning/actuals", AuthHandler.authMiddleware, planningController.logActual);
 router.get("/planning/variance", AuthHandler.authMiddleware, planningController.getVariance);
+
+// LIVE CONVEYOR & SCANNER INGESTION ROUTES
+router.get("/conveyor/snapshot", AuthHandler.authMiddleware, conveyorController.getSnapshot);
+router.get("/conveyor/stream", AuthHandler.authMiddleware, conveyorController.streamConveyor);
+router.post("/conveyor/ingest", AuthHandler.authMiddleware, conveyorController.ingestHardwareScan);
+router.get("/conveyor/simulation", AuthHandler.authMiddleware, conveyorController.getSimulationStatus);
+router.post("/conveyor/simulation/config", AuthHandler.authMiddleware, conveyorController.updateSimulationConfig);
+router.post("/conveyor/simulation/inject", AuthHandler.authMiddleware, conveyorController.injectDefect);
+router.post("/conveyor/mode", AuthHandler.authMiddleware, conveyorController.setMode);
 
 export default router;

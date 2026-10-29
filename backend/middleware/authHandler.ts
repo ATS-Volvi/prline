@@ -29,10 +29,14 @@ class AuthHandler {
     response: express.Response,
     next: express.NextFunction
   ): Promise<void> {
-    if (!request.headers.authorization) {
-      return next(createError({status:401,message:"need signin"}))
+    let token: string | undefined;
+
+    if (request.headers.authorization) {
+      token = request.headers.authorization.split(' ')[1];
+    } else if (request.query && typeof request.query.token === 'string') {
+      token = request.query.token;
     }
-    const token = request.headers.authorization.split(' ')[1]
+
     if (!token) {
       return next(createError({status:401,message:"need signin"}))
     }

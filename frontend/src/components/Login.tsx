@@ -2,6 +2,60 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import type { UserRole } from '../types';
 
+interface DemoAccount {
+  role: UserRole;
+  name: string;
+  email: string;
+  password: string;
+  badge: string;
+  badgeBg: string;
+  badgeText: string;
+  description: string;
+}
+
+export const DEMO_ACCOUNTS: DemoAccount[] = [
+  {
+    role: 'Plant Admin',
+    name: 'A. Mukhopadhyay',
+    email: 'admin@pepsico.com',
+    password: 'AdminPassword123',
+    badge: 'PRI-ADMIN',
+    badgeBg: 'rgba(16,185,129,0.15)',
+    badgeText: '#34d399',
+    description: 'Full plant & line administration',
+  },
+  {
+    role: 'Production Supervisor',
+    name: 'R. Sharma',
+    email: 'supervisor@pepsico.com',
+    password: 'SupervisorPassword123',
+    badge: 'SUPERVISOR',
+    badgeBg: 'rgba(20,184,166,0.15)',
+    badgeText: '#2dd4bf',
+    description: 'Rosters, allocation & live conveyor',
+  },
+  {
+    role: 'HR / Training Coordinator',
+    name: 'P. Banerjee',
+    email: 'hr@pepsico.com',
+    password: 'HRPassword123',
+    badge: 'HR-ADMIN',
+    badgeBg: 'rgba(6,182,212,0.15)',
+    badgeText: '#22d3ee',
+    description: 'Skills matrix & associate records',
+  },
+  {
+    role: 'Plant Manager',
+    name: 'S. Chatterjee',
+    email: 'manager@pepsico.com',
+    password: 'ManagerPassword123',
+    badge: 'MANAGER',
+    badgeBg: 'rgba(168,85,247,0.15)',
+    badgeText: '#c084fc',
+    description: 'Executive analytics & planning',
+  },
+];
+
 export const Login: React.FC = () => {
   const { login } = useApp();
   const [viewMode, setViewMode] = useState<'login' | 'signup' | 'forgot' | 'reset'>(() => {
@@ -10,12 +64,12 @@ export const Login: React.FC = () => {
   });
 
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@pepsico.com');
+  const [password, setPassword] = useState('AdminPassword123');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole>('Production Supervisor');
+  const [selectedRole, setSelectedRole] = useState<UserRole>('Plant Admin');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -264,6 +318,26 @@ export const Login: React.FC = () => {
                 <p className="text-xs font-bold text-white font-sans mt-0.5">Kolkata Snacks, IN</p>
               </div>
             </div>
+
+            {/* Quick Credentials Reference */}
+            <div className="pt-3 border-t border-[#1e293b]/60 flex flex-col gap-1.5 font-mono">
+              <span className="text-[8.5px] font-bold text-[#14b8a6] uppercase tracking-wider flex items-center gap-1">
+                <span className="material-symbols-outlined text-xs">key</span>
+                Default Access Credentials:
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-[8.5px] text-slate-300">
+                <div className="bg-[#091122] p-2 rounded-lg border border-slate-800 flex flex-col">
+                  <span className="text-white font-bold">Admin:</span>
+                  <span className="text-[#94a3b8] truncate">admin@pepsico.com</span>
+                  <span className="text-teal-400 font-bold mt-0.5">AdminPassword123</span>
+                </div>
+                <div className="bg-[#091122] p-2 rounded-lg border border-slate-800 flex flex-col">
+                  <span className="text-white font-bold">Supervisor:</span>
+                  <span className="text-[#94a3b8] truncate">supervisor@pepsico.com</span>
+                  <span className="text-teal-400 font-bold mt-0.5">SupervisorPassword123</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -456,6 +530,70 @@ export const Login: React.FC = () => {
                 </>
               )}
             </button>
+
+            {/* HMS-Style Quick Login Demo Credentials */}
+            {viewMode === 'login' && (
+              <div style={{ marginTop: '0.5rem', padding: '0.875rem', backgroundColor: 'rgba(7,14,29,0.95)', border: '1px solid #1e293b', borderRadius: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                    <span className="material-symbols-outlined" style={{ color: '#14b8a6', fontSize: '15px' }}>vpn_key</span>
+                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9.5px', fontWeight: 700, color: '#f1f5f9', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                      DEMO CREDENTIALS (CLICK TO AUTOFILL)
+                    </span>
+                  </div>
+                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '8px', color: '#14b8a6', fontWeight: 700, backgroundColor: 'rgba(20,184,166,0.1)', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(20,184,166,0.2)' }}>
+                    READY TO USE
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {DEMO_ACCOUNTS.map((acc) => {
+                    const isSelected = email === acc.email;
+                    return (
+                      <button
+                        key={acc.email}
+                        type="button"
+                        onClick={() => {
+                          setEmail(acc.email);
+                          setPassword(acc.password);
+                          setSelectedRole(acc.role);
+                          setError(null);
+                        }}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          textAlign: 'left',
+                          padding: '0.5rem',
+                          borderRadius: '0.5rem',
+                          border: isSelected ? '1px solid #14b8a6' : '1px solid rgba(30,41,59,0.9)',
+                          backgroundColor: isSelected ? 'rgba(20,184,166,0.12)' : 'rgba(15,23,42,0.6)',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                        className="hover:border-teal-400 hover:bg-[#12203a]"
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '2px' }}>
+                          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 700, color: isSelected ? '#2dd4bf' : '#f8fafc' }}>
+                            {acc.role}
+                          </span>
+                        </div>
+                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: '#94a3b8' }} className="truncate">
+                          {acc.email}
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '2px' }}>
+                          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '8.5px', color: '#64748b' }}>
+                            Pass: {acc.password}
+                          </span>
+                          <span style={{ fontSize: '7.5px', fontFamily: 'JetBrains Mono, monospace', padding: '1px 3px', borderRadius: '3px', backgroundColor: acc.badgeBg, color: acc.badgeText, fontWeight: 700 }}>
+                            {acc.badge}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </form>
 
           {/* Footer Toggle */}

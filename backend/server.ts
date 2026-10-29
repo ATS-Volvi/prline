@@ -143,6 +143,15 @@ class Server {
             console.warn("Database initialization warning (non-fatal):", err?.message || err);
           }
 
+          // Initialize Live Conveyor & Scanner Service
+          try {
+            const { ConveyorService } = await import('./src/services/conveyorService');
+            await ConveyorService.getInstance().initialize();
+            console.log("Conveyor monitoring service initialized successfully.");
+          } catch (convErr: any) {
+            console.warn("Conveyor service initialization warning (non-fatal):", convErr?.message || convErr);
+          }
+
           // Initialize RAG embedding model asynchronously in background
           try {
             const { initializeModel } = await import('./src/services/ragService');
@@ -154,6 +163,11 @@ class Server {
       }
 
       public async shutdown(): Promise<void> {
+        try {
+          const { ConveyorService } = await import('./src/services/conveyorService');
+          ConveyorService.getInstance().shutdown();
+        } catch {}
+
         if (!this.httpServer) return;
         return new Promise<void>((resolve) => {
           this.httpServer!.close(() => {

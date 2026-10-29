@@ -375,4 +375,54 @@ ManpowerNorm.belongsTo(ProductionAssumptions, { foreignKey: 'assumptions_id', as
 ProductionAssumptions.hasOne(CoverageBuffers, { foreignKey: 'assumptions_id', as: 'buffers', onDelete: 'CASCADE' });
 CoverageBuffers.belongsTo(ProductionAssumptions, { foreignKey: 'assumptions_id', as: 'assumptions' });
 
+// 15. SCAN EVENT MODEL (Live Conveyor & Inspection)
+export class ScanEvent extends Model {
+  public id!: string; // eventId (UUID)
+  public userId!: string | null;
+  public cartonId!: string;
+  public lineId!: string;
+  public shiftId!: string | null;
+  public sourceTimestamp!: Date;
+  public ingestedAt!: Date;
+  public scanResult!: 'PASS' | 'DEFECT_BARCODE' | 'DEFECT_WEIGHT' | 'DEFECT_SEAL' | 'NO_READ';
+  public status!: 'PROCESSED' | 'DUPLICATE' | 'REJECTED' | 'OUT_OF_SEQUENCE';
+  public scannerId!: string | null;
+  public stationId!: string | null;
+  public sku!: string | null;
+  public batchNumber!: string | null;
+  public positionMeters!: number | null;
+  public isSimulated!: boolean;
+  public metadata!: any;
+}
+ScanEvent.init({
+  id: { type: DataTypes.STRING, primaryKey: true },
+  userId: { type: DataTypes.STRING, allowNull: true, field: 'user_id' },
+  cartonId: { type: DataTypes.STRING, allowNull: false, field: 'carton_id' },
+  lineId: { type: DataTypes.STRING, allowNull: false, field: 'line_id' },
+  shiftId: { type: DataTypes.STRING, allowNull: true, field: 'shift_id' },
+  sourceTimestamp: { type: DataTypes.DATE, allowNull: false, field: 'source_timestamp' },
+  ingestedAt: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW, field: 'ingested_at' },
+  scanResult: { type: DataTypes.STRING, allowNull: false, field: 'scan_result' },
+  status: { type: DataTypes.STRING, allowNull: false, defaultValue: 'PROCESSED' },
+  scannerId: { type: DataTypes.STRING, allowNull: true, field: 'scanner_id' },
+  stationId: { type: DataTypes.STRING, allowNull: true, field: 'station_id' },
+  sku: { type: DataTypes.STRING, allowNull: true },
+  batchNumber: { type: DataTypes.STRING, allowNull: true, field: 'batch_number' },
+  positionMeters: { type: DataTypes.DECIMAL, allowNull: true, field: 'position_meters' },
+  isSimulated: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false, field: 'is_simulated' },
+  metadata: { type: DataTypes.JSONB, allowNull: true }
+}, {
+  sequelize,
+  tableName: 'scan_events',
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: false,
+  indexes: [
+    { fields: ['line_id', 'source_timestamp'] },
+    { fields: ['carton_id', 'source_timestamp'] },
+    { fields: ['is_simulated'] }
+  ]
+});
+
+
 
